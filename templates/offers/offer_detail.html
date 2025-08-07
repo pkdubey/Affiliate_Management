@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+<style>
+/* Glassy Animated Offer Card */
+.offer-detail-card {
+  max-width: 470px;
+  margin: 0 auto;
+  border-radius: 1.4rem;
+  background: rgba(253,255,255,0.84);
+  box-shadow: 0 8px 32px #1dbfae22, 0 1.5px 9px #09355413;
+  border: 1.2px solid rgba(29,191,174,0.11);
+  backdrop-filter: blur(9px) opacity(0.96);
+  animation: fadeInUpCard 1.05s cubic-bezier(.41,.71,.41,.98);
+  margin-bottom: 40px;
+}
+
+@keyframes fadeInUpCard {
+  0% { opacity:0; transform: translateY(34px);}
+  100% {opacity:1; transform:none;}
+}
+.offer-detail-header {
+  position: relative;
+  padding-bottom: .9rem;
+  border-bottom: 1px solid #1dbfae20;
+  text-align: center;
+}
+.offer-detail-icon {
+  background: linear-gradient(120deg,#1963b3 40%, #1dbfae 100%);
+  color: #fff;
+  font-size: 2.5rem;
+  width: 58px; height: 58px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px #1dbfae33;
+  position: absolute;
+  top: -29px; left: 50%; transform: translateX(-50%);
+  animation: popIn .7s cubic-bezier(.47,1.64,.43,1.08);
+}
+@keyframes popIn {
+  0% { transform: scale(0.6) translateY(-35px); }
+  60% { transform: scale(1.15) translateY(0);}
+  100% { transform: scale(1) translateY(0);}
+}
+.offer-detail-meta {
+  margin: 0; padding-left: 0;
+  list-style: none;
+  font-size: 1.1rem;
+}
+.offer-detail-meta li {
+  margin: 22px 0 12px 0;
+  display: flex; align-items: center; gap: 0.65em;
+}
+.offer-detail-label {
+  color: #166e67; font-weight: bold; min-width: 92px;
+}
+.offer-detail-value {
+  color: #1b2452; font-weight: 600;
+  transition: color .2s;
+}
+.offer-detail-actions {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 30px;
+}
+.offer-detail-actions a {
+  border-radius: 0.95rem;
+  font-weight: 600;
+  letter-spacing: .075em;
+  padding: 0.62em 1.7em;
+  border: none;
+  transition: background 0.18s, color 0.15s, box-shadow .16s;
+  background: linear-gradient(124deg,#1dbfae17,#188cbb09 90% );
+  color: #1963b3;
+  box-shadow: 0 1px 10px #1963b307;
+  text-decoration: none;
+  outline: none;
+  position: relative;
+}
+.offer-detail-actions a:hover, .offer-detail-actions a:focus {
+  color: #fff;
+  background: linear-gradient(123deg,#1dbfae 10%,#1963b3 120%);
+  box-shadow: 0 5px 16px #1963b33c;
+  text-decoration: none;
+}
+
+@media (max-width: 567px) {
+  .offer-detail-card { max-width:100%; border-radius:1.1rem;}
+  .offer-detail-header { font-size:1.05rem;}
+  .offer-detail-actions { flex-direction:column; gap:10px;}
+}
+</style>
+
+<div class="offer-detail-card mt-5 animate__animated animate__fadeIn">
+    <div class="offer-detail-header pb-3 mb-2">
+        <span class="offer-detail-icon">
+            <i class="bi bi-bag-check"></i>
+        </span>
+        <h2 class="mt-5 mb-0" style="color:#1963b3;letter-spacing:0.5px;font-weight:700;">{{ offer.campaign_name }}</h2>
+        <div class="text-muted fs-6" style="margin-top:.3rem;">Offer #{{ offer.id }}</div>
+    </div>
+    <ul class="offer-detail-meta px-4 px-md-5 pt-3">
+        <li>
+            <span class="offer-detail-label"><i class="bi bi-building me-1"></i>Advertiser:</span>
+            <span class="offer-detail-value">{{ offer.advertiser }}</span>
+        </li>
+        <li>
+            <span class="offer-detail-label"><i class="bi bi-geo-alt me-1"></i>Geo:</span>
+            <span class="offer-detail-value">{{ offer.geo }}</span>
+        </li>
+        <li>
+            <span class="offer-detail-label"><i class="bi bi-tags me-1"></i>Category:</span>
+            <span class="offer-detail-value">{{ offer.category }}</span>
+        </li>
+    </ul>
+    <div class="offer-detail-actions mt-4 mb-1 px-4 pb-2">
+        <a href="{% url 'offers:edit' offer.id %}" class="btn shadow-sm"><i class="bi bi-pencil-square me-1"></i> Edit</a>
+        <a href="{% url 'offers:delete' offer.id %}" class="btn btn-outline-danger shadow-sm"><i class="bi bi-trash me-1"></i> Delete</a>
+        <a href="{% url 'offers:list' %}" class="btn btn-light border shadow-sm"><i class="bi bi-arrow-90deg-left me-1"></i> Back to list</a>
+    </div>
+</div>
+{% endblock %}

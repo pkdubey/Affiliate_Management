@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+<style>
+/* Container card for the whole form */
+.wishlist-upload-card {
+    border-radius: 1.5rem;
+    background: rgba(255,255,255,0.35);
+    box-shadow: 0 8px 36px #1dbfae18, 0 3px 12px #1963b312;
+    backdrop-filter: blur(7px) saturate(120%);
+    border: 1.3px solid #1dbfae1a;
+    padding: 2.3rem 2.1rem 2rem 2.1rem;
+    margin: 0 auto;
+    max-width: 480px;
+    animation: fadeUpWL 0.95s cubic-bezier(.64,.19,.19,1.01);
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes fadeUpWL {
+    from { opacity:0; transform: translateY(42px);}
+    to   { opacity:1; transform: none;}
+}
+.wishlist-upload-card h1 {
+    font-size: 1.55rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    background: linear-gradient(90deg, #1dbfae,#1963b3);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    letter-spacing:.6px;
+    text-align:center;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #1dbfae;
+    letter-spacing: .03em;
+}
+
+.form-control {
+    border-radius: .7rem;
+    padding: .9rem .95rem;
+    font-size: 1.04rem;
+    border: 1.5px solid #1dbfae32;
+    box-shadow: 0 1px 8px #1dbfae10;
+    transition: border-color .17s, box-shadow .21s;
+}
+.form-control:focus {
+    border-color: #1963b3 !important;
+    box-shadow: 0 0 0 3px #1dbfae1b;
+    background: #fafdff;
+}
+
+.btn-animated-upload {
+    background: linear-gradient(90deg, #1dbfae 20%, #1963b3 100%);
+    border: none;
+    color: #fff !important;
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: .75rem 2.3rem;
+    border-radius: 1.25rem;
+    box-shadow: 0 2.5px 18px #1dbfae19;
+    letter-spacing: .045em;
+    position: relative;
+    transition: background .18s, transform .15s;
+    overflow: hidden;
+}
+.btn-animated-upload:hover, .btn-animated-upload:focus {
+    background: linear-gradient(90deg,#1963b3 20%,#1dbfae 90%);
+    color: #fff;
+    transform: translateY(-2px) scale(1.035);
+    box-shadow:0 6px 32px #1963b315;
+}
+.btn-animated-upload:active { 
+    background: #1963b3; 
+}
+
+@media (max-width: 600px) {
+    .wishlist-upload-card { padding: 1.2rem 6vw;}
+}
+.wishlist-upload-card {
+    border-radius: 1.5rem;
+    background: rgba(255,255,255,0.35);
+    box-shadow: 0 8px 36px #1dbfae18, 0 3px 12px #1963b312;
+    backdrop-filter: blur(7px) saturate(120%);
+    border: 1.3px solid #1dbfae1a;
+    padding: 2.3rem 2.1rem 2rem 2.1rem;
+    margin: 0 auto;
+    max-width: 480px;
+    animation: fadeUpWL 0.95s cubic-bezier(.64,.19,.19,1.01);
+    position: relative;
+    overflow: hidden;
+}
+@keyframes fadeUpWL {
+    from { opacity:0; transform: translateY(42px);}
+    to   { opacity:1; transform: none;}
+}
+.wishlist-upload-card h1 {
+    font-size: 1.55rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    background: linear-gradient(90deg, #1dbfae,#1963b3);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    letter-spacing:.6px;
+    text-align:center;
+}
+.form-label {
+    font-weight: 600;
+    color: #1dbfae;
+    letter-spacing: .03em;
+}
+.form-control {
+    border-radius: .7rem;
+    padding: .9rem .95rem;
+    font-size: 1.04rem;
+    border: 1.5px solid #1dbfae32;
+    box-shadow: 0 1px 8px #1dbfae10;
+    transition: border-color .17s, box-shadow .21s;
+}
+.form-control:focus {
+    border-color: #1963b3 !important;
+    box-shadow: 0 0 0 3px #1dbfae1b;
+    background: #fafdff;
+}
+.btn-animated-upload {
+    background: linear-gradient(90deg, #1dbfae 20%, #1963b3 100%);
+    border: none;
+    color: #fff !important;
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: .75rem 2.3rem;
+    border-radius: 1.25rem;
+    box-shadow: 0 2.5px 18px #1dbfae19;
+    letter-spacing: .045em;
+    position: relative;
+    transition: background .18s, transform .15s;
+    overflow: hidden;
+}
+.btn-animated-upload:hover, .btn-animated-upload:focus {
+    background: linear-gradient(90deg,#1963b3 20%,#1dbfae 90%);
+    color: #fff;
+    transform: translateY(-2px) scale(1.035);
+    box-shadow:0 6px 32px #1963b315;
+}
+.btn-animated-upload:active { 
+    background: #1963b3; 
+}
+@media (max-width: 600px) {
+    .wishlist-upload-card { padding: 1.2rem 6vw;}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wishlist-upload-card">
+    <h1>
+        <i class="bi bi-arrow-bar-up me-2"></i>Upload Wishlist Offers
+        <div class="small fw-normal text-dark" style="font-size:.99rem;letter-spacing:.01em;">(CSV/XLS or Manual entry)</div>
+    </h1>
+    <form method="post" enctype="multipart/form-data" autocomplete="off">
+        {% csrf_token %}
+
+        <!-- Publisher Dropdown -->
+        <div class="mb-4">
+            <label for="publisher" class="form-label">
+                <i class="bi bi-building me-1"></i>
+                Publisher <span class="text-danger">*</span>
+            </label>
+            <select name="publisher" id="publisher" class="form-control" required>
+                <option value="">-- Select Publisher --</option>
+                {% for pub in publishers %}
+                    <option value="{{ pub.id }}">{{ pub.company_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- File Upload -->
+        <div class="mb-4 animate__animated animate__fadeInLeft">
+            <label for="wishlist_file" class="form-label">Upload CSV/XLS File</label>
+            <input type="file" class="form-control" id="wishlist_file" name="wishlist_file" accept=".csv,.xls,.xlsx">
+        </div>
+
+        <!-- Manual Entry Fields -->
+        <div class="mb-4 animate__animated animate__fadeInRight">
+            <label class="form-label"><i class="bi bi-pencil-square me-1"></i> Or add wishlist offer manually</label>
+            <input type="text" class="form-control mb-2" name="desired_campaign" placeholder="Offer Name">
+            <input type="text" class="form-control mb-2" name="geo" placeholder="Geo (e.g. IN,US,UK)">
+            <input type="text" class="form-control mb-2" name="payout" placeholder="Payout">
+            <input type="text" class="form-control mb-2" name="payable_event" placeholder="Payable Event">
+            <input type="text" class="form-control mb-2" name="model" placeholder="Model">
+            <input type="text" class="form-control mb-2" name="category" placeholder="Category">
+        </div>
+        <div class="d-grid mt-2">
+            <button type="submit" class="btn btn-animated-upload animate__animated animate__pulse animate__infinite">
+                <i class="bi bi-upload me-1"></i> Upload
+            </button>
+        </div>
+    </form>
+    <div class="mt-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} animate__animated animate__fadeInDown mb-2">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

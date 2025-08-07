@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" />
+
+<style>
+.validation-form-card {
+    max-width: 580px;
+    margin: 48px auto 0 auto;
+    border-radius: 1.4rem;
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: blur(8px) saturate(120%);
+    box-shadow: 0 8px 38px #1dbfae18, 0 2px 10px #1963b319;
+    padding: 2.5rem 2.2rem 2rem 2.2rem;
+    animation: popInValidationCard 0.85s cubic-bezier(.32,.84,.43,1.21);
+    position: relative;
+}
+@keyframes popInValidationCard {
+    from { opacity:0; transform: translateY(28px) scale(.97);}
+    to   { opacity:1; transform: none;}
+}
+.validation-form-card h1 {
+    font-weight: 700;
+    color: #1963b3;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    letter-spacing: 0.04em;
+    animation: fadeDownValidation 0.6s .1s backwards;
+}
+@keyframes fadeDownValidation {
+    0% { opacity: 0; transform: translateY(-24px);}
+    100% { opacity:1; transform: none;}
+}
+.validation-form-card label {
+    font-weight: 600;
+    color: #1dbfae;
+    letter-spacing: .015em;
+    margin-bottom: 0.1em;
+}
+.validation-form-card .form-control:focus {
+    border-color: #1dbfae;
+    box-shadow: 0 0 0 3px #1dbfae33;
+    background: #f4fffe;
+    transition: box-shadow .17s, background .17s;
+}
+.validation-form-card button[type="submit"] {
+    background: linear-gradient(90deg, #1dbfae, #1963b3 96%);
+    color: #fff;
+    border-radius: .7rem;
+    font-weight: 700;
+    padding: .72em 1.4em;
+    font-size: 1.17em;
+    box-shadow: 0 4px 18px #1963b30f, 0 2px 7px #1dbfae12;
+    margin-top: .5em;
+    transition: background .18s, box-shadow .18s, transform .13s;
+    border: none;
+}
+.validation-form-card button[type="submit"]:hover {
+    background: linear-gradient(90deg, #1963b3 ,#1dbfae 90%);
+    box-shadow: 0 8px 32px #1dbfae22;
+    transform: translateY(-2px) scale(1.025);
+}
+.validation-form-card .back-link {
+    display: inline-block;
+    margin-top: 1.4em;
+    color: #1963b3;
+    text-decoration: underline dotted;
+    font-weight: 500;
+    transition: color .13s;
+    font-size: 1.03em;
+}
+.validation-form-card .back-link:hover {
+    color: #1dbfae;
+}
+@media (max-width: 700px) {
+    .validation-form-card { padding: 1.2rem 0.5rem 1.2rem 0.5rem; }
+    .validation-form-card h1 { font-size: 1.33rem;}
+}
+</style>
+
+<div class="validation-form-card animate__animated animate__fadeInDown">
+  <h1>
+    <i class="bi bi-clipboard-check me-2"></i>
+    {% if form.instance.pk %}
+      Edit Validation
+    {% else %}
+      Add Validation
+    {% endif %}
+  </h1>
+  <form method="post">
+  {% csrf_token %}
+  {% for field in form %}
+    <div class="mb-3">
+      <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+      {{ field }}
+      {% if field.help_text %}<small class="form-text text-muted">{{ field.help_text }}</small>{% endif %}
+      {% for error in field.errors %}
+        <div class="invalid-feedback d-block">{{ error }}</div>
+      {% endfor %}
+    </div>
+  {% endfor %}
+  <button type="submit" name="load_drs" value="1" class="btn btn-outline-info me-2">
+    <i class="bi bi-arrow-repeat me-1"></i> Load from DRS
+  </button>
+  <button type="submit" name="final_save" value="1" class="btn btn-success">
+    <i class="bi bi-check2-all me-1"></i> Save
+  </button>
+  <a href="{% url 'validation:validation_list' %}" class="back-link">
+    <i class="bi bi-arrow-left"></i> Back to Validation List
+  </a>
+</form>  
+</div>
+{% endblock %}

@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+<style>
+.invoice-glass-card {
+    max-width: 740px;
+    margin: 40px auto;
+    padding: 2.5rem 1.2rem 1.8rem 1.2rem;
+    background: rgba(255,255,255,0.17);
+    border-radius: 1.6rem;
+    box-shadow: 0 6px 36px #1963b322;
+    border: 1.6px solid #1dbfae19;
+    backdrop-filter: blur(9px) saturate(170%);
+    animation: fadeCardIn 1s cubic-bezier(.21,.97,.46,1.01);
+}
+@keyframes fadeCardIn {
+    0% { opacity:0; transform: translateY(36px) scale(.98);}
+    100% {opacity:1; transform: none;}
+}
+.animated-form-label {
+    font-weight: 600;
+    color: #1963b3;
+    margin-bottom: 7px;
+    letter-spacing: .03em;
+}
+.animated-form-control:focus {
+    border-color: #1dbfae;
+    box-shadow: 0 0 0 2px #1dbfae2b;
+    background: #fafdff;
+}
+.invoice-save-btn {
+    background: linear-gradient(88deg, #1dbfae 40%, #1963b3 100%);
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.09rem;
+    border-radius: 0.9rem;
+    letter-spacing: 0.09em;
+    box-shadow: 0 2px 12px #1dbfae2c;
+    transition: background 0.22s, box-shadow 0.21s, transform .15s;
+}
+.invoice-save-btn:hover, .invoice-save-btn:focus {
+    background: linear-gradient(78deg,#1963b3 35%, #19bfc9 100%);
+    transform: translateY(-2px) scale(1.045);
+    box-shadow: 0 5px 20px #1963b32e;
+}
+.invoice-back-link {
+    text-decoration: none;
+    color: #1963b3;
+    font-weight: 500;
+    margin-top: 18px;
+    display: inline-block;
+    transition: color .18s;
+}
+.invoice-back-link:hover { color: #1dbfae; text-decoration: underline;}
+@media (max-width: 768px) {
+    .invoice-glass-card { max-width: 98vw; padding: 1.2rem .4rem 1.2rem .4rem; }
+    .row { gap: 0.6rem 0; }
+}
+@media (max-width: 540px) {
+    .invoice-glass-card { padding: 0.9rem 0.3rem 1rem 0.3rem; }
+}
+.gap-col {
+    gap: 1rem 0.4rem;
+}
+@media (max-width: 767.98px) {
+    .row.gap-col > div { margin-bottom: 0.85rem !important; }
+}
+
+</style>
+
+
+<div class="invoice-glass-card animate__animated animate__fadeInDown">
+    <h2 class="mb-3 fw-bold" style="color:#1dbfae;">
+      {% if form.instance.pk %}
+        <i class="bi bi-pencil-square"></i> Edit
+      {% else %}
+        <i class="bi bi-plus-circle"></i> Add
+      {% endif %} Invoice
+    </h2>
+    <form method="post" enctype="multipart/form-data" autocomplete="off">
+        {% csrf_token %}
+
+        <!-- 1. Invoice Type Switcher -->
+        <div class="mb-3">
+            <label class="animated-form-label">Invoice Type</label><br>
+            <div class="d-flex gap-4 flex-wrap">
+                {{ form.party_type }}
+            </div>
+        </div>
+
+        <!-- 2. Bill From / Bill To - Responsive grid -->
+        <div class="row gap-col mb-3 align-items-stretch">
+    <!-- Bill From: Left -->
+    <div class="col-md-6 d-flex flex-column mb-3 mb-md-0">
+        <label class="animated-form-label mb-1">Bill From</label>
+        <div class="form-control-plaintext border rounded px-3 py-2 flex-grow-1 d-flex align-items-start"
+             style="background:rgba(255,255,255,0.23); white-space: break-spaces; min-height: 100px; font-size: 1.01rem;">
+            {{ bill_from_details|default:"Your company name, GST & address here" }}
+        </div>
+    </div>
+    <!-- Bill To: Right -->
+    <div class="col-md-6 d-flex flex-column">
+        <label class="animated-form-label mb-1 text-md-end text-start" style="width:100%;">Bill To</label>
+        <div id="party-fields"
+             class="animate__animated animate__fadeIn animate__fast flex-grow-1 d-flex flex-column justify-content-start align-items-md-end align-items-stretch"
+             style="width:100%;">
+            <div id="publisher_field" style="display: none; width:100%;">
+                {{ form.publisher }}
+                {% if form.publisher.errors %}
+                    <div class="invalid-feedback d-block">{{ form.publisher.errors|striptags }}</div>
+                {% endif %}
+            </div>
+            <div id="advertiser_field" style="display: none; width:100%;">
+                {{ form.advertiser }}
+                {% if form.advertiser.errors %}
+                    <div class="invalid-feedback d-block">{{ form.advertiser.errors|striptags }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <!-- 3. Invoice Details -->
+        <div class="row gap-col mb-3">
+            <div class="col-md-4 col-12 mb-3 mb-md-0">
+                <label class="animated-form-label" for="{{ form.drs.id_for_label }}">DRS</label>
+                {{ form.drs }}
+                {% if form.drs.errors %}<div class="invalid-feedback d-block">{{ form.drs.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-md-4 col-12 mb-3 mb-md-0">
+                <label class="animated-form-label" for="{{ form.currency.id_for_label }}">Currency</label>
+                {{ form.currency }}
+                {% if form.currency.errors %}<div class="invalid-feedback d-block">{{ form.currency.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="col-md-4 col-12">
+                <label class="animated-form-label" for="{{ form.status.id_for_label }}">Status</label>
+                {{ form.status }}
+                {% if form.status.errors %}<div class="invalid-feedback d-block">{{ form.status.errors|striptags }}</div>{% endif %}
+            </div>
+        </div>
+
+        <!-- Amount -->
+        <div class="mb-3">
+            <label class="animated-form-label" for="{{ form.amount.id_for_label }}">Amount</label>
+            {{ form.amount }}
+            {% if form.amount.errors %}<div class="invalid-feedback d-block">{{ form.amount.errors|striptags }}</div>{% endif %}
+        </div>
+
+        <!-- Optional fields for terms and signature -->
+        <div class="row gap-col mb-2">
+            <div class="col-md-8 col-12 mb-2 mb-md-0">
+                <label class="animated-form-label">Terms (Optional)</label>
+                <textarea class="form-control" name="terms" style="min-height:56px;">Thanks for your business.</textarea>
+            </div>
+            <div class="col-md-4 col-12">
+                <label class="animated-form-label">Signature/Stamp (Optional)</label>
+                <input type="file" class="form-control" name="signature">
+            </div>
+        </div>
+
+        <button type="submit" class="btn invoice-save-btn w-100 py-2 mt-3">
+            <i class="bi bi-save"></i> Save Invoice
+        </button>
+    </form>
+
+    <a href="{% url 'invoicing:invoice_list' %}" class="invoice-back-link mt-3">
+        <i class="bi bi-chevron-left"></i> Back to list
+    </a>
+</div>
+{% if form.non_field_errors %}
+  <div class="alert alert-danger mt-3">{{ form.non_field_errors }}</div>
+{% endif %}
+
+<script>
+// Switch visible Bill To field based on invoice type (Publisher / Advertiser)
+function updatePartyFields() {
+    let partyType = document.querySelector('input[name="party_type"]:checked')
+        ? document.querySelector('input[name="party_type"]:checked').value
+        : '';
+    document.getElementById('publisher_field').style.display = partyType === 'publisher' ? 'block' : 'none';
+    document.getElementById('advertiser_field').style.display = partyType === 'advertiser' ? 'block' : 'none';
+}
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input[name="party_type"]').forEach(function(r) {
+        r.addEventListener('change', updatePartyFields);
+    });
+    updatePartyFields();
+    // update amount logic as before
+    const drsField = document.getElementById('id_drs');
+    const currencyField = document.getElementById('id_currency');
+    const amountField = document.getElementById('id_amount');
+    function updateAmount() {
+        const drsId = drsField ? drsField.value : "";
+        const cur = currencyField ? currencyField.value : "";
+        if (drsId && cur) {
+            fetch(`/panel/drs/api/get_amount/?drs_id=${drsId}&currency=${cur}`)
+                .then(resp => resp.json())
+                .then(data => { amountField.value = data.amount || ''; });
+        } else {
+            amountField.value = '';
+        }
+    }
+    if (drsField && currencyField && amountField) {
+        drsField.addEventListener('change', updateAmount);
+        currencyField.addEventListener('change', updateAmount);
+        if (drsField.value && currencyField.value && !amountField.value)
+            updateAmount();
+    }
+});
+</script>
+{% endblock %}

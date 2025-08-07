@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+/* Glassmorphic Card Layout */
+.upload-card {
+  max-width: 480px;
+  margin: 0 auto;
+  background: rgba(250,255,255,0.81);
+  border-radius: 1.2rem;
+  box-shadow: 0 4px 36px #1dbfae19, 0 2px 18px #1963b32a;
+  border: 1.2px solid rgba(25,99,179,0.11);
+  padding: 2.5rem 2rem 2rem 2rem;
+  animation: fadeInCard .8s cubic-bezier(.23,.84,.41,1.1);
+}
+@keyframes fadeInCard {
+  from { opacity:0; transform: translateY(36px);}
+  to { opacity:1; transform: none;}
+}
+.upload-card h1 {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: #1963b3;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+.upload-card label.form-label {
+  font-weight: 600;
+  color: #154360;
+}
+.upload-card .form-control {
+  border-radius: .8rem!important;
+  background: rgba(255,255,255,0.75)!important;
+  border: 1.2px solid #e0f4ff;
+  transition: box-shadow .19s, border-color .17s;
+  font-weight: 500;
+}
+.upload-card .form-control:focus {
+  box-shadow: 0 0 0 2px #1dbfae50;
+  border-color: #1dbfae;
+  background: #fff;
+}
+.upload-card input[type="file"] {
+  padding: 0.43em 0.75em;
+  background: #f8fcfd!important;
+}
+.upload-card input[type="file"]:focus {
+  border-color: #1dbfae;
+  box-shadow: 0 0 0 2px #1963b330;
+}
+.upload-card .btn-primary {
+  background: linear-gradient(90deg,#1dbfae 0,#1963b3 100%);
+  border: none;
+  border-radius: 2rem;
+  padding: .66em 1.66em;
+  font-weight: 700;
+  font-size: 1.1em;
+  letter-spacing: .3px;
+  transition: background .18s, box-shadow .17s, transform .18s;
+  box-shadow: 0 2px 16px #1dbfae30;
+}
+.upload-card .btn-primary:active,
+.upload-card .btn-primary:focus,
+.upload-card .btn-primary:hover {
+  background: linear-gradient(100deg,#1963b3 0,#1dbfae 100%);
+  transform: scale(1.05);
+}
+.upload-card .alert {
+  margin-bottom: 0;
+  border-radius: 0.7rem;
+  animation: fadeInMsg .5s both;
+}
+@keyframes fadeInMsg {
+  from { opacity: 0; transform: translateY(12px);}
+  to { opacity: 1; transform: none;}
+}
+/* Dragover effect for file input */
+.upload-card .form-control.dragover {
+  border-color: #1dbfae;
+  box-shadow: 0 0 0 4px #1dbfae40;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .upload-card { padding: 1.4rem .6rem;}
+}
+</style>
+
+<div class="upload-card shadow">
+  <h1><i class="bi bi-cloud-upload-fill text-primary"></i> Upload Offers</h1>
+  <form method="post" enctype="multipart/form-data" id="offer-upload-form" autocomplete="off">
+    {% csrf_token %}
+
+    <!-- Advertiser Select -->
+    <div class="mb-3">
+      <label for="advertiser" class="form-label">
+        <i class="bi bi-building me-1"></i>
+        Advertiser <span class="text-danger">*</span>
+      </label>
+      <select name="advertiser" id="advertiser" class="form-control" required>
+        <option value="">-- Select Advertiser --</option>
+        {% for adv in advertisers %}
+          <option value="{{ adv.id }}">{{ adv.company_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- File upload -->
+    <div class="mb-3">
+      <label for="offer_file" class="form-label">
+        <i class="bi bi-file-earmark-spreadsheet me-1"></i>
+        Upload CSV/XLS File
+      </label>
+      <input type="file" class="form-control" id="offer_file" name="offer_file" accept=".csv,.xls,.xlsx">
+    </div>
+
+    <!-- Manual field entry -->
+    <div class="mb-3">
+      <label class="form-label"><i class="bi bi-pencil-square me-1"></i> Or add offer manually</label>
+      <input type="text" class="form-control mb-2" name="campaign_name" placeholder="Campaign Name">
+      <input type="text" class="form-control mb-2" name="geo" placeholder="Geo (e.g. IN,US,UK)">
+      <input type="text" class="form-control mb-2" name="category" placeholder="Category">
+      <input type="text" class="form-control mb-2" name="mmp" placeholder="MMP">
+      <input type="text" class="form-control mb-2" name="payout" placeholder="Payout">
+      <input type="text" class="form-control mb-2" name="payable_event" placeholder="Payable Event">
+      <input type="text" class="form-control mb-2" name="model" placeholder="Model">
+    </div>
+
+    <div class="d-grid mt-3">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-upload me-1"></i> Upload
+      </button>
+    </div>
+  </form>
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} mt-4">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+</div>
+
+<!-- Animated dragover for file input -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  var input = document.getElementById('offer_file');
+  var form = document.getElementById('offer-upload-form');
+  if (input) {
+    input.addEventListener('dragover', function(e){
+      e.preventDefault(), input.classList.add('dragover');
+    });
+    input.addEventListener('dragleave', function(e){
+      input.classList.remove('dragover');
+    });
+    input.addEventListener('drop', function(e){
+      input.classList.remove('dragover');
+    });
+  }
+});
+</script>
+{% endblock %}

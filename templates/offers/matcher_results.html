@@ -1,0 +1,316 @@
+{% extends 'base.html' %}
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+.matcher-results-panel {
+    backdrop-filter: blur(8px) saturate(126%);
+    background: rgba(255,255,255,0.38);
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 36px #1963b319, 0 1.5px 20px #1dbfae18;
+    padding: 2.5rem 2.2rem 2.2rem 2.2rem;
+    animation: fadeTableUp 1.1s cubic-bezier(.21, .84, .37, 1.01) backwards;
+    margin-bottom: 2.5rem;
+    border: 1.5px solid #1dbfae26;
+}
+@keyframes fadeTableUp {
+    from { opacity: 0; transform: translateY(48px);}
+    to   { opacity: 1; transform: none;}
+}
+.matcher-table {
+    background: rgba(255,255,255,0.60);
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 1.5px 16px #1dbfae17;
+    animation: tableFadeIn .9s .16s backwards;
+    margin-bottom:0;
+}
+@keyframes tableFadeIn {
+    from { opacity: 0; transform: translateY(18px) scale(.96);}
+    to { opacity: 1; transform: none;}
+}
+.matcher-table th {
+    background: linear-gradient(90deg, #1dbfae 0%, #1963b3 100%);
+    color: #fff !important;
+    font-weight: 600;
+    font-size: 1.05rem;
+    letter-spacing: .03em;
+    border: none;
+    vertical-align: middle;
+    border-top: none;
+    transition: background .26s;
+}
+.matcher-table tr:hover td {
+    background: #e9f6fb !important;
+    transition: background .23s;
+}
+.matcher-table td {
+    vertical-align: middle;
+    border: none;
+    transition: background .2s;
+    font-size: 1.06rem;
+}
+.matcher-table tr {
+    transition: box-shadow .23s cubic-bezier(.32,1.15,.4,1.23);
+}
+.matcher-results-title {
+    font-weight: 700;
+    font-size: 1.75rem;
+    color: #1963b3;
+    margin-bottom: 1.5rem;
+    letter-spacing: .02em;
+    display: flex;
+    align-items: center;
+    gap: .5em;
+    animation: fadeTableUp .72s .07s backwards;
+}
+.matcher-results-title .bi-robot {
+    font-size: 2.0rem;
+    color: #14b5ac;
+    filter: drop-shadow(0 2px 7px #1dbfae44);
+}
+@media (max-width: 991.98px) {
+    .matcher-results-panel { padding: 1.5rem 0.7rem; border-radius: 1.1rem;}
+    .matcher-results-title { font-size: 1.15rem;}
+}
+@media (max-width: 575.98px) {
+    .matcher-results-title { font-size: 1.0rem;}
+    .matcher-table th, .matcher-table td { font-size: .95rem;} 
+}
+/* Ensure the flex container wraps properly on smaller screens */
+.matcher-results-title {
+  flex-wrap: wrap;
+}
+
+/* On narrow viewports, stack the export button below title and center it */
+@media (max-width: 575.98px) {
+  .matcher-results-title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .matcher-results-title form {
+    align-self: stretch;
+    text-align: right;
+  }
+}
+/* Gradient background with smooth animation */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Export CSV button - teal gradient animated */
+.btn-gradient {
+  background: linear-gradient(270deg, #17a2b8, #1963b3, #1dbfae);
+  background-size: 600% 600%;
+  color: #fff;
+  border: none;
+  border-radius: 0.6rem;
+  animation: gradientShift 8s ease infinite;
+  box-shadow: 0 4px 15px rgba(29, 191, 174, 0.5);
+  transition: box-shadow 0.3s ease;
+}
+
+.btn-gradient:hover, .btn-gradient:focus {
+  box-shadow: 0 6px 25px rgba(25, 99, 179, 0.8);
+  outline: none;
+}
+
+/* Manual Matcher button - blue/purple gradient, slightly different */
+.btn-gradient-alt {
+  background: linear-gradient(270deg, #4961ff, #6f42c1, #007bff);
+  background-size: 600% 600%;
+  color: #fff;
+  border: none;
+  border-radius: 0.6rem;
+  animation: gradientShift 8s ease infinite;
+  box-shadow: 0 4px 15px rgba(104, 78, 203, 0.5);
+  transition: box-shadow 0.3s ease;
+}
+
+.btn-gradient-alt:hover, .btn-gradient-alt:focus {
+  box-shadow: 0 6px 25px rgba(104, 78, 203, 0.8);
+  outline: none;
+}
+
+/* Add icon margin */
+.btn > .bi {
+  vertical-align: middle;
+}
+
+/* Responsive: if narrow screen, stack buttons full width with margin */
+/* Responsive full width and font scaling */
+@media (max-width: 575.98px) {
+  .d-flex.justify-content-end.flex-wrap {
+    justify-content: center !important;
+    gap: 1rem !important;
+  }
+  .d-flex.justify-content-end.flex-wrap > form,
+  .d-flex.justify-content-end.flex-wrap > button {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+  .btn-gradient, .btn-gradient-alt {
+    width: 100%;
+    font-size: 1.05rem;
+  }
+  /* Medium size buttons with animated gradient */
+  .btn-gradient, .btn-gradient-alt {
+    font-size: 1rem;        /* medium font size */
+    border-radius: 0.6rem;
+    padding-top: 0.45rem;   /* medium vertical padding */
+    padding-bottom: 0.45rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+</style>
+
+<div class="matcher-results-panel">
+  <div class="matcher-results-title animate__animated animate__fadeInLeft d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-robot"></i>
+      <span>Offer Matcher</span>
+    </div>
+    <div class="d-flex justify-content-end align-items-center gap-3 mb-3 animate__animated animate__fadeInRight flex-wrap">
+  <form method="get" class="mb-0 d-flex align-items-center">
+    <button type="submit" name="export" value="1" 
+            class="btn btn-gradient btn-md px-4 fw-semibold shadow">
+      <i class="bi bi-file-earmark-spreadsheet me-2"></i> Export CSV
+    </button>
+  </form>
+
+  <button type="button" class="btn btn-gradient-alt btn-md px-4 fw-semibold shadow d-flex align-items-center" 
+          data-bs-toggle="modal" data-bs-target="#manualMatcherModal">
+    <i class="bi bi-search me-2"></i> Manual Matcher
+  </button>
+</div>
+
+
+  </div>
+
+  <div class="table-responsive">
+    <table class="table matcher-table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Publisher</th>
+          <th>Wishlist Campaign</th>
+          <th>Geo</th>
+          <th>Category</th>
+          <th>Wishlist Payout</th>
+          <th>Wishlist Model</th>
+          <th>Matched Offer</th>
+          <th>Advertiser</th>
+          <th>Offer Geo</th>
+          <th>Offer Category</th>
+          <th>Offer Payout</th>
+          <th>Offer Model</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for match in matches %}
+        <tr>
+          <td>{{ match.wishlist.publisher.company_name }}</td>
+          <td>{{ match.wishlist.desired_campaign }}</td>
+          <td>{{ match.wishlist.geo }}</td>
+          <td>{{ match.wishlist.category }}</td>
+          <td>{{ match.wishlist.payout|default:"-" }}</td>
+          <td>{{ match.wishlist.model|default:"-" }}</td>
+          <td class="fw-semibold text-primary">{{ match.offer.campaign_name }}</td>
+          <td>{{ match.offer.advertiser.company_name }}</td>
+          <td>{{ match.offer.geo }}</td>
+          <td>{{ match.offer.category }}</td>
+          <td>{{ match.offer.payout|default:"-" }}</td>
+          <td>{{ match.offer.model|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="12" class="text-center text-secondary py-5" style="font-size:1.17rem;">
+            <i class="bi bi-emoji-frown me-2" style="font-size:1.7rem;color:#1dbfae88"></i>
+            No matches found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<!-- Manual Matcher Modal -->
+<div class="modal fade" id="manualMatcherModal" tabindex="-1" aria-labelledby="manualMatcherModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form id="manualMatcherForm" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="manualMatcherModalLabel">Manual Offer Matcher</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="match_type" class="form-label">Match Type</label>
+          <select class="form-select" id="match_type" name="match_type" required>
+            <option value="" disabled selected>Select match type</option>
+            <option value="exact">Exact Match</option>
+            <option value="geo">Geo Match</option>
+            <option value="category">Category Match</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="offer_name" class="form-label">Offer Name</label>
+          <input type="text" class="form-control" id="offer_name" name="offer_name" placeholder="Enter offer name" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="geo" class="form-label">Geo</label>
+          <input type="text" class="form-control" id="geo" name="geo" placeholder="Enter geo (e.g. IN,US,UK)" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Start Match</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('manualMatcherForm');
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const matchType = form.match_type.value;
+    const offerName = form.offer_name.value.trim();
+    const geo = form.geo.value.trim();
+
+    if (!matchType || !offerName || !geo) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    const params = new URLSearchParams({
+      match_type: matchType,
+      offer_name: offerName,
+      geo: geo,
+    }).toString();
+
+    // Hide the modal (requires Bootstrap 5 JS)
+    const modalEl = document.getElementById('manualMatcherModal');
+    const bootstrapModal = bootstrap.Modal.getInstance(modalEl);
+    bootstrapModal.hide();
+
+    // Redirect to your matcher results page (update URL name as needed)
+    window.location.href = "{% url 'offers:matcher_results' %}?" + params;
+  });
+});
+</script>
+<!-- Bootstrap Icons CDN (if not already in base.html) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+{% endblock %}

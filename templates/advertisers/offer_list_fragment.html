@@ -1,0 +1,34 @@
+{% if offers %}
+  <table class="table offer-modal-table mt-1">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th class="no-wrap">Campaign Name</th>
+        <th>Geo</th>
+        <th>MMP</th>
+        <th>Payout</th>
+        <th>Model</th>
+        <th>Category</th>
+        <th>Created At</th>
+        <th>Updated At</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for offer in offers %}
+        <tr>
+          <td>{{ offer.id }}</td>
+          <td>{{ offer.campaign_name }}</td>
+          <td>{{ offer.geo }}</td>
+          <td>{{ offer.mmp }}</td>
+          <td>{{ offer.payout }}</td>
+          <td>{{ offer.model }}</td>
+          <td>{{ offer.category }}</td>
+          <td>{{ offer.created_at|date:"Y-m-d H:i:s" }}</td>
+          <td>{{ offer.updated_at|date:"Y-m-d H:i:s" }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <div class="text-center text-muted py-4">No offers for this advertiser.</div>
+{% endif %}

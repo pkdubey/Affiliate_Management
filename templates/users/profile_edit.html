@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+.profile-edit-outer {
+  min-height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+.profile-glass-card {
+  background: rgba(255,255,255,0.22);
+  box-shadow: 0 8px 32px #1dbfae24, 0 2px 16px #1963b328;
+  border-radius: 2.1rem;
+  border: 1.5px solid rgba(29,191,174,0.14);
+  overflow: hidden;
+  animation: cardFade .8s cubic-bezier(.36,.7,.34,1.01);
+}
+@keyframes cardFade { from { opacity: 0; transform: translateY(32px);} to { opacity: 1; transform: none;}}
+.profile-header-avatar {
+  width:76px;height:76px;
+  border-radius: 50%;
+  box-shadow: 0 4px 18px #1dbfae44;
+  display: block;
+  margin: -44px auto 14px auto;
+  border:3.5px solid #fff;
+  background:linear-gradient(135deg,#ecfffa 0,#daeeff 100%);
+  position: relative;
+  animation: avatarPop .7s cubic-bezier(.55,.03,.41,1.12);
+}
+@keyframes avatarPop { from {transform: scale(0.85); opacity:0;} to {transform: none; opacity:1;} }
+.profile-card-title {
+  color: #1963b3;
+  font-weight:700;
+  text-align:center;
+  margin-bottom:.2em;
+  letter-spacing:0.5px;
+}
+.profile-card-sub {
+  color: #1dbfae;
+  font-size: 1rem;
+  text-align:center;
+  margin-bottom: 1.1em;
+  letter-spacing:.25px;
+}
+.form-label {
+  color:#1a445d; font-weight:500; margin-bottom: .5em;
+}
+.form-control {
+  border-radius: 0.55em;
+  border: 1.2px solid #1dbfae22;
+  transition: border-color .2s, box-shadow .21s;
+  box-shadow:0 1px 10px #1dbfae11;
+  background: rgba(246,252,254,0.91);
+}
+.form-control:focus {
+  border-color: #1dbfae;
+  box-shadow: 0 3px 15px #1dbfae1a;
+}
+.btn-modern {
+  background: linear-gradient(90deg, #1dbfae 10%, #1963b3 100%);
+  color: #fff;
+  border: none;
+  border-radius: 1.1em;
+  font-weight:600;
+  padding: 0.7em 1.8em;
+  box-shadow: 0 2px 18px #1dbfae32;
+  transition: transform .12s, box-shadow .16s, background .2s;
+  letter-spacing:0.3px;
+}
+.btn-modern:disabled, .btn-modern[disabled] {
+  opacity: 0.67;
+  background: linear-gradient(90deg, #d3f5f2 10%, #d6e8fa 100%);
+  color: #93a6b3;
+  cursor: not-allowed;
+}
+.btn-modern:hover:enabled {
+  transform: translateY(-2px) scale(1.035);
+  box-shadow:0 8px 28px #1dbfae27;
+}
+</style>
+<div class="profile-edit-outer">
+  <div class="card profile-glass-card mx-auto p-5" style="max-width: 420px;">
+    <div class="text-center position-relative">
+      <img class="profile-header-avatar"
+           src="https://ui-avatars.com/api/?name={{ user.get_full_name|default:user.username }}&background=1dbfae&color=fff&size=76"
+           alt="Profile picture">
+    </div>
+    <h4 class="profile-card-title">Edit Profile</h4>
+    <div class="profile-card-sub">Update your profile details</div>
+    <form method="post" autocomplete="off">
+      {% csrf_token %}
+      <!-- Name (disabled in this example) -->
+      <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <input type="text" class="form-control" id="name" name="name"
+            value="{{ user.get_full_name|default:user.username }}" disabled>
+      </div>
+      <!-- Email (disabled in this example) -->
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" disabled>
+      </div>
+      <!-- Uncomment below if form is enabled -->
+      <!-- <button type="submit" class="btn btn-modern w-100 mt-3">Save Changes</button> -->
+      <button type="submit" class="btn btn-modern w-100 mt-2" disabled>Save Changes</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

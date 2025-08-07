@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
+<style>
+.validation-table-card {
+    border-radius: 1.5rem;
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(4px) saturate(130%);
+    box-shadow: 0 4px 24px #1dbfae17, 0 2px 8px #1963b327;
+    border: 1.4px solid rgba(29,191,174,0.11);
+    animation: fadeInTable 0.85s cubic-bezier(.31,.81,.45,1.23);
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+@keyframes fadeInTable {
+    from {opacity:0; transform: translateY(22px);}
+    to {opacity:1; transform: none;}
+}
+.validation-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.3em 2em 1.1em 2em;
+    border-radius: 1.25rem 1.25rem 0 0;
+    background: linear-gradient(88deg, #1dbfae15 0, #1963b315 100%);
+    box-shadow: 0 2px 10px #1dbfae11;
+}
+.validation-header h2 {
+    margin-bottom: 0;
+    color: #1963b3;
+    font-weight: 700;
+    letter-spacing: .03em;
+    font-size: 1.52rem;
+}
+.add-btn {
+    background: linear-gradient(90deg, #1dbfae 0 70%, #1963b3 100%);
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    padding: 0.55em 1.35em;
+    font-weight: 600;
+    font-size: 1.07em;
+    letter-spacing: .02em;
+    box-shadow: 0 2px 12px #1dbfae29;
+    transition: background .18s, transform .16s;
+}
+.add-btn:hover, .add-btn:focus {
+    background: linear-gradient(90deg, #1963b3 10%, #1dbfae 90%);
+    box-shadow: 0 3px 16px #1963b32a;
+    color: #fff;
+    transform: translateY(-2px) scale(1.04);
+}
+.validation-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 1.09rem;
+    background: transparent;
+}
+.validation-table th, .validation-table td {
+    padding: 1em 0.8em;
+    text-align: left;
+    border-bottom: 1px solid #e1fafa;
+    vertical-align: middle;
+}
+.validation-table th {
+    background: linear-gradient(90deg,#eefcff 0,#e7f9f9 100%);
+    font-weight: 700;
+    color: #1963b3;
+    border-top: none;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+.validation-table tr {
+    transition: box-shadow .18s, background .16s;
+}
+.validation-table tbody tr:hover {
+    background: #e7f9f9;
+    box-shadow: 0 4px 12px #1dbfae16;
+    transform: scale(1.012);
+}
+.action-btn {
+    border: none;
+    background: none;
+    border-radius: 50%;
+    color: #1963b3;
+    font-size: 1.12rem;
+    margin: 0 4px;
+    transition: color 0.2s, background .13s, transform .13s;
+    padding: 0.33em 0.65em 0.33em 0.65em;
+}
+.action-btn:hover {
+    color: #fff;
+    background: linear-gradient(120deg,#1dbfae 30%,#1963b3 100%);
+    transform: scale(1.2);
+}
+.status-badge {
+    border-radius: 12px;
+    font-size: .95em;
+    padding: 0.25em 1em;
+    font-weight: 600;
+    letter-spacing: .01em;
+    border: none;
+    background: #e4fcf2;
+    color: #17a181;
+}
+.status-badge.pending { background: #f9efd8; color: #e67e22;}
+.status-badge.approved { background: #e8f9e2; color: #27ae60;}
+.status-badge.rejected { background: #fae0e5; color: #e11e4e;}
+@media (max-width: 768px) {
+    .validation-header { flex-direction: column; gap: 1em; padding:1em;}
+    .validation-table th, .validation-table td { padding: 0.6em 0.35em; }
+    .validation-table-card { padding: 1.1rem 0.5rem;}
+}
+.validation-header form {
+    min-width: 0;
+}
+.validation-header select, .validation-header button, .validation-header a.btn {
+    min-width: 100px;
+    max-width: 220px;
+    font-size: 1em;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 992px) {
+    .validation-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.8em;
+        padding-left: 1em;
+        padding-right: 1em;
+    }
+    .validation-header > h2,
+    .validation-header > a.add-btn {
+        align-self: flex-start !important;
+        margin-top: 0!important;
+    }
+    .validation-header form {
+        width: 100%;
+        justify-content: flex-start!important;
+        margin: 0 0 .5em 0;
+    }
+    .validation-header select, .validation-header button, .validation-header a.btn {
+        width: 100%!important;
+        min-width: 0;
+        max-width: 100%!important;
+        margin-bottom: 0.45em;
+    }
+    .validation-header .add-btn {
+        width: 100%!important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="validation-table-card shadow p-0">
+  <div class="validation-header flex-wrap d-flex align-items-center justify-content-between gap-2 gap-md-3">
+    <h2 class="mb-0" style="color:#1963b3;min-width:170px;flex-shrink:0;">
+      <i class="bi bi-clipboard-check me-2"></i> Validation List
+    </h2>
+    <form method="get" class="d-flex flex-wrap align-items-center gap-2 flex-grow-1 my-2 my-md-0 justify-content-center justify-content-md-start" style="min-width:0;">
+      <select name="publisher" class="form-select" style="min-width:150px;max-width:220px;">
+        <option value="">All Publishers</option>
+        {% for pub in publishers %}
+          <option value="{{ pub.id }}" {% if selected_publisher|default:'' == pub.id|stringformat:"s" %}selected{% endif %}>{{ pub.company_name }}</option>
+        {% endfor %}
+      </select>
+      <select name="month" class="form-select" style="min-width:120px;max-width:160px;">
+        <option value="">All Months</option>
+        {% for m in months %}
+          <option value="{{ m }}" {% if selected_month == m %}selected{% endif %}>{{ m }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-outline-primary flex-shrink-0">Filter</button>
+      <a href="{% url 'validation:validation_export' %}?export=csv{% if selected_publisher %}&publisher={{ selected_publisher }}{% endif %}{% if selected_month %}&month={{ selected_month }}{% endif %}"
+        class="btn btn-outline-success flex-shrink-0">
+        <i class="bi bi-cloud-arrow-down"></i> Export
+      </a>
+    </form>
+    <a href="{% url 'validation:add' %}" class="add-btn animate__animated animate__fadeIn animate__delay-1s mt-2 mt-md-0 ms-0 ms-md-2">
+      <i class="bi bi-plus-circle me-2"></i>Add</a>
+  </div>
+
+  <div class="table-responsive">
+    <table class="validation-table align-middle mb-0">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Campaign Name</th>
+      <th>Publisher</th>
+      <th>PID</th>
+      <th>Conversions</th>
+      <th>Payout</th>
+      <th>Approve Payout</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for v in validations %}
+    <tr>
+      <td>{{ v.id }}</td>
+      <td>{{ v.drs.campaign_name }}</td>
+      <td>{{ v.publisher.company_name }}</td>
+      <td>{{ v.drs.pid }}</td>
+      <td>{{ v.conversions }}</td>
+      <td>{{ v.payout }}</td>
+      <td>{{ v.approve_payout }}</td>
+      <td>
+        <span class="status-badge 
+          {% if v.status == 'Pending' %}pending{% elif v.status == 'Approved' %}approved{% elif v.status == 'Rejected' %}rejected{% endif %}">
+          {{ v.status|title }}
+        </span>
+      </td>
+      <td style="white-space:nowrap;">
+        <div class="d-flex align-items-center gap-1 justify-content-center flex-nowrap">
+          <a href="{% url 'validation:detail' v.id %}" class="action-btn" title="View More">
+            <i class="bi bi-eye"></i>
+          </a>
+          <a href="{% url 'validation:edit' v.id %}" class="action-btn" title="Edit">
+            <i class="bi bi-pencil-square"></i>
+          </a>
+          <a href="{% url 'validation:delete' v.id %}" class="action-btn" title="Delete">
+            <i class="bi bi-trash"></i>
+          </a>
+        </div>
+      </td>
+    </tr>
+  {% empty %}
+    <tr>
+      <td colspan="9" class="text-muted py-4 text-center">
+        <i class="bi bi-emoji-frown me-2"></i> No validations found.
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+  </div>
+</div>
+{% endblock %}

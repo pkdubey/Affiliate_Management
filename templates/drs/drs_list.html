@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+.drs-card-container {
+    border-radius: 1.7rem;
+    background: rgba(255,255,255,0.20);
+    box-shadow: 0 8px 38px #1dbfae19, 0 2px 8px #1963b315;
+    backdrop-filter: blur(11px) saturate(140%);
+    padding: 2.3rem 2rem 1rem 2rem;
+    margin-bottom: 2.5rem;
+    animation: fadeCardIn .8s cubic-bezier(.41,.91,.68,1.17) backwards;
+}
+@keyframes fadeCardIn {
+  from {opacity:0; transform: translateY(34px);}
+  to {opacity:1; transform:none;}
+}
+.drs-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: rgba(255,255,255,0.76);
+    border-radius: 1.2rem;
+    overflow: hidden;
+    box-shadow: 0 2px 12px #1dbfae10;
+    margin-top: 1.2rem;
+    animation: fadeInTable .85s cubic-bezier(.82,.2,.58,1.11) .2s backwards;
+}
+@keyframes fadeInTable {
+  from { opacity: 0; transform: scale(.98);}
+  to { opacity: 1; transform: none; }
+}
+.drs-table th, .drs-table td {
+    padding: 0.77rem 1.1rem;
+    text-align: center;
+    font-size: 1rem;
+    border-bottom: 1.2px solid #e9eef3;
+    vertical-align: middle;
+    transition: background .18s;
+}
+.drs-table th {
+    background: linear-gradient(90deg, #1dbfae18, #1963b317 80%);
+    color: #1963b3;
+    font-weight: 700;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    border-bottom: 2.5px solid #1dbfae40;
+    text-shadow: 0 2px 16px #fff6;
+    letter-spacing: .02em;
+}
+.drs-table tbody tr {
+    transition: background .22s;
+}
+.drs-table tbody tr:hover {
+    background: #e7fcfa50 !important;
+    box-shadow: 0 6px 18px #1dbfae0e;
+    cursor: pointer;
+}
+.drs-table td a {
+    color: #1dbfae;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color .18s;
+}
+.drs-table td a:hover { color: #1963b3; text-decoration: underline; }
+
+.drs-action-btn {
+    display: inline-block;
+    border-radius: 2.1em;
+    background: linear-gradient(90deg, #1dbfae 60%, #1963b3);
+    color: #fff !important;
+    font-weight: 600;
+    padding: 0.23em 1.1em;
+    font-size: .96em;
+    margin: 0 2px;
+    box-shadow: 0 1.5px 7px #1dbfae25;
+    border: none;
+    transition: background .17s, color .16s, box-shadow .19s;
+}
+.drs-action-btn:hover {
+    background: #1963b3;
+    color: #fff;
+    box-shadow: 0 2px 12px #1dbfae20;
+    text-decoration: none;
+}
+.add-drs-btn {
+    background: linear-gradient(90deg, #1dbfae 20%, #1963b3 90%);
+    color: #fff;
+    border-radius: 2em;
+    font-weight: 600;
+    padding: .5em 1.5em;
+    font-size: 1.07em;
+    margin-bottom: 1.2rem;
+    border: none;
+    box-shadow: 0 4px 22px #1963b317;
+    transition: background .21s, transform .18s;
+    display: inline-block;
+    animation: popInBtn .75s cubic-bezier(.51,.77,.88,1.37) .18s backwards;
+}
+@keyframes popInBtn {
+    from { opacity:0; transform: scale(.85);}
+    to { opacity:1; transform: scale(1);}
+}
+.add-drs-btn:hover,
+.add-drs-btn:focus {
+    background: #1963b3;
+    color: #fff;
+    transform: scale(1.04);
+}
+@media (max-width: 767.98px) {
+    .drs-card-container { padding:1.2rem .2rem .5rem .2rem;}
+    .drs-table th, .drs-table td { padding: .55rem .5rem; font-size:.93rem;}
+    .add-drs-btn { width: 100%; text-align: center; font-size: 1em;}
+}
+</style>
+
+<div class="drs-card-container">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+        <h1 class="mb-0" style="font-weight:700; color:#1963b3; letter-spacing:.02em;">
+            <i class="bi bi-table"></i> Daily Revenue Sheets
+        </h1>
+        <div>
+            <a href="{% url 'drs:add' %}" class="add-drs-btn">
+                <i class="bi bi-plus-circle me-1"></i> Add DRS
+            </a>
+            <a href="{% url 'drs:drs_export' %}?export=csv" class="add-drs-btn" style="background:#fff;color:#1dbfae;border:1.2px solid #1dbfae;margin-left:8px;">
+                <i class="bi bi-file-earmark-spreadsheet"></i> Export CSV
+            </a>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="drs-table align-middle w-100">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Advertiser</th>
+                    <th>Campaign</th>
+                    <th>Affiliate</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Adv Convs</th>
+                    <th>Pub Convs</th>
+                    <th>Rev/Conv</th>
+                    <th>Payout/Conv</th>
+                    <th>Revenue</th>
+                    <th>Payout</th>
+                    <th>Profit</th>
+                    <th>A Manager</th>
+                    <th>PID</th>
+                    <th>af_prt</th>
+                    <th>Updated</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for drs in drs_list %}
+                <tr>
+                    <td>{{ drs.id }}</td>
+                    <td>{{ drs.advertiser }}</td>
+                    <td>
+                        <a href="{% url 'drs:detail' drs.id %}">{{ drs.campaign_name }}</a>
+                    </td>
+                    <td>{{ drs.affiliate }}</td>
+                    <td>{{ drs.start_date }}</td>
+                    <td>{{ drs.end_date }}</td>
+                    <td>{{ drs.advertiser_conversions }}</td>
+                    <td>{{ drs.publisher_conversions }}</td>
+                    <td>{{ drs.campaign_revenue }}</td>
+                    <td>{{ drs.publisher_payout }}</td>
+                    <td>{{ drs.revenue }}</td>
+                    <td>{{ drs.payout }}</td>
+                    <td>{{ drs.profit }}</td>
+                    <td>{{ drs.account_manager }}</td>
+                    <td>{{ drs.pid }}</td>
+                    <td>{{ drs.af_prt }}</td>
+                    <td>
+                        <span class="text-secondary" style="font-size:.98em;">
+                            {{ drs.updated_at|date:"Y-m-d H:i" }}
+                        </span>
+                    </td>
+                    <td data-label="Actions" style="min-width:110px; white-space: nowrap;">
+                        <div class="d-flex align-items-center gap-2 justify-content-center">
+                            <a href="{% url 'drs:edit' drs.id %}" class="btn btn-sm btn-outline-success" title="Edit DRS">
+                            <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'drs:delete' drs.id %}" class="btn btn-sm btn-outline-danger" title="Delete DRS">
+                            <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="17" class="text-muted py-4">
+                        <i class="bi bi-emoji-frown"></i> No DRS entries found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

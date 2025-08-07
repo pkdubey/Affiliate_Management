@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+/* Modern glassy card */
+.invoice-export-card {
+  background: rgba(255,255,255,0.22);
+  backdrop-filter: blur(9px) saturate(140%);
+  border-radius: 1.6rem;
+  box-shadow: 0 8px 32px #1963b31c, 0 2px 16px #1dbfae15;
+  padding: 2.2rem 2.4rem 2rem 2.4rem;
+  margin: 0 auto;
+  max-width: 440px;
+  min-width: 310px;
+  animation: fadeUpInvExp 0.83s cubic-bezier(.22,.82,.37,1.14) backwards;
+  border: 1.4px solid #1dbfae19;
+}
+
+@keyframes fadeUpInvExp {
+  from { opacity: 0; transform: translateY(40px) scale(0.92);}
+  to   { opacity: 1; transform: none;}
+}
+.invoice-export-title {
+  font-weight: 700;
+  color: #1963b3;
+  font-size: 1.55rem;
+  letter-spacing: .03em;
+  text-shadow: 0 2px 8px #1dbfae11;
+  margin-bottom: .7rem;
+  animation: fadeInInvTitle 1.05s .13s backwards;
+}
+@keyframes fadeInInvTitle {
+  from { opacity: 0; transform:translateY(-16px);}
+  to   { opacity: 1; transform:none;}
+}
+.btn-animated {
+  position: relative;
+  overflow: hidden;
+  font-weight: 600;
+  transition: background .18s, box-shadow .22s, color .13s;
+  box-shadow: 0 2px 12px #1dbfae18;
+  border-radius: 0.85rem;
+  font-size: 1.1rem;
+  padding: 0.82rem 1.3rem;
+}
+.btn-animated i {
+  animation: bounceBtn 1.7s infinite cubic-bezier(.43,.7,.2,1.5);
+  margin-right: .55em;
+}
+@keyframes bounceBtn {
+  15% { transform:translateY(-5px);}
+  22% { transform:translateY(2px); }
+  30% { transform:translateY(0);}
+}
+.invoice-note {
+  color: #8bb7bb;
+  font-size: 0.98rem;
+  margin-top: 1.7rem;
+  padding-left: 1rem;
+  border-left: 3px solid #1dbfae29;
+  letter-spacing: .01em;
+  animation: fadeInNote 1.4s .23s backwards;
+}
+@keyframes fadeInNote {
+  from { opacity: 0; margin-left: 40px;}
+  to   { opacity: 1; margin-left: 0;}
+}
+</style>
+
+<div class="d-flex flex-column align-items-center justify-content-center" style="min-height:62vh;">
+  <div class="invoice-export-card shadow-lg">
+    <div class="invoice-export-title">
+      <i class="bi bi-box-arrow-in-down-right"></i> Export Invoices
+    </div>
+    <form method="get" action="" autocomplete="off">
+      <button type="submit" name="export" value="csv" class="btn btn-success btn-animated w-100">
+        <i class="bi bi-file-earmark-arrow-down"></i>
+        Download as Excel (CSV)
+      </button>
+    </form>
+    <div class="invoice-note">
+      <i class="bi bi-info-circle-fill me-1"></i>
+      <strong>Heads up:</strong> PDF export coming soon!
+    </div>
+  </div>
+</div>
+{% endblock %}

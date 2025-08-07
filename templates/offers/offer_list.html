@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Offers</h1>
+<a href="{% url 'offers:add' %}">Add Offer</a>
+<table>
+  <tr><th>ID</th><th>Advertiser</th><th>Campaign Name</th><th>Geo</th><th>Category</th><th>Actions</th></tr>
+  {% for offer in offers %}
+  <tr>
+    <td>{{ offer.id }}</td>
+    <td>{{ offer.advertiser }}</td>
+    <td><a href="{% url 'offers:detail' offer.id %}">{{ offer.campaign_name }}</a></td>
+    <td>{{ offer.geo }}</td>
+    <td>{{ offer.category }}</td>
+    <td>
+      <a href="{% url 'offers:edit' offer.id %}">Edit</a> |
+      <a href="{% url 'offers:delete' offer.id %}">Delete</a>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

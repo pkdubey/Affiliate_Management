@@ -1,0 +1,371 @@
+{% extends 'base.html' %}
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet"/>
+<style>
+/* Modern, glassy, animated style */
+.matcher-glass-card {
+  border-radius: 1.4rem;
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(8px) saturate(115%);
+  box-shadow: 0 3px 24px #1dbfae2a;
+  border: 1.2px solid rgba(26,191,174,0.12);
+  transition: transform .20s cubic-bezier(.77,0,.18,1), box-shadow .13s;
+  animation: fadeUp .85s;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(36px);}
+  to { opacity:1; transform:translateY(0);}
+}
+.matcher-title {
+  font-weight: 700;
+  color: #1dbfae;
+  letter-spacing: .5px;
+  margin-bottom: .2em;
+}
+.matcher-icon {
+  font-size: 2.5rem;
+  color: #1963b3;
+  transition: transform .2s, color .23s;
+  filter: drop-shadow(0 2px 10px #1dbfae20);
+  margin-bottom: 6px;
+}
+.matcher-glass-card:hover .matcher-icon {
+  transform: scale(1.12) rotate(-7deg);
+  color: #1dbfae !important;
+}
+.matcher-form .form-label {
+  font-weight: 600;
+  color: #1963b3;
+}
+.matcher-form .form-control:focus {
+  border-color: #1dbfae;
+  box-shadow: 0 0 0 2px #1dbfae50;
+}
+.animate-fade {
+  animation: animate__fadeIn .8s;
+}
+.matcher-glass-card {
+  border-radius: 1.4rem;
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(8px) saturate(115%);
+  box-shadow: 0 3px 24px #1dbfae2a;
+  border: 1.2px solid rgba(26,191,174,0.12);
+  transition: transform .20s cubic-bezier(.77,0,.18,1), box-shadow .13s;
+  animation: fadeUp .85s;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  max-width: 1450px; /* or 100% for edge-to-edge, or set lower for design preference */
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 2vw;
+  padding-right: 2vw;
+}
+@media (max-width: 600px) {
+  .matcher-glass-card {
+    padding: 1vw !important;
+    border-radius: 0.7rem;
+  }
+  th, td { font-size: 0.97em; word-break: break-word; }
+}
+.table-responsive { width: 100%; overflow-x: auto; }
+@media (max-width: 767.98px) {
+  form.matcher-form {
+    justify-content: center !important;
+    gap: 1rem !important;
+  }
+  form.matcher-form .form-group {
+    flex: 1 1 100% !important;
+  }
+  form.matcher-form > div.d-flex {
+    justify-content: center !important;
+    width: 100% !important;
+  }
+}
+/* Animate button color through a subtle gradient shift to match your color scheme */
+@keyframes pulse-color {
+  0%, 100% {
+    background-color: #17a2b8; /* Bootstrap info color */
+    border-color: #17a2b8;
+    color: #fff;
+    box-shadow: 0 0 8px 0 rgba(23, 162, 184, 0.6);
+  }
+  50% {
+    background-color: #138496;
+    border-color: #117a8b;
+    color: #e0f7fa;
+    box-shadow: 0 0 16px 4px rgba(19, 132, 150, 0.8);
+  }
+}
+
+.manual-matcher-btn {
+  animation: pulse-color 3s infinite ease-in-out;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  white-space: nowrap;
+}
+
+/* Responsive adjustments */
+@media (max-width: 575.98px) {
+  .manual-matcher-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .manual-matcher-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+</style>
+
+<div class="matcher-glass-card shadow animate__animated animate__fadeInUp mt-2 matcher-animate">
+  <div class="p-2 pt-3 pb-2">
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+      <div class="d-flex align-items-center mb-2 mb-md-0">
+        <i class="bi bi-bag-check matcher-icon animate__animated animate__tada"></i>
+        <h2 class="matcher-title ms-2 mb-0">Offers Matcher</h2>
+      </div>
+      <form method="get" class="d-flex gap-3 flex-wrap align-items-end matcher-form animate__animated animate__fadeInRight" style="min-width: 280px;">
+        <div class="form-group">
+          <label for="start_date" class="form-label">From Date:</label>
+          <input type="date" id="start_date" name="start_date" value="{{ start_date }}" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label for="end_date" class="form-label">To Date:</label>
+          <input type="date" id="end_date" name="end_date" value="{{ end_date }}" class="form-control" />
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <button type="submit" class="btn btn-primary">Filter</button>
+          <button type="submit" name="export" value="1" class="btn btn-success">Export CSV</button>
+        </div>        
+      </form>
+    </div>
+
+    <div class="d-flex align-items-center justify-content-between flex-wrap mb-3 manual-matcher-row">
+      <p class="text-muted mb-0" style="font-size:1.07rem; flex: 1 1 auto; min-width: 220px;">
+        AI-powered matching between <strong>Advertiser Offers</strong> and <span class="fw-semibold text-success">Publisher Wishlists</span>.
+      </p>
+      <button type="button" class="btn btn-info manual-matcher-btn mt-2 mt-sm-0" data-bs-toggle="modal" data-bs-target="#manualMatcherModal">
+        <i class="bi bi-search"></i> Manual Matcher
+      </button>
+    </div>
+  </div>        
+  <div class="bg-white p-3 border-top mt-3 animate__animated animate__fadeIn">
+          <!-- Strict Matches -->
+          <h5 class="fw-bold mb-3 text-secondary"><i class="bi bi-stars"></i> Strict Matches</h5>
+          {% if matches %}
+            <div class="table-responsive mb-3">
+              <table class="table table-striped table-bordered align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>Publisher</th>
+                    <th>Wishlist Campaign</th>
+                    <th>Geo</th>
+                    <th>Category</th>
+                    <th>Payout</th>
+                    <th>Model</th>
+                    <th>Matched Offer</th>
+                    <th>Advertiser</th>
+                    <th>Offer Payout</th>
+                    <th>Offer Model</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {% for pair in matches %}
+                  <tr>
+                    <td>{{ pair.wishlist.publisher.company_name }}</td>
+                    <td>{{ pair.wishlist.desired_campaign }}</td>
+                    <td>{{ pair.wishlist.geo }}</td>
+                    <td>{{ pair.wishlist.category }}</td>
+                    <td>
+                      {% if pair.wishlist.payout %}{{ pair.wishlist.payout }}{% else %}<span class="text-muted">-</span>{% endif %}
+                    </td>
+                    <td>
+                      {% if pair.wishlist.model %}{{ pair.wishlist.model }}{% else %}<span class="text-muted">-</span>{% endif %}
+                    </td>
+                    <td>
+                      <strong class="text-primary">{{ pair.offer.campaign_name }}</strong>
+                    </td>
+                    <td>{{ pair.offer.advertiser.company_name }}</td>
+                    <td>
+                      {% if pair.offer.payout %}{{ pair.offer.payout }}{% else %}<span class="text-muted">-</span>{% endif %}
+                    </td>
+                    <td>
+                      {% if pair.offer.model %}{{ pair.offer.model }}{% else %}<span class="text-muted">-</span>{% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="text-muted mb-4">No strict (exact) matches found.</div>
+          {% endif %}
+
+          <!-- Suggestions -->
+          <h5 class="fw-bold mb-3 text-secondary"><i class="bi bi-lightbulb"></i> Suggested Matches</h5>
+          {% if suggestions %}
+          <div class="table-responsive mb-3">
+              <table class="table table-hover table-bordered align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>Publisher</th>
+                    <th>Wishlist Campaign</th>
+                    <th>Geo</th>
+                    <th>Category</th>
+                    <th>Payout</th>
+                    <th>Model</th>
+                    <th>Suggested Offer</th>
+                    <th>Advertiser</th>
+                    <th>Offer Payout</th>
+                    <th>Offer Model</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {% for pair in suggestions|slice:":25" %}
+                  <tr>
+                    <td>{{ pair.wishlist.publisher.company_name }}</td>
+                    <td>{{ pair.wishlist.desired_campaign }}</td>
+                    <td>{{ pair.wishlist.geo }}</td>
+                    <td>{{ pair.wishlist.category }}</td>
+                    <td>
+                      {% if pair.wishlist.payout %}{{ pair.wishlist.payout }}{% else %}<span class="text-muted">-</span>{% endif %}
+                    </td>
+                    <td>
+                      {% if pair.wishlist.model %}{{ pair.wishlist.model }}{% else %}<span class="text-muted">-</span>{% endif %}
+                    </td>
+                    <td>
+                      <strong>{{ pair.offer.campaign_name }}</strong>
+                    </td>
+                    <td>{{ pair.offer.advertiser.company_name }}</td>
+                    <td>
+                      {% if pair.offer.payout %}{{ pair.offer.payout }}{% else %}<span class="text-muted">-</span>{% endif %}
+                    </td>
+                    <td>
+                      {% if pair.offer.model %}{{ pair.offer.model }}{% else %}<span class="text-muted">-</span>{% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="text-muted mb-4">No suggested matches at this time.</div>
+          {% endif %}
+
+          <!-- Match History -->
+          <h5 class="fw-bold mb-3 mt-4 text-secondary"><i class="bi bi-clock-history"></i> Match History</h5>
+          {% if match_history %}
+            <div class="table-responsive mb-3">
+              <table class="table table-sm align-middle table-bordered">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width:16%;">Matched At</th>
+                    <th>Offer</th>
+                    <th>Advertiser</th>
+                    <th>Wishlist</th>
+                    <th>Publisher</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {% for h in match_history %}
+                  <tr>
+                    <td>
+                      <span class="small">{{ h.matched_at|date:'Y-m-d H:i' }}</span>
+                    </td>
+                    <td>
+                      <b>{{ h.offer.campaign_name }}</b> ({{ h.offer.geo }}, {{ h.offer.category }}) <br>
+                      <small class="text-secondary">
+                        Model: {{ h.offer.model|default:"-" }}, Payout: {{ h.offer.payout|default:"-" }}
+                      </small>
+                    </td>
+                    <td>{{ h.offer.advertiser.company_name|default:"-" }}</td>
+                    <td>
+                      <b>{{ h.wishlist.desired_campaign }}</b> ({{ h.wishlist.geo }}, {{ h.wishlist.category }}) <br>
+                      <small class="text-secondary">
+                        Model: {{ h.wishlist.model|default:"-" }}, Payout: {{ h.wishlist.payout|default:"-" }}
+                      </small>
+                    </td>
+                    <td>{{ h.wishlist.publisher.company_name|default:"-" }}</td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="text-muted mb-3">No match history yet.</div>
+          {% endif %}
+        </div>          
+</div>
+<!-- Manual Matcher Modal -->
+<div class="modal fade" id="manualMatcherModal" tabindex="-1" aria-labelledby="manualMatcherModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form id="manualMatcherForm" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="manualMatcherModalLabel">Manual Offer Matcher</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="match_type" class="form-label">Match Type</label>
+          <select class="form-select" id="match_type" name="match_type" required>
+            <option value="" disabled selected>Select Match Type</option>
+            <option value="exact">Exact Match</option>
+            <option value="geo">Geo Match</option>
+            <option value="category">Category Match</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="offer_name" class="form-label">Offer Name</label>
+          <input type="text" class="form-control" id="offer_name" name="offer_name" placeholder="Enter offer name" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="geo" class="form-label">Geo</label>
+          <input type="text" class="form-control" id="geo" name="geo" placeholder="Enter geo (e.g. IN,US,UK)" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Start Match</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('manualMatcherForm');
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const matchType = form.match_type.value;
+    const offerName = form.offer_name.value.trim();
+    const geo = form.geo.value.trim();
+
+    if (!matchType || !offerName || !geo) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    const params = new URLSearchParams({
+      match_type: matchType,
+      offer_name: offerName,
+      geo: geo,
+    }).toString();
+
+    // Hide the modal (requires Bootstrap 5 JS)
+    const modalEl = document.getElementById('manualMatcherModal');
+    const bootstrapModal = bootstrap.Modal.getInstance(modalEl);
+    bootstrapModal.hide();
+
+    // Redirect to your matcher results page (update URL name as needed)
+    window.location.href = "{% url 'offers:matcher_results' %}?" + params;
+  });
+});
+</script>
+{% endblock %}

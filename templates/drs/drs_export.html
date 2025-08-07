@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+.drs-export-card {
+    max-width: 420px;
+    margin: 64px auto 0 auto;
+    border-radius: 1.5rem;
+    background: rgba(255,255,255,0.17);
+    box-shadow: 0 6px 40px #1dbfae29, 0 1.5px 9px #1963b319;
+    border: 1.3px solid rgba(29,191,174,0.09);
+    backdrop-filter: blur(12px) saturate(120%);
+    padding: 2.3rem 2rem 1.8rem 2rem;
+    animation: popInDRS .7s cubic-bezier(.59,.08,.32,1.08);
+    text-align: center;
+    position: relative;
+}
+@keyframes popInDRS {
+    0% { opacity: 0; transform: scale(.89) translateY(50px);}
+    95% { opacity: 1; transform: scale(1.04) translateY(-4px);}
+    100% { opacity: 1; transform: scale(1) translateY(0);}
+}
+.drs-export-card h1 {
+    font-weight: 700;
+    font-size: 2.1rem;
+    color: #1963b3;
+    letter-spacing: 0.5px;
+    margin-bottom: 1.3rem;
+    animation: fadeDownDRS .65s .13s backwards;
+}
+@keyframes fadeDownDRS {
+    0% { opacity: 0; transform: translateY(-32px);}
+    100% { opacity:1; transform: none;}
+}
+.export-btn-anim {
+    font-size: 1.1rem;
+    padding: .92rem 2rem;
+    border-radius: 1.25rem;
+    font-weight: 600;
+    background: linear-gradient(90deg,#1dbfae 24%,#1963b3 100%);
+    border: none;
+    box-shadow: 0 2px 26px #1963b339;
+    color: #fff;
+    transition: background .19s, transform .12s, box-shadow .17s;
+    animation: btnPulseDRS 1.35s 0.23s backwards;
+}
+.export-btn-anim:active, .export-btn-anim:focus {
+    background: linear-gradient(88deg,#1963b3 34%,#1dbfae 100%);
+    transform: scale(.97);
+    box-shadow: 0 2px 18px #1dbfae29;
+    outline:none;
+}
+.export-btn-anim:hover {
+    background: linear-gradient(98deg,#1ecfc4 20%,#216ad6 100%);
+    transform: scale(1.04);
+}
+
+@keyframes btnPulseDRS {
+    0% { opacity: 0; transform: scale(.78);}
+    50% { opacity: 1; transform: scale(1.07);}
+    100% { opacity:1; transform: scale(1);}
+}
+.text-muted-anim {
+    color: #34929b !important;
+    letter-spacing: .03em;
+    font-size: 1.08rem;
+    margin-top: 2.5rem;
+    animation: fadeInTextDRS .85s .36s backwards;
+}
+@keyframes fadeInTextDRS {
+    0% { opacity:0; }
+    100% { opacity:1;}
+}
+/* Responsive */
+@media (max-width: 576px){
+    .drs-export-card { padding: 1.1rem 0.6rem 1.4rem 0.6rem;}
+    .drs-export-card h1 { font-size: 1.34rem;}
+    .export-btn-anim { padding: .92rem 1rem; font-size: 1rem;}
+}
+</style>
+
+<div class="drs-export-card animate__animated animate__fadeIn">
+    <h1>
+        <svg width="36" height="36" class="me-1" style="vertical-align:-4px">
+            <defs>
+                <linearGradient id="drsGrad" x1="0" x2="36" y1="0" y2="36" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#1dbfae"/>
+                    <stop offset="1" stop-color="#1963b3"/>
+                </linearGradient>
+            </defs>
+            <circle cx="18" cy="18" r="16" fill="none" stroke="url(#drsGrad)" stroke-width="4"/>
+            <path d="M12 17h12M18 13v8M14 25h8" stroke="#1963b3" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+        </svg>
+        Export DRS
+    </h1>
+
+    <form method="get" action="" class="mb-3">
+        <button type="submit"
+                name="export"
+                value="csv"
+                class="export-btn-anim">
+            <i class="bi bi-file-earmark-arrow-down me-1"></i> Download as CSV
+        </button>
+    </form>
+
+    <div class="text-muted text-muted-anim">
+        <i class="bi bi-hourglass-split me-1"></i>
+        Timeline and advanced export features <b>coming soon</b>.
+    </div>
+
+    {% if drs_list and drs_list.0 %}
+      <div class="alert alert-info my-3 text-start" style="font-size: 1.1em;">
+        <b>Most recent DRS:</b>
+        Revenue=<b>{{ drs_list.0.revenue|default:"-" }}</b>,
+        Payout=<b>{{ drs_list.0.payout|default:"-" }}</b>,
+        Profit: <b>{{ drs_list.0.profit|default:"-" }}</b>,
+        Last updated: {{ drs_list.0.updated_at|date:"Y-m-d H:i"|default:"-" }}
+      </div>
+    {% else %}
+      <div class="alert alert-warning my-3 text-start" style="font-size: 1.05em;">
+        <i class="bi bi-info-circle me-1"></i> No DRS records found. Please add a DRS entry to see a preview here.
+      </div>
+    {% endif %}
+</div>
+
+{% endblock %}

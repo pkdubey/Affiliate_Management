@@ -1,0 +1,28 @@
+# Core Requirements
+Django>=5.2.4
+mysqlclient>=2.2.7
+
+# Data Science/AI
+scikit-learn>=1.7.0
+numpy>=2.3.1
+scipy>=1.16.0
+joblib>=1.5.1
+pandas>=2.0.0
+
+# PDF Generation
+WeasyPrint>=60.0
+cairocffi>=1.6.1
+cffi>=1.15.1
+Pillow>=10.0.0
+
+# Development & Extras
+python-dotenv>=1.0.0
+django-environ>=0.11.2
+django-widget-tweaks>=1.5.0
+django-crispy-forms>=2.1
+crispy-bootstrap5>=2023.10
+django-tables2>=2.7.0
+
+# Windows-specific (comment out for macOS)
+# pycairo>=1.23.0; platform_system == "Windows"
+# GTK3 Runtime for Windows (install manually from link below)

@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+/* Glassy card for the table */
+.invoice-list-card {
+    border-radius: 1.5rem;
+    background: rgba(255,255,255,0.85);
+    box-shadow: 0 4px 32px #1dbfae22, 0 1.5px 7px #1963b319;
+    border: 1.5px solid rgba(29,191,174,.11);
+    backdrop-filter: blur(6px);
+    animation: fadeCardList 0.8s cubic-bezier(.75,.14,.54,.99);
+    padding: 0;
+    overflow: hidden;
+}
+@keyframes fadeCardList {
+    from { opacity:0; transform: translateY(30px);}
+    to   { opacity:1; transform: none;}
+}
+
+/* Animated row effect */
+.animated-table tbody tr {
+    transition: box-shadow .18s, background .22s;
+}
+.animated-table tbody tr:hover {
+    background: linear-gradient(90deg, #1dbfae11, #1963b30b 80%);
+    box-shadow: 0 2px 16px #1dbfae29;
+}
+
+.animated-table thead th {
+    color: #1963b3;
+    font-weight: bold;
+    letter-spacing: .03em;
+    background: rgba(250,253,253,.96);
+    border-bottom: 2px solid #1dbfae33 !important;
+}
+
+.animated-table td, .animated-table th {
+    vertical-align: middle;
+    text-align: center;
+}
+.invoice-status {
+    border-radius: .6rem;
+    font-size: .95em;
+    padding: .25em .9em;
+    font-weight: 600;
+    display: inline-block;
+    background: #eaf9ff;
+}
+.invoice-status.paid { background: #e8fbe9; color: #0a944e; }
+.invoice-status.pending { background: #fffbe6; color: #93890a;}
+.invoice-status.cancelled { background: #ffe5e6; color: #b71e36; }
+
+.invoice-action-btn {
+    font-size: 1em;
+    border: none;
+    outline: none;
+    background: none;
+    color: #1dbfae;
+    padding: 0 .2em;
+    transition: color .2s, text-shadow .18s;
+}
+.invoice-action-btn:hover {
+    color: #1963b3;
+    text-shadow: 0 2px 12px #1dbfae1a;
+}
+
+/* Top bar Add button style */
+.add-invoice-btn {
+    background: linear-gradient(90deg, #1dbfae 0 53%, #1963b3 100%);
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    border-radius: 1.2rem;
+    padding: .45rem 1.3rem;
+    box-shadow: 0 2px 14px #1dbfae38;
+    transition: background .19s, box-shadow .19s, transform .13s;
+}
+.add-invoice-btn:hover, .add-invoice-btn:focus {
+    background: linear-gradient(90deg, #1963b3 10%, #1dbfae 90%);
+    box-shadow: 0 4px 24px #1dbfae57;
+    color: #fff;
+    transform: translateY(-2px);
+}
+.invoice-table-responsive {
+    overflow-x: auto;
+    margin-top: 1.7rem;
+}
+.invoice-status.overdue { background:#fff3ed; color:#b4411c;}
+</style>
+
+
+<div class="card invoice-list-card mx-auto">
+    <div class="d-flex flex-wrap justify-content-between align-items-center px-4 py-4 border-bottom">
+        <h2 class="fs-3 mb-0" style="color:#1963b3">
+            <i class="bi bi-receipt"></i> Invoices
+        </h2>
+        <a href="{% url 'invoicing:add' %}" class="add-invoice-btn d-flex align-items-center gap-2">
+            <i class="bi bi-plus-lg"></i> Add Invoice
+        </a>
+    </div>
+    <div class="invoice-table-responsive px-2 px-md-4 py-3">
+        <table class="table table-hover animated-table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Publisher</th>
+                    <th>DRS</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for invoice in invoices %}
+                <tr>
+                    <td><span class="fw-bold text-primary">#{{ invoice.id }}</span></td>
+                    <td>{{ invoice.publisher }}</td>
+                    <td>{{ invoice.drs }}</td>
+                    <td>
+                        <span class="invoice-status {% if invoice.status == 'Paid' %}paid{% elif invoice.status == 'Pending' %}pending{% elif invoice.status == 'Cancelled' %}cancelled{% elif invoice.status == 'Overdue' %}overdue{% endif %}">
+                            {{ invoice.status }}
+                        </span>
+                    </td>
+                    <td>{{ invoice.created_at|date:'Y-m-d' }}</td>
+                    <td>
+                        <a href="{% url 'invoicing:edit' invoice.id %}" class="invoice-action-btn" title="Edit"><i class="bi bi-pencil-square"></i></a>
+                        <a href="{% url 'invoicing:delete' invoice.id %}" class="invoice-action-btn" title="Delete"><i class="bi bi-trash"></i></a>
+                        <a href="{% url 'invoicing:pdf' invoice.id %}" class="invoice-action-btn" title="Download PDF"><i class="bi bi-file-earmark-pdf"></i></a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6" class="text-secondary">No invoices found.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

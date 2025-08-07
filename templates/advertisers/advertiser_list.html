@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<style>
+.advertiser-table-card {
+    border-radius: 1.5rem;
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(4px) saturate(130%);
+    box-shadow: 0 4px 24px #1dbfae17, 0 2px 8px #1963b327;
+    border: 1.4px solid rgba(29,191,174,0.11);
+    animation: fadeInTable 0.85s cubic-bezier(.31,.81,.45,1.23);
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+@keyframes fadeInTable {
+    from {opacity:0; transform: translateY(22px);}
+    to {opacity:1; transform: none;}
+}
+.table-modern thead th {
+    border-top: none;
+    font-size: 1.07rem;
+    letter-spacing: .07em;
+    color: #1963b3;
+    font-weight: 700;
+    background: linear-gradient(90deg,#eefcff 0,#e7f9f9 100%);
+}
+.table-modern tbody tr {
+    transition: background 0.21s, box-shadow 0.18s, transform 0.21s;
+}
+.table-modern tbody tr:hover {
+    background: #e7f9f9;
+    box-shadow: 0 4px 12px #1dbfae16;
+    transform: scale(1.012);
+}
+.action-btn {
+    border: none;
+    background: none;
+    color: #1963b3;
+    font-size: 1.09rem;
+    margin: 0 4px;
+    transition: color 0.2s, transform .13s;
+    padding: 0 7px;
+    border-radius: 50%;
+}
+.action-btn:hover {
+    color: #fff;
+    background: linear-gradient(120deg,#1dbfae 30%,#1963b3 100%);
+    transform: scale(1.2);
+}
+.add-advertiser-btn {
+    border-radius: 30px;
+    background: linear-gradient(92deg,#1dbfae,#1963b3);
+    color: #fff;
+    font-weight: bold;
+    box-shadow: 0 4px 16px #1dbfae20;
+    padding: 0.58em 1.45em;
+    border: none;
+    margin-bottom: 1.5rem;
+    transition: background .18s, box-shadow .18s;
+}
+.add-advertiser-btn:hover {
+    background: linear-gradient(92deg,#1963b3,#1dbfae);
+    box-shadow: 0 8px 32px #1963b32a;
+}
+
+.offer-modal-table {
+  background: rgba(255,255,255,0.98);
+  border-radius: 1rem;
+  box-shadow: 0 2px 24px #1dbfae1a;
+  animation: fadeInTable 0.7s cubic-bezier(.31,.81,.45,1.23);
+  border-collapse: separate; border-spacing: 0;
+  overflow: hidden;
+}
+@keyframes fadeInTable {from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:none;}}
+.offer-modal-table th, .offer-modal-table td { font-size: 0.98rem; border: none; }
+.offer-modal-table th {
+  color: #1963b3; background: linear-gradient(90deg,#eefcff,#e7f9f9 100%);
+  font-weight: bold; border-bottom:2.5px solid #1dbfae30;
+}
+.offer-modal-table tr {transition:background .14s, box-shadow .19s;}
+.offer-modal-table tr:hover {background: #e7f9f9; box-shadow: 0 4px 12px #1dbfae15;}
+.offer-modal-table tbody tr {opacity: 0; transform: translateY(10px);animation: rowFadeIn 0.65s forwards;}
+.offer-modal-table tbody tr:nth-child(1) { animation-delay: 0s;}
+.offer-modal-table tbody tr:nth-child(2) { animation-delay: .08s;}
+.offer-modal-table tbody tr:nth-child(3) { animation-delay: .16s;}
+.offer-modal-table tbody tr:nth-child(4) { animation-delay: .24s;}
+.offer-modal-table tbody tr:nth-child(5) { animation-delay: .32s;}
+@keyframes rowFadeIn {to {opacity:1;transform:none}}
+@media (max-width: 600px) {
+  .offer-modal-table td, .offer-modal-table th { font-size: 0.9rem; padding: 6px; }
+}
+/* Prevent wrap for campaign name and dates in the modal */
+.no-wrap {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 190px;         /* adjust as needed for your modal size */
+}
+/* Make header cells also unbreakable */
+.offer-modal-table th.no-wrap {
+  white-space: nowrap !important;
+}
+</style>
+<!-- Offer List Modal -->
+<div class="modal fade" id="offerListModal" tabindex="-1" aria-labelledby="offerListModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content animate__animated animate__fadeInUp">
+      <div class="modal-header" style="background: linear-gradient(100deg,#1dbfae 30%, #1963b3 100%);">
+        <h5 class="modal-title text-white" id="offerListModalLabel">
+          <i class="bi bi-bag-check"></i> Advertiser Offers
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1);"></button>
+      </div>
+      <div class="modal-body" id="offer-list-content" style="padding:0;">
+        <div class="text-center py-5" id="offer-loading-spinner">
+          <div class="spinner-border text-success" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+$(function() {
+  $(document).on('click', '.offers-link', function(e) {
+    e.preventDefault();
+    var advertiserId = $(this).data('advertiser-id');
+    $('#offer-list-content').html(`
+      <div class="text-center py-5" id="offer-loading-spinner">
+        <div class="spinner-border text-success" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    `);
+    var modal = new bootstrap.Modal(document.getElementById('offerListModal'));
+    modal.show();
+    $.ajax({
+      url: '/panel/advertisers/' + advertiserId + '/offers/',
+      success: function(data) {
+        $('#offer-list-content').html(data.html);
+      },
+      error: function(xhr, status, error) {
+        console.log("AJAX offers error", xhr.status, error, xhr.responseText);
+        $('#offer-list-content').html('<div class="text-danger text-center py-3">Failed to load offers.</div>');
+      }
+    });
+  });
+});
+</script>
+<!-- Offer End List Modal -->
+
+<div class="advertiser-table-card shadow p-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+        <h2 class="mb-0" style="color:#1963b3;"><i class="bi bi-person-badge"></i> Advertisers</h2>
+        <a href="{% url 'advertisers:add' %}" class="add-advertiser-btn">
+            <i class="bi bi-plus-lg me-1"></i> Add Advertiser
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-modern align-middle mb-0">
+            <thead>
+                <tr>
+                    <th style="width:7%;">ID</th>
+                    <th>Name</th>
+                    <th>Company Name</th>
+                    <th>Contact Person</th>
+                    <th>Email</th>
+                    <th>Offers Count</th>
+                    <th>Status</th>
+                    <th style="width:15%;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for advertiser in advertisers %}
+                <tr>
+                    <td class="fw-medium">{{ advertiser.id }}</td>
+                    <td>{{ advertiser.name }}</td>
+                    <td>
+                        <a href="{% url 'advertisers:detail' advertiser.id %}" class="text-decoration-none fw-bold text-dark">
+                            <i class="bi bi-person-vcard me-2 text-primary"></i>
+                            {{ advertiser.company_name }}
+                        </a>
+                    </td>
+                    <td>{{ advertiser.contact_person }}</td>
+                    <td>{{ advertiser.email }}</td>
+                    <td>
+                        <a href="#" class="offers-link" data-advertiser-id="{{ advertiser.id }}">
+                            {{ advertiser.offers_count }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if advertiser.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Actions">
+                        <a href="{% url 'advertisers:edit' advertiser.id %}" class="btn btn-sm btn-outline-success me-2" title="Edit Advertiser">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                        <a href="{% url 'advertisers:delete' advertiser.id %}" class="btn btn-sm btn-outline-danger" title="Delete Advertiser" onclick="return confirm('Are you sure you want to delete this advertiser?');">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">No advertisers found.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

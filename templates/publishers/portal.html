@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+.portal-card {
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(6px) saturate(130%);
+  border-radius: 1.4rem;
+  box-shadow: 0 6px 32px #1dbfae17;
+  border: 1.5px solid #1dbfae22;
+  padding: 2.2rem 2.1rem 1.6rem 2.1rem;
+  margin-bottom: 2.5rem;
+  animation: fadeUp .9s cubic-bezier(.77,0,.18,1);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(38px);}
+  to { opacity: 1; transform: none;}
+}
+
+.portal-header {
+  display: flex; align-items: center; gap: 15px;
+  animation: fadeUp 1.3s .1s backwards;
+}
+.portal-header-icon {
+  background: linear-gradient(120deg, #1dbfae 56%, #1963b3 100%);
+  color: #fff; 
+  box-shadow: 0 4px 18px #1963b375;
+  border-radius: 1.1rem; 
+  font-size: 2.2rem;
+  width: 48px; height: 48px;
+  display: flex; align-items: center; justify-content: center;
+  animation: pulseGlow 2.8s infinite;
+}
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 #1dbfae20;}
+  50% { box-shadow: 0 0 24px #1dbfae35;}
+  100% { box-shadow: 0 0 0 #1dbfae20;}
+}
+.portal-section-title {
+  font-weight: 700; 
+  color: #1963b3;
+  letter-spacing: .02em;
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+}
+.portal-form .form-control:focus {
+  box-shadow: 0 0 0 2px #1dbfae50;
+  border-color: #1dbfae;
+  transition: box-shadow .18s;
+}
+.portal-form label {
+  font-weight: 500;
+  color: #15b894;
+  margin-bottom: 4px;
+}
+
+.portal-btn {
+  background: linear-gradient(106deg, #1dbfae 45%, #1963b3 90%);
+  border: none;
+  font-weight: 600;
+  box-shadow: 0 4px 12px #1dbfae25;
+  transition: background .18s, box-shadow .18s, transform .18s;
+}
+.portal-btn:hover, .portal-btn:focus {
+  background: linear-gradient(104deg, #1963b3 56%, #1dbfae 100%);
+  box-shadow: 0 8px 28px #1dbfae33;
+  transform: translateY(-2px) scale(1.025);
+}
+
+.table-modern {
+  background: rgba(250,255,255,0.45);
+  border-radius: .9rem;
+  overflow: hidden;
+  animation: fadeUp 1.05s cubic-bezier(.77,0,.18,1) .12s backwards;
+}
+.table-modern th, .table-modern td {
+  vertical-align: middle !important;
+}
+.table-modern tbody tr {
+  transition: background .19s;
+}
+.table-modern tbody tr:hover {
+  background: #1dbfae11;
+}
+</style>
+
+<div class="portal-card">
+  <div class="portal-header mb-4">
+    <span class="portal-header-icon"><i class="bi bi-cloud-upload"></i></span>
+    <span class="fs-3 fw-bold" style="color: #154360">Publisher Portal</span>
+  </div>
+  <div class="mb-4 animate__animated animate__fadeInDown">
+    <div class="portal-section-title mb-3"><i class="bi bi-upload"></i> Upload Invoice</div>
+    <form method="post" enctype="multipart/form-data" class="portal-form">
+      {% csrf_token %}
+      <div class="row align-items-end">
+        <div class="col-lg-8 col-md-7 mb-3">
+          <label for="invoice_file" class="form-label">Invoice File</label>
+          <input type="file" class="form-control" id="invoice_file" name="invoice_file" accept=".pdf,.xls,.xlsx,.csv">
+        </div>
+        <div class="col-lg-4 col-md-5 mb-3 ps-lg-2">
+          <button type="submit" class="btn portal-btn w-100 py-2">
+            <i class="bi bi-cloud-arrow-up me-1"></i> Upload Invoice
+          </button>
+        </div>
+      </div>
+    </form>
+    {% if messages %}
+      <div class="mt-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} animate__animated animate__fadeIn">{{ message }}</div>
+      {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  <hr style="margin: 2rem 0 2.2rem 0; border-top: 2px solid #1dbfae26;" />
+
+  <div class="portal-section-title"><i class="bi bi-file-earmark-text"></i> Your Invoices</div>
+  <div class="table-responsive">
+    <table class="table table-bordered table-modern align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>ID</th>
+          <th>DRS</th>
+          <th>Status</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for invoice in invoices %}
+          <tr>
+            <td>{{ invoice.id }}</td>
+            <td>{{ invoice.drs }}</td>
+            <td>
+              {% if invoice.status == "Paid" %}
+                <span class="badge bg-success">Paid</span>
+              {% elif invoice.status == "Pending" %}
+                <span class="badge bg-warning text-dark">Pending</span>
+              {% elif invoice.status == "Rejected" %}
+                <span class="badge bg-danger">Rejected</span>
+              {% else %}
+                {{ invoice.status }}
+              {% endif %}
+            </td>
+            <td>{{ invoice.created_at }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" class="text-center text-muted">No invoices found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <hr style="margin: 2.4rem 0 2.2rem 0; border-top: 2px solid #1dbfae13;" />
+
+  <div class="portal-section-title"><i class="bi bi-patch-check"></i> Validation Summary</div>
+  <div class="table-responsive">
+    <table class="table table-bordered table-modern align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>ID</th>
+          <th>DRS</th>
+          <th>Month</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in validations %}
+          <tr>
+            <td>{{ v.id }}</td>
+            <td>{{ v.drs }}</td>
+            <td>{{ v.month }}</td>
+            <td>
+              {% if v.status == "Approved" %}
+                <span class="badge bg-success">Approved</span>
+              {% elif v.status == "Processing" %}
+                <span class="badge bg-info text-dark">Processing</span>
+              {% elif v.status == "Rejected" %}
+                <span class="badge bg-danger">Rejected</span>
+              {% else %}
+                {{ v.status }}
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" class="text-center text-muted">No validation records found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Invoice #{{ invoice.id }}</title>
+  <style>
+    @page { size: A4; margin: 28px 32px 25px 32px; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f7fcfd;
+      color: #154265;
+      font-size: 15px;
+      margin: 0;
+      padding: 20px;
+    }
+    .invoice-glass {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 8px 32px #1dbfae15, 0 2px 10px #1963b318;
+      border: 1.2px solid #1dbfae29;
+      padding: 28px 32px 24px 32px;
+      margin: 10px auto;
+      min-width: 0;
+      max-width: 780px;
+    }
+    
+    /* ACTION BUTTONS - NEW IMPROVED STYLES */
+    .action-buttons-container {
+      display: flex;
+      justify-content: flex-end;
+      margin: 20px auto;
+      max-width: 780px;
+      padding: 0 20px;
+    }
+    .action-button {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 20px;
+      margin-left: 15px;
+      border-radius: 25px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .action-button i {
+      margin-right: 8px;
+      font-size: 16px;
+    }
+    .back-button {
+      background: #1963b3;
+      color: white;
+      border: 2px solid #1963b3;
+    }
+    .print-button {
+      background: #1dbfae;
+      color: white;
+      border: 2px solid #1dbfae;
+    }
+    .action-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .action-button:active {
+      transform: translateY(0);
+    }
+    /* Rest of your existing styles... */
+    .top-flex {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      flex-wrap: wrap; margin-bottom:12px;
+    }
+    .tleft, .tright { font-size: 15px;}
+    .tleft { max-width:52%;}
+    .tright { text-align:right; }
+    .company-title {
+      font-weight: 800;
+      color: #1762b3;
+      font-size: 1.32rem;
+      letter-spacing: 1px;
+      margin-bottom: 2px;
+      text-shadow: 0 1px 5px #1963b305;
+    }
+    .mid-info { margin:22px 0 8px 0; }
+    .inv-label {
+      text-transform: uppercase;
+      font-size: .96em;
+      color: #27aa94;
+      font-weight:600;
+      letter-spacing:.06em;
+      margin-right:.09em;
+    }
+    .heading-table {
+      width: 100%; margin-bottom: 1.2em; border-collapse: collapse;
+    }
+    .heading-table td, .heading-table th { padding: 2px 8px; font-size: 14px; }
+    .heading-table tr th { color:#158b88; font-weight:600;
+      border-bottom:1.7px solid #e8efef;}
+    .bank-details {
+      margin-top: 1.2em;
+      font-size: 14px;
+      color: #303b61;
+    }
+    .gst-row td, .gst-row th { border-top: 1.2px dashed #6bd6e8; }
+    .invoice-table {
+      width: 100%; border-collapse: collapse; margin-top: 16px; margin-bottom: 6px;
+      font-size:15px;
+    }
+    .invoice-table th, .invoice-table td {
+      border: 1px solid #c2e7ef55;
+      padding: 7px 6px;
+      text-align: center;
+    }
+    .invoice-table thead th {
+      background: linear-gradient(90deg,#f4fbfa, #e6f9f7 90%);
+      color: #1dbfae;
+      font-weight:700;
+      border-bottom:2.1px solid #1dbfae44;
+    }
+    .invoice-table tbody td {
+      background: rgba(255,255,255,0.96);
+    }
+    .totals-row th, .totals-row td {
+      font-weight: 700;
+      color: #1479ab;
+      border-top:2px solid #1dbfae38;
+      background: #f2fcff;
+    }
+    .signature {
+      margin-top:32px; text-align:right; font-size:1.08em;
+      color: #16918b; font-weight: 500;
+    }
+    .inwords { margin: 1.2em 0 1em 0; font-size: 1.01em; color:#545e7a;}
+    .gst-table td, .gst-table th { text-align: right; padding: 4px 9px;}
+    .gst-table { margin-left:auto; margin-right:0; font-size: 14px;}
+    .leftbank { float:left; font-size:14px;}
+    .clearboth { clear:both;}
+    .tax-break { font-size:86%; color: #888bb8;}
+    .page-footer {
+      margin-top: 30px; border-top: 1.3px solid #eafafc; color: #a4adaf;
+      font-size: 0.98em; text-align: center; letter-spacing:.022em;
+    }
+    .logo { height:35px; margin-bottom: 9px;}
+    
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #fff; padding: 0; }
+      .invoice-glass { box-shadow: none; border: none; }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+</head>
+<body>
+{% load humanize %}
+{% load num_to_words %}
+<!-- BUTTONS - NEW IMPLEMENTATION -->
+<div class="action-buttons-container no-print">
+  <button class="action-button print-button" onclick="window.print()">
+    <i class="bi bi-printer"></i> Print Invoice
+  </button>
+  <a href="{% url 'invoicing:invoice_list' %}" class="action-button back-button">
+    <i class="bi bi-arrow-left"></i> Back to Invoices
+  </a>
+</div>
+
+<div class="invoice-glass">
+  <div class="top-flex">
+    <div class="tleft">
+      <div class="company-title">traccify.ai</div>
+      <div>0, Seohara Thakurdwara Road, Seohara Uttar Pradesh 246746 India</div>
+      <div class="mt-1">GSTIN: 09AMFPV3992D1ZL</div>
+      <div>UDYAM-UP-17-0028662</div>
+      <div>finance@traccify.ai</div>
+    </div>
+    <div class="tright">
+      <span class="inv-label">TAX INVOICE</span><br>
+      No: <strong>TA-{{ invoice.id }}</strong><br>
+      Invoice Date: <strong>{{ invoice.created_at|date:"d/m/Y" }}</strong><br>
+      Due Date: <strong>{{ invoice.created_at|date:"d/m/Y" }}</strong><br>
+      Terms: Net 30
+    </div>
+  </div>
+
+  <!-- Rest of your invoice content remains the same -->
+  <table class="heading-table">
+    <tr>
+      <th>Bill To (Client)</th>
+      <th>Supplier</th>
+    </tr>
+    <tr>
+      <td>
+        Trackback Media<br>
+        1001 IS tower UTC Noida Sector 132<br>
+        Gautam Buddha Nagar, Noida, 201301 Uttar Pradesh <br>
+        GSTIN: 09AAMFT2871J1ZL
+      </td>
+      <td>
+        traccify.ai<br>
+        0, Seohara Thakurdwara Road, 246746<br>
+        Uttar Pradesh, India<br>
+        GSTIN: 09AMFPV3992D1ZL
+      </td>
+    </tr>
+  </table>
+  <div class="inwords">
+      <strong>Total in Words:</strong>
+      {{ invoice.total_amount|amount_words }}
+  </div>
+
+  <table class="invoice-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Description</th>
+        <th>HSN/SAC</th>
+        <th>Qty</th>
+        <th>Rate</th>
+        <th>CGST<br>9%</th>
+        <th>SGST<br>9%</th>
+        <th>Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for line in invoice_lines %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ line.description }}</td>
+        <td>{{ line.hsn_sac }}</td>
+        <td>{{ line.qty }}</td>
+        <td>{{ line.rate }}</td>
+        <td>{{ line.cgst_amount }}</td>
+        <td>{{ line.sgst_amount }}</td>
+        <td>{{ line.amount }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tr class="totals-row">
+      <th colspan="7" style="text-align:right;">Sub Total</th>
+      <td>{{ invoice.amount }}</td>
+    </tr>
+    {% if invoice.currency == "INR" %}
+    <tr>
+      <th colspan="7" style="text-align:right;">CGST 9%</th>
+      <td>{{ cgst }}</td>
+    </tr>
+    <tr>
+      <th colspan="7" style="text-align:right;">SGST 9%</th>
+      <td>{{ sgst }}</td>
+    </tr>
+    <tr class="totals-row">
+      <th colspan="7" style="text-align:right;">Total</th>
+      <td><strong>{{ invoice.total_amount }}</strong></td>
+    </tr>
+    {% else %}
+    <tr class="totals-row">
+      <th colspan="7" style="text-align:right;">Total</th>
+      <td><strong>{{ invoice.amount }}</strong></td>
+    </tr>
+    {% endif %}
+  </table>
+
+  <div class="bank-details">
+    <strong>Bank Details:</strong><br>
+    Bank: HDFC Bank<br>
+    Name: traccify.ai<br>
+    A/C No: 50200094727751<br>
+    IFSC: HDFC0007070<br>
+    SWIFT: HDFCINBB<br>
+    Address: Ward No 12, Gr Flr, Muslim Chowdhirian, Dhampur, Hayatnagar Seohara Bijnor - 246746
+  </div>
+
+  <div class="signature">
+    <div>Thanks for your business.</div>
+    <div style="margin-top:16px;"><strong>traccify.ai</strong></div>
+  </div>
+
+  <div class="page-footer">
+    This is a computer generated invoice by traccify.ai | GSTIN: 09AMFPV3992D1ZL | finance@traccify.ai
+  </div>
+</div>
+</body>
+</html>

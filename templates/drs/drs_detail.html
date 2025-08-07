@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>DRS: {{ drs.campaign_name }}</h1>
+<ul>
+  <li>ID: {{ drs.id }}</li>
+  <li>Advertiser: {{ drs.advertiser }}</li>
+  <li>Affiliate: {{ drs.affiliate }}</li>
+  <li>Start Date: {{ drs.start_date }}</li>
+  <li>End Date: {{ drs.end_date }}</li>
+  <li>Revenue: {{ drs.revenue }}</li>
+  <li>Payout: {{ drs.payout }}</li>
+  <li>Profit: {{ drs.profit }}</li>
+</ul>
+<a href="{% url 'drs:edit' drs.id %}">Edit</a> |
+<a href="{% url 'drs:delete' drs.id %}">Delete</a> |
+<a href="{% url 'drs:list' %}">Back to list</a>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+/* Glassy centered card animation */
+.delete-confirm-card {
+    max-width: 400px;
+    margin: 60px auto 0 auto;
+    border-radius: 1.4rem;
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 10px 32px #0acdba23, 0 2px 8px #15436018;
+    padding: 2.6rem 2rem 2rem 2rem;
+    text-align: center;
+    animation: fadeInDelete 0.8s cubic-bezier(.42,.28,.22,1.14);
+    position: relative;
+}
+@keyframes fadeInDelete {
+    from {opacity:0; transform: translateY(44px) scale(0.95);}
+    to {opacity:1; transform: none;}
+}
+.delete-icon {
+    font-size: 2.6rem;
+    color: #ea3940;
+    margin-bottom: 1.1rem;
+    animation: shakeIcon 1.2s;
+}
+@keyframes shakeIcon {
+    10%, 90% { transform: translateX(-3px);}
+    20%, 80% { transform: translateX(5px);}
+    30%, 50%, 70% { transform: translateX(-8px);}
+    40%, 60% { transform: translateX(8px);}
+    100%   { transform: none;}
+}
+.confirm-delete-title {
+    font-weight: bold;
+    letter-spacing: 0.2px;
+    color: #0b262d;
+}
+.confirm-delete-question {
+    color: #405873;
+    font-size: 1.1rem;
+    margin-top: .9em;
+    margin-bottom: 2em;
+}
+.delete-btn {
+    background: linear-gradient(90deg, #ff594a 0%, #e14577 100%);
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    border-radius: 0.7rem;
+    padding: 0.6rem 2.1rem;
+    font-size: 1.11rem;
+    box-shadow: 0 2px 7px #ee354a23;
+    transition: background 0.18s, transform 0.13s;
+}
+.delete-btn:hover {
+    background: linear-gradient(90deg, #e14577 0%, #ff594a 90%);
+    transform: translateY(-2px) scale(1.045);
+}
+.cancel-link {
+    display: inline-block;
+    margin-top: 1.3rem;
+    color: #358DD9;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color .16s;
+}
+.cancel-link:hover { color: #1963b3; text-decoration: underline;}
+</style>
+
+<div class="delete-confirm-card animate__animated animate__fadeInDown">
+    <i class="bi bi-exclamation-octagon-fill delete-icon"></i>
+    <div class="confirm-delete-title h4 mb-2">Delete Offer</div>
+    <div class="confirm-delete-question mb-3">
+        Are you sure you want to <span class="text-danger fw-semibold">delete</span><br>
+        "<b>{{ object.campaign_name }}</b>"?
+    </div>
+    <form method="post" class="d-grid gap-2">{% csrf_token %}
+        <button type="submit" class="delete-btn">
+            <i class="bi bi-trash me-2"></i>Yes, delete
+        </button>
+    </form>
+    <a href="{% url 'offers:list' %}" class="cancel-link">
+        <i class="bi bi-arrow-left-short"></i> Cancel
+    </a>
+</div>
+{% endblock %}

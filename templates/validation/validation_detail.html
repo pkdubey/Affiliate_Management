@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" />
+
+<style>
+/* Full-view glassy background accent */
+.validation-bg-accent {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 120% 68% at 55% -10%, #dff8f8 48%, #e9fdff 83%, #1963b31b 100%);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.validation-detail-outer {
+    min-height: 100vh;
+    width: 100%;
+    position: relative;
+    background: transparent;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.validation-detail-card {
+    width: 100%;
+    max-width: 1180px;         /* Adjust to container/main-app width (sidebar + content) */
+    border-radius: 1.4rem;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(8px) saturate(120%);
+    box-shadow: 0 8px 32px #1dbfae16, 0 2px 10px #1963b319;
+    padding: 2.3rem 3vw 2rem 3vw;
+    animation: popInValidationCard 0.85s cubic-bezier(.32,.84,.43,1.21);
+    position: relative;
+    transition: box-shadow .13s, padding .17s;
+    overflow-x: visible;
+    display: flex;
+    flex-direction: column;
+}
+
+@keyframes popInValidationCard {
+    from { opacity:0; transform: translateY(28px) scale(.97);}
+    to   { opacity:1; transform: none;}
+}
+
+.validation-detail-card h3 {
+    font-weight: 700;
+    color: #1963b3;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    text-align: left;
+    letter-spacing: 0.04em;
+    animation: fadeDownValidation 0.6s .1s backwards;
+    display: flex;
+    align-items: center;
+    gap:0.65em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@keyframes fadeDownValidation {
+    0% { opacity: 0; transform: translateY(-24px);}
+    100% { opacity:1; transform: none;}
+}
+
+/* TABLE: responsive, NEVER overflows or hides rightmost td! */
+.validation-detail-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: rgba(251,255,255,.98);
+    border-radius: 0.9rem;
+    box-shadow: 0 3px 14px #1dbfae10;
+    word-break: break-all;
+    table-layout: auto;
+    overflow-x: auto;
+}
+
+.validation-detail-table th, .validation-detail-table td {
+    padding: 0.75em 0.8em;
+    font-size: 1.07em;
+    border-bottom: 1px solid #e1fafa;
+    background: transparent;
+    vertical-align: top;
+    max-width: 300px;
+    word-break: break-word;
+}
+
+.validation-detail-table th {
+    color: #1963b3;
+    font-weight: 700;
+    border-top: none;
+    background: linear-gradient(90deg,#eefcff 0,#e7f9f9 100%);
+    text-align: left;
+    min-width: 106px;
+    width: 32%;
+    /* Soft left-column for standard fields (not too wide) */
+}
+.validation-detail-table td {
+    width: 68%;
+}
+
+.validation-detail-table tr:last-child th, .validation-detail-table tr:last-child td { border-bottom: none; }
+
+.status-badge {
+    border-radius: 12px;
+    font-size: .98em;
+    padding: .27em 1em;
+    font-weight: 600;
+    background: #e4fcf2;
+    color: #17a181;
+    border: none;
+    letter-spacing: .01em;
+    display:inline-block;
+}
+.status-badge.Pending { background: #f9efd8; color: #e67e22;}
+.status-badge.Approved { background: #e8f9e2; color: #27ae60;}
+.status-badge.Rejected { background: #fae0e5; color: #e11e4e;}
+.update-status-form { display: flex; align-items: center; gap: .7em; flex-wrap: wrap;}
+.update-status-form select { min-width: 82px; }
+
+
+.validation-detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.1em;
+    margin-top: 2em;
+}
+.validation-detail-actions a, .validation-detail-actions button {
+    border: none;
+    background: none;
+    color: #1963b3;
+    font-size: 1.09em;
+    padding: 0.22em 1em;
+    font-weight: 600;
+    border-radius: 1.2em;
+    transition: background .12s, color .14s, transform .09s;
+    box-shadow: 0 2px 12px #1dbfae16;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: .6em;
+}
+
+/* --- Responsive improvements for main/app layouts w/ sidebar -- */
+@media (max-width: 1200px) {
+    .validation-detail-card { max-width: 100vw; padding: 1.7rem 1vw 1.2rem 1vw;}
+}
+@media (max-width: 900px) {
+    .validation-detail-card {max-width: 99vw; border-radius: 1rem; padding: 1rem 0.3rem;}
+    .validation-detail-card h3 { font-size: 1.24rem;}
+    .validation-detail-table th, .validation-detail-table td { padding: 0.6em 0.19em; font-size: 0.98em; }
+    .validation-detail-table th {min-width:60px;}
+}
+@media (max-width: 600px) {
+    .validation-detail-card { padding: .8rem 0.1rem; border-radius: .7rem; }
+    .validation-detail-card h3 { font-size:.99rem; margin-bottom:.5em;}
+    .validation-detail-table th, .validation-detail-table td { font-size:.96em; padding:0.25em 0.06em;}
+    .validation-detail-table th { min-width: 32px; max-width: 70px;}
+    .validation-detail-actions {gap:.35em;}
+    .update-status-form select { min-width: 51px;}
+}
+@media (max-width: 400px) {
+    .validation-detail-card { padding: 0.13rem 0.01rem;}
+    .validation-detail-card h3, .validation-detail-table th, .validation-detail-table td { font-size: .91em;}
+}
+</style>
+
+<div class="validation-bg-accent"></div>
+<div class="validation-detail-outer">
+  <div class="validation-detail-card animate__animated animate__fadeInDown shadow">
+    <h3>
+      <i class="bi bi-eye me-2 text-primary"></i>
+      Validation Detail
+    </h3>
+    <table class="validation-detail-table align-middle mb-0">
+        <tr>
+          <th>Campaign Name</th>
+          <td>{{ validation.drs.campaign_name }}</td>
+        </tr>
+        <tr>
+          <th>Publisher</th>
+          <td>{{ validation.publisher.company_name }}</td>
+        </tr>
+        <tr>
+          <th>PID</th>
+          <td>{{ validation.drs.pid }}</td>
+        </tr>
+        <tr>
+          <th>Conversions</th>
+          <td>{{ validation.conversions }}</td>
+        </tr>
+        <tr>
+          <th>Payout</th>
+          <td>{{ validation.payout }}</td>
+        </tr>
+        <tr>
+          <th>Approve Payout</th>
+          <td>{{ validation.approve_payout }}</td>
+        </tr>
+        <tr>
+          <th>Status</th>
+          <td>
+            <span class="status-badge {{ validation.status }}">{{ validation.status }}</span>
+            <!-- Update status inline -->
+            <form method="post" action="{% url 'validation:validation_export' %}" class="update-status-form d-inline mt-2 mb-1">
+              {% csrf_token %}
+              <input type="hidden" name="validation_id" value="{{ validation.id }}">
+              <select name="status" class="form-select d-inline w-auto">
+                {% for st in status_choices %}
+                  <option value="{{ st }}" {% if validation.status == st %}selected{% endif %}>{{ st }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check2"></i> Update</button>
+            </form>
+          </td>
+        </tr>
+        <tr>
+          <th>Last Updated</th>
+          <td><span class="text-muted">{{ validation.updated_at|date:"Y-m-d H:i" }}</span></td>
+        </tr>
+        <tr>
+          <th>Send Summary Mail</th>
+          <td>
+            {% if affiliate_email %}
+              <form method="post" action="{% url 'validation:validation_export' %}" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="send_email" value="1">
+                <input type="hidden" name="email" value="{{ affiliate_email }}">
+                <input type="hidden" name="validation_id" value="{{ validation.id }}">
+                <button type="submit" class="btn btn-outline-success btn-sm">
+                  <i class="bi bi-envelope"></i> Send to {{ affiliate_email }}
+                </button>
+              </form>
+            {% else %}
+              <span class="text-secondary">No email for this affiliate.</span>
+            {% endif %}
+          </td>
+        </tr>
+      </table>
+
+      <div class="validation-detail-actions animate__animated animate__fadeInUp animate__delay-1s">
+        <a href="{% url 'validation:edit' validation.id %}" class="validation-detail-action-link">
+          <i class="bi bi-pencil-square"></i> Edit
+        </a>
+        <a href="{% url 'validation:delete' validation.id %}" class="validation-detail-action-link">
+          <i class="bi bi-trash"></i> Delete
+        </a>
+        <a href="{% url 'validation:validation_list' %}" class="validation-detail-action-link">
+          <i class="bi bi-arrow-left"></i> Back to list
+        </a>
+      </div>
+  </div>
+</div>
+{% endblock %}

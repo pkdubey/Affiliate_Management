@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+<style>
+.offer-form-card {
+    max-width: 500px;
+    margin: 1.5rem auto 0 auto;
+    border-radius: 1.4rem;
+    background: rgba(255,255,255,0.87);
+    box-shadow: 0 8px 44px #1dbfae2b, 0 1.5px 8px #1963b321;
+    padding: 2.5rem 2.25rem 1.5rem 2.25rem;
+    animation: fadeInOfferForm 1.15s cubic-bezier(.5,.8,.25,1) backwards;
+    transition: box-shadow .19s cubic-bezier(.44,.34,.28,1.09);
+    backdrop-filter: blur(6px) saturate(125%);
+}
+@keyframes fadeInOfferForm {
+    from {opacity:0; transform:translateY(54px);}
+    to {opacity:1; transform:translateY(0);}
+}
+.offer-form-card h1 {
+    color: #1963b3;
+    font-weight: 700;
+    font-size: 2rem;
+    margin-bottom: 1.1rem;
+    letter-spacing: .5px;
+    animation: fadeInBar .85s .12s backwards;
+}
+@keyframes fadeInBar {
+    from { opacity: 0; transform: translateY(-18px);}
+    to { opacity: 1; }
+}
+.offer-form-card label {
+    font-weight: 600;
+    color: #1963b3;
+}
+.offer-form-card input,
+.offer-form-card select,
+.offer-form-card textarea {
+    background: rgba(224,247,250,0.40);
+    border: 1.4px solid #1dbfae44;
+    border-radius: .55rem;
+    transition: box-shadow .18s, border-color .17s;
+    font-size:1.08rem;
+}
+.offer-form-card input:focus,
+.offer-form-card select:focus,
+.offer-form-card textarea:focus {
+    border-color: #1dbfae;
+    box-shadow: 0 0 0 2.5px #1dbfae36;
+    background: #fff;
+}
+.btn-save-offer {
+    background: linear-gradient(90deg,#1dbfae 10%,#1963b3 88%);
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: .03em;
+    border-radius: .85rem;
+    box-shadow: 0 2.5px 16px #1dbfae25;
+    padding: .68rem 1.7rem;
+    font-size: 1.13rem;
+    border: none;
+    transition: background .16s, box-shadow .22s, transform .15s;
+    margin-top: 14px;
+    animation: popBounce .7s .18s backwards;
+}
+@keyframes popBounce {
+    0% { transform: scale(0.85);}
+    65% { transform: scale(1.1);}
+    100% { transform: scale(1);}
+}
+.btn-save-offer:hover, .btn-save-offer:focus {
+    background: linear-gradient(90deg,#1963b3 40%,#1dbfae 100%);
+    color: #fff;
+    box-shadow: 0 4px 28px #1963b323;
+    transform: translateY(-2px) scale(1.04);
+}
+.btn-back-link {
+    display: inline-block;
+    text-decoration: none;
+    background: #edfafd;
+    color: #1963b3;
+    padding: 0.52rem 1.25rem;
+    border-radius: .77rem;
+    font-weight: 500;
+    margin-top: 1.6rem;
+    font-size: 1rem;
+    border: none;
+    transition: background .14s, box-shadow .18s;
+}
+.btn-back-link:hover {
+    background: #d0f8f7;
+    color: #1dbfae;
+}
+</style>
+{% endblock %}
+{% block content %}
+<div class="offer-form-card">
+  <h1 class="mb-4">{% if form.instance.pk %}Edit{% else %}Add{% endif %} Offer</h1>
+  
+  <form method="post" autocomplete="off">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="mb-3">
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.help_text %}
+          <small class="form-text text-muted">{{ field.help_text }}</small>
+        {% endif %}
+        {% for error in field.errors %}
+          <div class="text-danger small">{{ error }}</div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-save-offer w-100"><i class="bi bi-check-circle me-2"></i>Save</button>
+  </form>
+  <a href="{% url 'offers:list' %}" class="btn-back-link mt-4"><i class="bi bi-arrow-left me-2"></i>Back to list</a>
+</div>
+{% endblock %}

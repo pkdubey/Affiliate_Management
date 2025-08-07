@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+.userlist-glass-card {
+  border-radius: 1.25rem;
+  background: rgba(255,255,255,0.38);
+  backdrop-filter: blur(7px) saturate(130%);
+  box-shadow: 0 4px 24px #1dbfae24, 0 1.5px 9px #1963b31a;
+  border: 1.5px solid rgba(26,191,174,0.11);
+  padding: 2.5rem 2rem 1.5rem 2rem;
+  animation: fadeUserCardUp .7s cubic-bezier(.45,.8,.51,1.22);
+  overflow: hidden;
+}
+@keyframes fadeUserCardUp {
+  from { opacity:0; transform:translateY(42px);}
+  to { opacity:1; transform:translateY(0);}
+}
+/* Title row improvements */
+.userlist-title-row {
+  gap: 1em;
+  flex-wrap: wrap;
+  margin-bottom: 1.8rem;
+}
+.userlist-title {
+  display: flex;
+  align-items: center;      /* <-- Center icon and text */
+  gap: 0.7em;
+  font-size: 2.05rem;       /* <-- Bigger than before */
+  color: #1963b3;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  line-height: 1.12;
+}
+.userlist-title .bi {
+  font-size: 2.2rem;
+  margin-bottom: 0;         /* <-- Remove mb-0 class, not needed */
+  color: #1dbfae;
+  filter: drop-shadow(0 3px 8px #1dbfae33);
+  animation: pop-in 1s cubic-bezier(.31,1.42,.44,1.1);
+}
+@keyframes pop-in {
+  0% { transform: scale(0.65);}
+  80% { transform: scale(1.22);}
+  100% { transform: scale(1);}
+}
+.add-user-btn {
+  background: linear-gradient(87deg, #1dbfae 40%, #1963b3 100%);
+  color: #fff;
+  font-weight: 500;
+  border-radius: .75rem;
+  box-shadow: 0 2px 15px #1dbfae18;
+  transition: background .15s, box-shadow .18s;
+  padding: 0.64em 1.2em;
+  letter-spacing: .02em;
+  font-size: 1rem;
+  display: flex; align-items: center;
+  margin-left: auto;
+}
+.add-user-btn:hover {
+  background: #1963b3;
+  color: #fff;
+  box-shadow: 0 4px 22px #1963b331;
+}
+/* Responsive */
+@media (max-width: 440px) {
+  .userlist-title-row {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  .add-user-btn {
+    width: 100%;
+    justify-content: center;
+    margin-top: .65em;
+  }
+}
+.userlist-table th {
+  background: linear-gradient(90deg,#1dbfae22 30%, #1963b312 100%);
+  color: #154360;
+  font-weight: 700;
+  border: none !important;
+  font-size: 1rem;
+  letter-spacing:.2px;
+  text-shadow:0 1px 8px #1dbfae0a;
+}
+.userlist-table tbody tr { animation: fadeUserRow 0.77s both;}
+@keyframes fadeUserRow {
+  0% { opacity:0; transform: translateX(-42px);}
+  100% { opacity:1; transform: none;}
+}
+.userlist-table tbody tr:hover {
+  background: linear-gradient(90deg, #e7fafa 75%, #d1ebf9 100%);
+  box-shadow: 0 2px 16px #1dbfae26 inset;
+  transition: background .23s, box-shadow .25s;
+}
+.userlist-table td, .userlist-table th {
+  vertical-align: middle;
+  padding: .66rem .9rem;
+  border: none;
+}
+.status-dot {
+  height: 13px; width: 13px; border-radius: 50%;
+  display: inline-block; margin-right: 5px; box-shadow: 0 0 6px #f8ff;
+}
+.status-dot.active { background: #16d68b; }
+.status-dot.inactive { background: #fd8c73; }
+.status-dot.staff { background: #3c92fd; }
+.status-dot.nostaff { background: #d6d8db; }
+.table-action-btn {
+  border: none; background: transparent; padding: .3em .5em; margin: 0 2px;
+  color: #1dbfae; font-size: 1.17em; border-radius: 7px;
+  transition: background .16s, color .18s, transform .22s;
+}
+.table-action-btn:hover {
+  background: #e6fcff; color: #1963b3; transform: scale(1.13) rotate(-7deg);
+  box-shadow:0 2px 10px #1dbfae22;
+}
+::-webkit-scrollbar-thumb { background: #1dbfae22; border-radius:8px;}
+::-webkit-scrollbar { width:9px; background: #f6ffff;}
+
+.userlist-table tbody tr { animation: fadeUserRow 0.77s both; }
+
+.userlist-table tbody tr:nth-child(1)  { animation-delay: 0.06s; }
+.userlist-table tbody tr:nth-child(2)  { animation-delay: 0.12s; }
+.userlist-table tbody tr:nth-child(3)  { animation-delay: 0.18s; }
+.userlist-table tbody tr:nth-child(4)  { animation-delay: 0.24s; }
+.userlist-table tbody tr:nth-child(5)  { animation-delay: 0.30s; }
+.userlist-table tbody tr:nth-child(6)  { animation-delay: 0.36s; }
+.userlist-table tbody tr:nth-child(7)  { animation-delay: 0.42s; }
+.userlist-table tbody tr:nth-child(8)  { animation-delay: 0.48s; }
+.userlist-table tbody tr:nth-child(9)  { animation-delay: 0.54s; }
+.userlist-table tbody tr:nth-child(10) { animation-delay: 0.60s; }
+</style>
+
+<div class="container mt-4">
+  <div class="userlist-glass-card">
+    <!-- Use updated title row here -->
+    <div class="d-flex justify-content-between align-items-center userlist-title-row">
+      <span class="userlist-title">
+        <i class="bi bi-people"></i>
+        Manage Users
+      </span>
+      <a href="{% url 'users:user_create' %}" class="btn add-user-btn">
+        <i class="bi bi-person-plus me-1"></i> Add User
+      </a>
+    </div>
+    <div class="table-responsive">
+      <table class="table userlist-table align-middle">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Active</th>
+            <th>Staff</th>
+            <th>Roles</th>
+            <th style="text-align:center;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr>
+            <td>
+              <span class="fw-bold" style="color:#1963b3;">{{ user.username }}</span>
+              {% if user == request.user %}
+                <span class="badge bg-info ms-1">You</span>
+              {% endif %}
+            </td>
+            <td>{{ user.email }}</td>
+            <td>
+              <span class="status-dot {% if user.is_active %}active{% else %}inactive{% endif %}"></span>
+              {{ user.is_active|yesno:"Active,Inactive" }}
+            </td>
+            <td>
+              <span class="status-dot {% if user.is_staff %}staff{% else %}nostaff{% endif %}"></span>
+              {{ user.is_staff|yesno:"Staff,User" }}
+            </td>
+            <td>
+              {% for group in user.groups.all %}
+                <span class="badge bg-light text-primary border border-primary rounded-pill fw-normal shadow-sm px-2 me-1">{{ group.name }}</span>
+              {% empty %}
+                <span class="text-muted">—</span>
+              {% endfor %}
+            </td>
+            <td style="text-align:center;">
+              <a href="{% url 'users:user_edit' user.pk %}" class="table-action-btn" title="Edit">
+                <i class="bi bi-pencil-square"></i>
+              </a>
+              <a href="{% url 'users:user_delete' user.pk %}" class="table-action-btn" title="Delete"
+                 onclick="return confirm('Delete user?');">
+                 <i class="bi bi-trash"></i>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

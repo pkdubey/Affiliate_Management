@@ -1,5 +1,239 @@
 {% extends 'base.html' %}
+{% block page_title %}Publisher Dashboard{% endblock %}
 {% block content %}
-<h2>Publisher Dashboard</h2>
-<p>Welcome, {{ request.user.username }}!</p>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+<style>
+/* Your existing styles here */
+.dashboard-glass-card {
+  border-radius: 1.5rem;
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(8px) saturate(120%);
+  box-shadow: 0 8px 34px 0 rgba(29,191,174,0.07), 0 1.5px 7px 0 #1963b359;
+  border: 1.8px solid rgba(29,191,174,0.12);
+  overflow: hidden;
+  transition: transform 0.20s cubic-bezier(.77,0,.18,1), box-shadow .19s;
+  animation: fadeCardUp .8s cubic-bezier(.71,.14,.62,.98);
+}
+@keyframes fadeCardUp {
+  from { opacity:0; transform:translateY(44px);}
+  to { opacity:1; transform:translateY(0);}
+}
+.dashboard-glass-card .bi {
+	transition: transform .22s cubic-bezier(.43,.14,.5,.99) color .18s;
+	color: #15B894;
+	filter: drop-shadow(0 6px 9px #1963b320);
+}
+.dashboard-glass-card:hover {
+	transform: translateY(-6px) scale(1.027);
+	box-shadow: 0 8px 32px #1dbfae34;
+}
+.dashboard-glass-card:hover .bi {
+	transform: scale(1.21) rotate(-8deg);
+	color: #1963b3;
+}
+
+.dashboard-card-title {
+  letter-spacing: .02em;
+  font-weight: 600;
+}
+.dashboard-chart-card {
+	border-radius: 1.2rem;
+	background: rgba(255,255,255,0.13);
+	backdrop-filter: blur(6px);
+	box-shadow: 0 4px 18px #1963b327;
+	border: 1.2px solid #1dbfae22;
+	animation: fadeCardUp .9s cubic-bezier(.71,.14,.62,.98) .30s backwards;
+}
+.dashboard-revenue-card {
+	border-radius: 1.15rem;
+	background: linear-gradient(124deg, #1dbfae19 0 90%, #1963b319 100%);
+	box-shadow: 0 4px 12px #1dbfae18;
+	border: none;
+	animation: fadeCardUp .88s cubic-bezier(.71,.14,.62,.98) .18s backwards;
+}
+.income-link {
+    font-size: 0.85rem;
+    color: #1dbfae;
+    text-decoration: none;
+}
+.income-link:hover {
+    text-decoration: underline;
+    color: #1963b3;
+}
+</style>
+
+<div class="container-fluid">
+	<div class="row mt-3">
+		<div class="col-12">
+			<div class="row g-4">				
+				<!-- Total Income Card -->
+				<div class="col-md-4">
+					<a href="{% url 'drs:drs_list' %}" class="text-decoration-none">
+						<div class="card dashboard-glass-card text-center">
+							<div class="card-body">
+								<i class="bi bi-currency-dollar display-5"></i>
+								<div class="dashboard-card-title mt-2">Total Income</div>
+								<div class="display-6 mt-1 text-success">₹{{ total_income|floatformat:2 }}</div>
+								<p class="text-muted mt-2">Your total earnings from DRS</p>
+							</div>
+						</div>
+					</a>
+				</div>
+
+				<!-- Total Invoices Card -->
+				<div class="col-md-4">
+					<a href="{% url 'invoicing:invoice_list' %}" class="text-decoration-none">
+						<div class="card dashboard-glass-card text-center hover-shadow" style="cursor:pointer;">
+							<div class="card-body">
+								<i class="bi bi-file-text display-5"></i>
+								<div class="dashboard-card-title mt-2">Total Invoices</div>
+								<div class="display-6 mt-1 text-primary">{{ total_invoices }}</div>
+								<p class="text-muted mt-2">Your total invoices</p>
+							</div>
+						</div>
+					</a>
+				</div>
+
+				<!-- Today's Revenue Card -->
+				<div class="col-md-4">
+					<div class="card dashboard-glass-card text-center">
+						<div class="card-body">
+							<i class="bi bi-calendar-day display-5"></i>
+							<div class="dashboard-card-title mt-2">Today's Revenue</div>
+							<div class="display-6 mt-1 text-info">₹{{ today_revenue|floatformat:2 }}</div>
+							<p class="text-muted mt-2">Revenue generated today</p>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="row mt-4">
+				<!-- Weekly & Monthly Revenue Card -->
+				<div class="col-md-4">
+					<div class="card dashboard-revenue-card shadow">
+						<div class="card-body">
+							<div class="fw-bold mb-2" style="color:#1963b3;"><i class="bi bi-cash-coin"></i> Revenue Summary</div>
+							<div class="fw-semibold"><i class="bi bi-calendar-week"></i> This Week</div>
+							<div class="fs-5 text-primary mb-3">₹{{ week_revenue|floatformat:2 }}</div>
+							<div class="fw-semibold"><i class="bi bi-calendar-month"></i> This Month</div>
+							<div class="fs-5 text-warning">₹{{ month_revenue|floatformat:2 }}</div>
+							<hr>
+							<a href="{% url 'drs:drs_list' %}" class="btn btn-sm btn-outline-primary mt-2">
+								<i class="bi bi-bar-chart"></i> View Detailed Reports
+							</a>
+						</div>
+					</div>
+				</div>
+				
+				<!-- Chart Card -->
+				<div class="col-md-8">
+					<div class="card dashboard-chart-card">
+						<div class="card-body">
+							<div class="d-flex justify-content-between align-items-center">
+								<div class="fw-bold" style="color:#1963b3;">
+									<i class="bi bi-graph-up-arrow"></i> Daily Revenue & Profit (Last 7 Days)
+								</div>
+								<a href="{% url 'drs:drs_export' %}" class="btn btn-sm btn-outline-success">
+									<i class="bi bi-download"></i> Export Data
+								</a>
+							</div>
+							<div style="height:38px"></div>
+							<canvas id="revenueChart" height="180" class="w-100"></canvas>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	// Animation: Fade chart in
+	document.getElementById('revenueChart').style.opacity = 0;
+	setTimeout(() => {
+		document.getElementById('revenueChart').style.transition = "opacity .9s";
+		document.getElementById('revenueChart').style.opacity = 1;
+	}, 350);
+
+	// Safely parse context variables for Chart.js
+	let labels = [];
+	let revenues = [];
+	let profits = [];
+	try {
+		labels = JSON.parse("{{ chart_labels|escapejs }}");
+		revenues = JSON.parse("{{ chart_revenues|escapejs }}");
+		profits = JSON.parse("{{ chart_profits|default:'[]'|escapejs }}");
+	} catch (e) { 
+		console.log("Error parsing chart data:", e);
+		// Set default empty data if parsing fails
+		labels = [];
+		revenues = [];
+		profits = [];
+	}
+	
+	const ctx = document.getElementById('revenueChart').getContext('2d');
+	const chart = new Chart(ctx, {
+		type: 'line',
+		data: {
+			labels: labels,
+			datasets: [
+				{
+					label: 'Daily Revenue',
+					data: revenues.length > 0 ? revenues : [0, 0, 0, 0, 0, 0, 0],
+					backgroundColor: 'rgba(29,191,174, 0.13)',
+					borderColor: 'rgba(29,191,174, 1)',
+					fill: true,
+					tension: 0.38,
+					pointRadius: 3,
+					pointHoverRadius: 6,
+					pointBackgroundColor: '#1963b3'
+				},
+				{
+					label: 'Daily Profit',
+					data: profits.length > 0 ? profits : [0, 0, 0, 0, 0, 0, 0],
+					backgroundColor: 'rgba(25, 99, 179, 0.15)',
+					borderColor: 'rgba(25, 99, 179, 1)',
+					fill: false,
+					tension: 0.38,
+					pointRadius: 3,
+					pointHoverRadius: 6,
+					pointBackgroundColor: '#1dbfae'
+				}
+			]
+		},
+		options: {
+			responsive: true,
+			animation: { duration: 1200, easing: 'easeInOutQuart' },
+			scales: {
+				y: { 
+					beginAtZero: true, 
+					grid: { color: "#e5f6f6"},
+					ticks: {
+						callback: function(value) {
+							return '₹' + value;
+						}
+					}
+				},
+				x: { grid: { color: "#fafcff" } }
+			},
+			plugins: {
+				legend: { display: true },
+				tooltip: { 
+					mode: 'index', 
+					intersect: false,
+					callbacks: {
+						label: function(context) {
+							return context.dataset.label + ': ₹' + context.parsed.y.toFixed(2);
+						}
+					}
+				}
+			}
+		}
+	});
+});
+</script>
 {% endblock %}

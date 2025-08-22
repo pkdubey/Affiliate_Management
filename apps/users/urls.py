@@ -10,7 +10,7 @@ urlpatterns = [
     path('<int:pk>/edit/', views.user_edit, name='user_edit'),
     path('<int:pk>/delete/', views.user_delete, name='user_delete'),
     path('roles/', views.role_access, name='role_access'),
-    path('login/', auth_views.LoginView.as_view(template_name='users/login.html'), name='login'),
+    path('login/', auth_views.LoginView.as_view(template_name='users/login.html'), name='login'),  # Use standard LoginView
     path('profile/', views.profile_view, name='profile_view'),
     path('profile/edit/', views.profile_edit, name='profile_edit'),
     path('logout/', views.logout_view, name='logout'),

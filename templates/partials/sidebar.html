@@ -1,4 +1,17 @@
 {% load user_roles %}
+<!-- DEBUG INFO - REMOVE AFTER FIXING -->
+<div style="position: absolute; top: 0; left: 0; background: black; color: white; padding: 10px; z-index: 9999; display: none;">
+  <strong>DEBUG INFO:</strong><br>
+  User: {{ request.user.username }}<br>
+  Role: {{ request.user.role }}<br>
+  Is Authenticated: {{ request.user.is_authenticated }}<br>
+  Has Role 'publisher': {{ request.user|has_role:'publisher' }}<br>
+  Is Superuser: {{ request.user.is_superuser }}<br>
+  Has Role 'admin': {{ request.user|has_role:'admin' }}<br>
+  Has Role 'subadmin': {{ request.user|has_role:'subadmin' }}<br>
+  Path: {{ request.path }}<br>
+  URL Name: {{ request.resolver_match.url_name }}<br>
+</div>
 <div class="sidebar-modern d-flex flex-column flex-shrink-0 p-3 position-relative" id="sidebarMenu">
   <!-- Animated Gradient Logo -->
   <div class="mb-4 mt-2 text-center">
@@ -20,97 +33,120 @@
   <ul class="nav nav-pills flex-column mb-auto sidebar-nav mt-3">
     {% if request.user.is_authenticated %}
       {% if request.user.is_superuser or request.user|has_role:'admin' or request.user|has_role:'subadmin' %}
-      <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'dashboard' %}active bg-secondary{% endif %}" href="/panel/dashboard/"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
       <!-- Admin/Subadmin full menu -->
+      <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'admin_dashboard' %}active bg-secondary{% endif %}" href="/panel/dashboard/"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
+      
       <li class="nav-item">
-        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#advertiserSubmenu" role="button" aria-expanded="{% if request.resolver_match.url_name == 'advertiser_list' or request.resolver_match.url_name == 'wishlist_upload' %}true{% else %}false{% endif %}" aria-controls="advertiserSubmenu">
+        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#advertiserSubmenu">
           <span><i class="bi bi-person-badge me-2"></i> Advertisers</span>
           <i class="bi bi-chevron-down"></i>
         </a>
-        <div class="collapse {% if request.resolver_match.url_name == 'advertiser_list' or request.resolver_match.url_name == 'wishlist_upload' %}show{% endif %}" id="advertiserSubmenu">
+        <div class="collapse" id="advertiserSubmenu">
           <ul class="nav flex-column ms-3">
-            <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'advertiser_list' %}active bg-secondary{% endif %}" href="/panel/advertisers/">Advertiser List</a></li>
-            <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'wishlist_upload' %}active bg-secondary{% endif %}" href="/panel/advertisers/upload/">Upload Offers</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/panel/advertisers/">Advertiser List</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/panel/advertisers/upload/">Upload Offers</a></li>
           </ul>
         </div>
       </li>
+      
       <li class="nav-item">
-        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#publisherSubmenu" role="button" aria-expanded="{% if request.resolver_match.url_name == 'publisher_list' or request.resolver_match.url_name == 'wishlist_upload' or request.resolver_match.url_name == 'portal' %}true{% else %}false{% endif %}" aria-controls="publisherSubmenu">
+        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#publisherSubmenu">
           <span><i class="bi bi-people-fill me-2"></i> Publishers</span>
           <i class="bi bi-chevron-down"></i>
         </a>
-        <div class="collapse {% if request.resolver_match.url_name == 'publisher_list' or request.resolver_match.url_name == 'wishlist_upload' or request.resolver_match.url_name == 'portal' %}show{% endif %}" id="publisherSubmenu">
+        <div class="collapse" id="publisherSubmenu">
           <ul class="nav flex-column ms-3">
-            <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'publisher_list' %}active bg-secondary{% endif %}" href="/panel/publishers/">Publisher List</a></li>
-            <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'wishlist_upload' %}active bg-secondary{% endif %}" href="/panel/publishers/upload/">Upload Wishlist</a></li>
-            <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'portal' %}active bg-secondary{% endif %}" href="/panel/publishers/portal/">Publisher Portal</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/panel/publishers/">Publisher List</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/panel/publishers/upload/">Upload Wishlist</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/panel/publishers/portal/">Publisher Portal</a></li>
           </ul>
         </div>
       </li>
+      
       <li class="nav-item">
-        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#offersSubmenu" role="button" aria-expanded="{% if request.resolver_match.url_name == 'offers_matcher' or request.resolver_match.url_name == 'results' %}true{% else %}false{% endif %}" aria-controls="offersSubmenu">
+        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#offersSubmenu">
           <span><i class="bi bi-bag-check me-2"></i> Offers</span>
           <i class="bi bi-chevron-down"></i>
         </a>
-        <div class="collapse {% if request.resolver_match.url_name == 'offers_matcher' or request.resolver_match.url_name == 'results' %}show{% endif %}" id="offersSubmenu">
+        <div class="collapse" id="offersSubmenu">
           <ul class="nav flex-column ms-3">
-            <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'offers_matcher' %}active bg-secondary{% endif %}" href="/panel/offers/matcher/">Offers Matcher</a></li>
-            <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'results' %}active bg-secondary{% endif %}" href="/panel/offers/results/">Matcher Results</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/panel/offers/matcher/">Offers Matcher</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/panel/offers/results/">Matcher Results</a></li>
           </ul>
         </div>
       </li>
+      
       <li class="nav-item">
-        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#invoicingSubmenu" role="button" aria-expanded="{% if request.resolver_match.url_name == 'invoice_list' or request.resolver_match.url_name == 'invoicing_export' %}true{% else %}false{% endif %}" aria-controls="invoicingSubmenu">
+        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#invoicingSubmenu">
           <span><i class="bi bi-receipt me-2"></i> Invoicing</span>
           <i class="bi bi-chevron-down"></i>
         </a>
-        <div class="collapse {% if request.resolver_match.url_name == 'invoice_list' or request.resolver_match.url_name == 'invoicing_export' %}show{% endif %}" id="invoicingSubmenu">
+        <div class="collapse" id="invoicingSubmenu">
           <ul class="nav flex-column ms-3">
-            <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'invoice_list' %}active bg-secondary{% endif %}" href="/panel/invoicing/">Invoice List</a></li>
-            <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'invoicing_export' %}active bg-secondary{% endif %}" href="/panel/invoicing/export/">Export Invoices</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/panel/invoicing/">Invoice List</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/panel/invoicing/export/">Export Invoices</a></li>
           </ul>
         </div>
       </li>
+      
       <li class="nav-item">
-        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#drsSubmenu" role="button" aria-expanded="{% if request.resolver_match.url_name == 'drs_list' or request.resolver_match.url_name == 'drs_export' %}true{% else %}false{% endif %}" aria-controls="drsSubmenu">
+        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#drsSubmenu">
           <span><i class="bi bi-table me-2"></i> DRS</span>
           <i class="bi bi-chevron-down"></i>
         </a>
-        <div class="collapse {% if request.resolver_match.url_name == 'drs_list' or request.resolver_match.url_name == 'drs_export' %}show{% endif %}" id="drsSubmenu">
+        <div class="collapse" id="drsSubmenu">
           <ul class="nav flex-column ms-3">
-            <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'drs_list' %}active bg-secondary{% endif %}" href="/panel/drs/">DRS List</a></li>
-            <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'drs_export' %}active bg-secondary{% endif %}" href="/panel/drs/export/">Export DRS</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/panel/drs/">DRS List</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/panel/drs/export/">Export DRS</a></li>
           </ul>
         </div>
       </li>
+      
       <li class="nav-item">
-        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#validationSubmenu" role="button" aria-expanded="{% if request.resolver_match.url_name == 'validation_list' or request.resolver_match.url_name == 'validation_export' %}true{% else %}false{% endif %}" aria-controls="validationSubmenu">
+        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#validationSubmenu">
           <span><i class="bi bi-check2-circle me-2"></i> Validation</span>
           <i class="bi bi-chevron-down"></i>
         </a>
-        <div class="collapse {% if request.resolver_match.url_name == 'validation_list' or request.resolver_match.url_name == 'validation_export' %}show{% endif %}" id="validationSubmenu">
+        <div class="collapse" id="validationSubmenu">
           <ul class="nav flex-column ms-3">
-            <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'validation_list' %}active bg-secondary{% endif %}" href="/panel/validation/">Validation List</a></li>
-            <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'validation_export' %}active bg-secondary{% endif %}" href="/panel/validation/export/">Export Validation</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/panel/validation/">Validation List</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/panel/validation/export/">Export Validation</a></li>
           </ul>
         </div>
       </li>
+      
       <li class="nav-item">
-        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#userMgmtSubmenu" role="button" aria-expanded="{% if request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'role_access' %}true{% else %}false{% endif %}" aria-controls="userMgmtSubmenu">
+        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#userMgmtSubmenu">
           <span><i class="bi bi-person-gear me-2"></i> User & Access</span>
           <i class="bi bi-chevron-down"></i>
         </a>
-        <div class="collapse {% if request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'role_access' %}show{% endif %}" id="userMgmtSubmenu">
+        <div class="collapse" id="userMgmtSubmenu">
           <ul class="nav flex-column ms-3">
-            <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'user_list' %}active bg-secondary{% endif %}" href="/panel/users/"><i class="bi bi-people me-2"></i> Manage Users</a></li>
-            <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'role_access' %}active bg-secondary{% endif %}" href="/panel/users/roles/"><i class="bi bi-shield-lock me-2"></i> Role & Access Control</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/panel/users/"><i class="bi bi-people me-2"></i> Manage Users</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/panel/users/roles/"><i class="bi bi-shield-lock me-2"></i> Role & Access Control</a></li>
           </ul>
         </div>
       </li>
+      
       {% elif request.user|has_role:'publisher' %}
-      <!-- Publisher menu -->
-      <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'portal' %}active bg-secondary{% endif %}" href="/panel/publishers/portal/"><i class="bi bi-person-lines-fill me-2"></i> Upload Invoices</a></li>
-      <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'validation_list' %}active bg-secondary{% endif %}" href="/panel/validation/"><i class="bi bi-check2-circle me-2"></i> Validation Summary</a></li>
+      <!-- Publisher menu - Only Dashboard and Invoicing -->
+      <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'publisher_dashboard' or '/panel/dashboard/publisher/' in request.path %}active bg-secondary{% endif %}" href="/panel/dashboard/publisher/"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+      
+      <li class="nav-item">
+        <a class="nav-link text-white d-flex justify-content-between align-items-center {% if '/panel/invoicing/' in request.path %}active bg-secondary{% endif %}" data-bs-toggle="collapse" href="#publisherInvoicingSubmenu">
+          <span><i class="bi bi-receipt me-2"></i> Invoicing</span>
+          <i class="bi bi-chevron-down"></i>
+        </a>
+        <div class="collapse {% if '/panel/invoicing/' in request.path %}show{% endif %}" id="publisherInvoicingSubmenu">
+          <ul class="nav flex-column ms-3">
+            <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'invoice_list' or '/panel/invoicing/' == request.path %}active bg-secondary{% endif %}" href="/panel/invoicing/">My Invoices</a></li>
+            <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'invoice_create' or '/panel/invoicing/add/' in request.path %}active bg-secondary{% endif %}" href="/panel/invoicing/add/">Create Invoice</a></li>
+          </ul>
+        </div>
+      </li>
+      {% else %}
+      <!-- Default menu for other roles -->
+      <li class="nav-item"><a class="nav-link text-white {% if 'dashboard' in request.path %}active bg-secondary{% endif %}" href="/panel/dashboard/"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
       {% endif %}
     {% endif %}
   </ul>

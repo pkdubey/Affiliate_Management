@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Debug</title>
+</head>
+<body>
+    <h1>User Information</h1>
+    <p>Username: {{ user.username }}</p>
+    <p>Role: {{ user.role }}</p>
+    <p>Email: {{ user.email }}</p>
+    <p>Is Authenticated: {{ user.is_authenticated }}</p>
+    <p>Is Superuser: {{ user.is_superuser }}</p>
+    
+    <h2>Groups:</h2>
+    <ul>
+    {% for group in user.groups.all %}
+        <li>{{ group.name }}</li>
+    {% empty %}
+        <li>No groups</li>
+    {% endfor %}
+    </ul>
+</body>
+</html>

@@ -16,24 +16,29 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def dashboard_redirect(request):
+    print(f"DEBUG: User {request.user.username} with role {request.user.role} is being redirected")
+    if request.user.role == 'publisher':
+        print("DEBUG: Redirecting to publisher dashboard")
+        return redirect('/panel/dashboard/publisher/')  # Use direct URL
+    elif request.user.role in ['admin', 'subadmin', 'dashboard']:
+        print("DEBUG: Redirecting to admin dashboard")
+        return redirect('/panel/dashboard/admin/')  # Use direct URL
+    print("DEBUG: Fallback to default dashboard")
+    return redirect('/panel/dashboard/default/')  # Use direct URL
 
 admin.site.site_header = "Traccify.ai Admin Panel"
 admin.site.site_title = "Traccify.ai Admin"
 admin.site.index_title = "Welcome to the Traccify.ai Dashboard"
 
-from django.shortcuts import redirect
-
-def accounts_login_redirect(request):
-    return redirect('users:login')
-
-from django.shortcuts import redirect
-
-def accounts_profile_redirect(request):
-    return redirect('/panel/dashboard/')
-
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('panel/dashboard/', include('apps.dashboard.urls')),
+    # path('panel/dashboard/', dashboard_redirect, name='dashboard_redirect'),
+    path('panel/dashboard/', include('apps.dashboard.urls', namespace='dashboard')),  # REMOVE OR COMMENT THIS LINE
     path('panel/advertisers/', include('apps.advertisers.urls', namespace='advertisers')),
     path('panel/publishers/', include('apps.publishers.urls', namespace='publishers')),
     path('panel/offers/', include('apps.offers.urls', namespace='offers')),

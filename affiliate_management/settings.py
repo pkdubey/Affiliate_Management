@@ -1,5 +1,8 @@
 # Redirect to dashboard after login
-LOGIN_REDIRECT_URL = '/panel/dashboard/'
+LOGIN_REDIRECT_URL = '/panel/dashboard/'  # This will trigger our custom redirect logic
+
+# Add this to ensure login works properly
+LOGIN_URL = '/panel/users/login/'
 """
 Django settings for affiliate_management project.
 
@@ -148,3 +151,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Check if you have any custom error handling
+HANDLER403 = 'apps.dashboard.views.forbidden_view'
+HANDLER404 = 'apps.dashboard.views.page_not_found_view'

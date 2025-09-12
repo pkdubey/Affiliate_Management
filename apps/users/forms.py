@@ -13,15 +13,16 @@ class UserForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'is_active', 'is_staff', 'groups']
+        fields = ['username', 'email', 'password', 'is_active', 'is_staff', 'groups', 'advertisers', 'publishers']
         widgets = {
             'groups': forms.CheckboxSelectMultiple,
+            'advertisers': forms.CheckboxSelectMultiple,
+            'publishers': forms.CheckboxSelectMultiple,
         }
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        password = self.cleaned_data.get('password')
-        if password:
+        if password := self.cleaned_data.get('password'):
             user.set_password(password)  # Hash the password properly
         if commit:
             user.save()

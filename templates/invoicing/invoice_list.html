@@ -90,6 +90,7 @@
 </style>
 
 
+
 <div class="card invoice-list-card mx-auto">
     <div class="d-flex flex-wrap justify-content-between align-items-center px-4 py-4 border-bottom">
         <h2 class="fs-3 mb-0" style="color:#1963b3">
@@ -99,12 +100,49 @@
             <i class="bi bi-plus-lg"></i> Add Invoice
         </a>
     </div>
+    <div class="px-4 pt-3 pb-0">
+        <ul class="nav nav-tabs mb-3" id="invoiceTabs">
+            <li class="nav-item">
+                <a class="nav-link {% if active_tab == 'advertiser' %}active{% endif %}" href="?tab=advertiser{% if selected_status %}&status={{ selected_status }}{% endif %}">Advertiser Invoices</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_tab == 'publisher' %}active{% endif %}" href="?tab=publisher{% if selected_status %}&status={{ selected_status }}{% endif %}">Publisher Invoices</a>
+            </li>
+        </ul>
+        <form method="get" class="row g-2 mb-3 align-items-center">
+            <input type="hidden" name="tab" value="{{ active_tab }}">
+            <div class="col-auto">
+                <select name="client" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Clients</option>
+                    {% for client in clients %}
+                        <option value="{{ client.id }}" {% if selected_client == client.id|stringformat:'s' %}selected{% endif %}>{{ client.company_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <select name="month" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Months</option>
+                    {% for value, name in months %}
+                        <option value="{{ value }}" {% if selected_month == value %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Statuses</option>
+                    <option value="Paid" {% if selected_status == 'Paid' %}selected{% endif %}>Paid</option>
+                    <option value="Pending" {% if selected_status == 'Pending' %}selected{% endif %}>Unpaid</option>
+                    <option value="Overdue" {% if selected_status == 'Overdue' %}selected{% endif %}>Overdue</option>
+                </select>
+            </div>
+        </form>
+    </div>
     <div class="invoice-table-responsive px-2 px-md-4 py-3">
         <table class="table table-hover animated-table align-middle mb-0">
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Publisher</th>
+                    <th>{% if active_tab == 'advertiser' %}Advertiser{% else %}Publisher{% endif %}</th>
                     <th>DRS</th>
                     <th>Status</th>
                     <th>Created</th>
@@ -115,7 +153,7 @@
             {% for invoice in invoices %}
                 <tr>
                     <td><span class="fw-bold text-primary">#{{ invoice.id }}</span></td>
-                    <td>{{ invoice.publisher }}</td>
+                    <td>{% if active_tab == 'advertiser' %}{{ invoice.advertiser }}{% else %}{{ invoice.publisher }}{% endif %}</td>
                     <td>{{ invoice.drs }}</td>
                     <td>
                         <span class="invoice-status {% if invoice.status == 'Paid' %}paid{% elif invoice.status == 'Pending' %}pending{% elif invoice.status == 'Cancelled' %}cancelled{% elif invoice.status == 'Overdue' %}overdue{% endif %}">

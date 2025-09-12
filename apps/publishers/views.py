@@ -1,3 +1,56 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponseForbidden
+from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+from .models import Publisher
+from django.contrib import messages
+
+def _is_admin_or_subadmin(user):
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_superuser:
+        return True
+    return user.groups.filter(name__in=['admin', 'subadmin']).exists()
+
+@login_required
+def start_impersonate(request, publisher_id):
+    if not _is_admin_or_subadmin(request.user):
+        return HttpResponseForbidden("Not allowed")
+    publisher = get_object_or_404(Publisher, pk=publisher_id)
+    request.session['impersonate_publisher_id'] = publisher.id
+    request.session.modified = True
+    messages.info(request, f'Now viewing as publisher: {publisher.name}')
+    return redirect(reverse('publishers:impersonated_dashboard', args=[publisher.id]))
+
+@login_required
+def stop_impersonate(request):
+    if 'impersonate_publisher_id' in request.session:
+        del request.session['impersonate_publisher_id']
+        request.session.modified = True
+        messages.success(request, "Returned to admin panel.")
+    next_url = request.GET.get('next')
+    if next_url:
+        return redirect(next_url)
+    return redirect('publishers:publisher_list')
+
+@login_required
+def impersonated_dashboard(request, publisher_id):
+    if _is_admin_or_subadmin(request.user):
+        imp_id = request.session.get('impersonate_publisher_id')
+        if imp_id is None or int(imp_id) != int(publisher_id):
+            return HttpResponseForbidden("Impersonation not started for this publisher.")
+        publisher = get_object_or_404(Publisher, pk=publisher_id)
+        context = {
+            'publisher': publisher,
+            'impersonating': True,
+        }
+        return render(request, 'publishers/publisher_dashboard.html', context)
+    publisher = get_object_or_404(Publisher, pk=publisher_id)
+    context = {
+        'publisher': publisher,
+        'impersonating': False,
+    }
+    return render(request, 'publishers/publisher_dashboard.html', context)
 from django.shortcuts import render
 from django.db.models import Count
 
@@ -40,7 +93,7 @@ class PublisherUpdateView(UpdateView):
 class PublisherDeleteView(DeleteView):
     model = Publisher
     template_name = 'publishers/publisher_confirm_delete.html'
-    success_url = reverse_lazy('publishers:list')
+    success_url = reverse_lazy('publishers:publisher_list')
 
 class PublisherDetailView(DetailView):
     model = Publisher
@@ -59,10 +112,10 @@ class PublisherWishlistUploadView(TemplateView):
     def post(self, request, *args, **kwargs):
         from django.contrib import messages
         import csv
-        publisher_id = request.POST.get('publisher')
-        publisher = None
-        if publisher_id:
+        if (publisher_id := request.POST.get('publisher')):
             publisher = get_object_or_404(Publisher, id=publisher_id)
+        else:
+            publisher = None
 
         try:
             # Handle file upload
@@ -86,11 +139,11 @@ class PublisherWishlistUploadView(TemplateView):
                     messages.success(request, f"Successfully uploaded {count} wishlist offers from CSV.")
                 else:
                     messages.error(request, "Only CSV files are supported at this time.")
-            elif request.POST.get('desired_campaign') and request.POST.get('geo'):
+            elif (desired_campaign := request.POST.get('desired_campaign')) and (geo := request.POST.get('geo')):
                 Wishlist.objects.create(
                     publisher=publisher,
-                    desired_campaign=request.POST['desired_campaign'],
-                    geo=request.POST['geo'],
+                    desired_campaign=desired_campaign,
+                    geo=geo,
                     payout=request.POST.get('payout') or None,
                     payable_event=request.POST.get('payable_event', ''),
                     model=request.POST.get('model', ''),

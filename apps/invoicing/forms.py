@@ -8,9 +8,13 @@ class InvoiceForm(forms.ModelForm):
         label="Invoice Type"
     )
 
+    date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}), label="Date")
+    invoice_number = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}), label="Invoice #")
+    due_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}), label="Due Date")
+
     class Meta:
         model = Invoice
-        fields = ['party_type', 'publisher', 'advertiser', 'drs', 'currency', 'amount', 'status']
+        fields = ['date', 'invoice_number', 'due_date', 'party_type', 'publisher', 'advertiser', 'drs', 'currency', 'amount', 'status']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

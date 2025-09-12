@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+.invoice-pdf-card {
+    max-width: 820px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 1.2rem;
+    box-shadow: 0 8px 36px #1963b322;
+    border: 1.6px solid #1dbfae19;
+    padding: 2.2rem 1.2rem 2.2rem 1.2rem;
+    font-family: 'Inter', Arial, sans-serif;
+}
+.invoice-pdf-label { color: #1963b3; font-weight: 600; letter-spacing: .03em; }
+.invoice-pdf-table th, .invoice-pdf-table td {
+    background: #fff;
+    color: #222;
+    border: none;
+    vertical-align: middle;
+    font-size: 1rem;
+}
+.invoice-pdf-table th { font-weight: 600; color: #1963b3; }
+.invoice-pdf-section-title { color: #1963b3; font-size: 1.2rem; font-weight: 700; margin-bottom: 0.7rem; }
+.invoice-pdf-total-box {
+    background: #fafdff;
+    border-radius: 0.7rem;
+    padding: 1.1rem 1.2rem;
+    color: #1963b3;
+    box-shadow: 0 2px 12px #1dbfae2c;
+    font-size: 1.1rem;
+}
+</style>
+<div class="invoice-pdf-card">
+    <h2 class="mb-3 fw-bold invoice-pdf-section-title">
+        Invoice #{{ invoice.invoice_number }}
+    </h2>
+    <div class="row mb-2">
+        <div class="col-6">
+            <span class="invoice-pdf-label">Date:</span> {{ invoice.date }}<br>
+            <span class="invoice-pdf-label">Due Date:</span> {{ invoice.due_date }}
+        </div>
+        <div class="col-6 text-end">
+            <span class="invoice-pdf-label">Status:</span> {{ invoice.status }}<br>
+            <span class="invoice-pdf-label">Currency:</span> {{ invoice.currency }}
+        </div>
+    </div>
+    <hr>
+    <div class="row mb-2">
+        <div class="col-6">
+            <span class="invoice-pdf-label">Bill From:</span><br>
+            {{ invoice.bill_from_details|linebreaksbr }}
+        </div>
+        <div class="col-6">
+            <span class="invoice-pdf-label">Bill To:</span><br>
+            {% if invoice.party_type == 'publisher' %}
+                {{ invoice.publisher }}
+            {% else %}
+                {{ invoice.advertiser }}
+            {% endif %}
+        </div>
+    </div>
+    <div class="row mb-2">
+        <div class="col-12">
+            <span class="invoice-pdf-label">Bank Details:</span><br>
+            {{ invoice.bank_details|linebreaksbr }}
+        </div>
+    </div>
+    <hr>
+    <div class="mb-3">
+        <span class="invoice-pdf-label">Items:</span>
+        <table class="table invoice-pdf-table mb-0">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Rate</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in invoice.items.all %}
+                <tr>
+                    <td>{{ item.description }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.rate }}</td>
+                    <td>{{ item.amount }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center text-muted">No items added.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="row mb-2">
+        <div class="col-6">
+            <span class="invoice-pdf-label">Subtotal:</span> {{ invoice.amount }}
+        </div>
+        <div class="col-6 text-end">
+            <span class="invoice-pdf-label">GST:</span> {{ invoice.gst_amount }}
+        </div>
+    </div>
+    <div class="invoice-pdf-total-box mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <span class="fw-bold">Total</span>
+            <span class="fw-bold">{{ invoice.total_amount }}</span>
+        </div>
+    </div>
+    <div class="mb-2">
+        <span class="invoice-pdf-label">Terms:</span><br>
+        {{ invoice.terms|default:"Thanks for your business."|linebreaksbr }}
+    </div>
+    <div class="mb-2">
+        <span class="invoice-pdf-label">Signature/Stamp:</span><br>
+        {% if invoice.signature %}
+            <img src="{{ invoice.signature.url }}" alt="Signature" style="max-width:180px; max-height:80px;">
+        {% else %}
+            <span class="text-muted">Not provided</span>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

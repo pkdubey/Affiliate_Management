@@ -147,11 +147,11 @@
       <table class="table userlist-table align-middle">
         <thead>
           <tr>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Active</th>
+            <th>Name</th>            
+            <th>Role</th>
+            <th>Assigned</th>
+			<th>Active</th>
             <th>Staff</th>
-            <th>Roles</th>
             <th style="text-align:center;">Actions</th>
           </tr>
         </thead>
@@ -159,26 +159,39 @@
           {% for user in users %}
           <tr>
             <td>
-              <span class="fw-bold" style="color:#1963b3;">{{ user.username }}</span>
-              {% if user == request.user %}
-                <span class="badge bg-info ms-1">You</span>
-              {% endif %}
-            </td>
-            <td>{{ user.email }}</td>
-            <td>
-              <span class="status-dot {% if user.is_active %}active{% else %}inactive{% endif %}"></span>
-              {{ user.is_active|yesno:"Active,Inactive" }}
-            </td>
-            <td>
-              <span class="status-dot {% if user.is_staff %}staff{% else %}nostaff{% endif %}"></span>
-              {{ user.is_staff|yesno:"Staff,User" }}
-            </td>
+			  <span class="fw-bold" style="color:#1963b3;">
+				{{ user.first_name }} {{ user.last_name }}
+			  </span>
+			  {% if user == request.user %}
+				<span class="badge bg-info ms-1">You</span>
+			  {% endif %}
+			  <div class="text-muted small">{{ user.email }}</div>
+			</td>            
             <td>
               {% for group in user.groups.all %}
                 <span class="badge bg-light text-primary border border-primary rounded-pill fw-normal shadow-sm px-2 me-1">{{ group.name }}</span>
               {% empty %}
                 <span class="text-muted">—</span>
               {% endfor %}
+            </td>
+            <td>
+              {% if user.advertisers.exists %}
+                Adv: {% for adv in user.advertisers.all %}{{ adv.company_name }}{% if not forloop.last %}, {% endif %}{% endfor %}<br>
+              {% endif %}
+              {% if user.publishers.exists %}
+                Pub: {% for pub in user.publishers.all %}{{ pub.company_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+              {% endif %}
+              {% if not user.advertisers.exists and not user.publishers.exists %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+			<td>
+              <span class="status-dot {% if user.is_active %}active{% else %}inactive{% endif %}"></span>
+              {{ user.is_active|yesno:"Active,Inactive" }}
+            </td>
+            <td>
+              <span class="status-dot {% if user.is_staff %}staff{% else %}nostaff{% endif %}"></span>
+              {{ user.is_staff|yesno:"Staff,User" }}
             </td>
             <td style="text-align:center;">
               <a href="{% url 'users:user_edit' user.pk %}" class="table-action-btn" title="Edit">

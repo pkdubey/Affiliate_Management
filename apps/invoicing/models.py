@@ -18,6 +18,9 @@ class Invoice(models.Model):
         ('advertiser', 'Advertiser'),
     ]
 
+    date = models.DateField(default='2025-08-27')
+    invoice_number = models.CharField(max_length=100, default='INV-0001')
+    due_date = models.DateField()
     party_type = models.CharField(max_length=16, choices=PARTY_TYPE_CHOICES, default='publisher')
     publisher = models.ForeignKey('publishers.Publisher', on_delete=models.CASCADE, blank=True, null=True)
     advertiser = models.ForeignKey('advertisers.Advertiser', on_delete=models.CASCADE, blank=True, null=True)

@@ -96,13 +96,36 @@
 					</a>
 				</div>
 
+
 				<div class="col-md-3">
-					<a href="{% url 'invoicing:invoice_list' %}" class="text-decoration-none">
+					<a href="{% url 'invoicing:invoice_list' %}?status=Paid" class="text-decoration-none">
 						<div class="card dashboard-glass-card text-center hover-shadow" style="cursor:pointer;">
 							<div class="card-body">
-								<i class="bi bi-receipt display-5"></i>
-								<div class="dashboard-card-title mt-2">Invoices</div>
-								<div class="display-6 mt-1">{{ total_invoices }}</div>
+								<i class="bi bi-file-earmark-check display-5 text-success"></i>
+								<div class="dashboard-card-title mt-2">Paid Invoices</div>
+								<div class="display-6 mt-1">{{ paid_invoices }}</div>
+							</div>
+						</div>
+					</a>
+				</div>
+				<div class="col-md-3">
+					<a href="{% url 'invoicing:invoice_list' %}?status=Pending" class="text-decoration-none">
+						<div class="card dashboard-glass-card text-center hover-shadow" style="cursor:pointer;">
+							<div class="card-body">
+								<i class="bi bi-file-earmark-minus display-5 text-warning"></i>
+								<div class="dashboard-card-title mt-2">Unpaid Invoices</div>
+								<div class="display-6 mt-1">{{ unpaid_invoices }}</div>
+							</div>
+						</div>
+					</a>
+				</div>
+				<div class="col-md-3">
+					<a href="{% url 'invoicing:invoice_list' %}?status=Overdue" class="text-decoration-none">
+						<div class="card dashboard-glass-card text-center hover-shadow" style="cursor:pointer;">
+							<div class="card-body">
+								<i class="bi bi-file-earmark-excel display-5 text-danger"></i>
+								<div class="dashboard-card-title mt-2">Overdue Invoices</div>
+								<div class="display-6 mt-1">{{ overdue_invoices }}</div>
 							</div>
 						</div>
 					</a>

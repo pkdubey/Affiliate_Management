@@ -11,7 +11,9 @@
   Has Role 'subadmin': {{ request.user|has_role:'subadmin' }}<br>
   Path: {{ request.path }}<br>
   URL Name: {{ request.resolver_match.url_name }}<br>
+  Impersonating: {{ request.session.impersonate_publisher_id|default:"No" }}<br>
 </div>
+
 <div class="sidebar-modern d-flex flex-column flex-shrink-0 p-3 position-relative" id="sidebarMenu">
   <!-- Animated Gradient Logo -->
   <div class="mb-4 mt-2 text-center">
@@ -27,129 +29,188 @@
     </svg>
     <div class="fw-bold fs-4 modern-logo-text mt-2">traccify.ai</div>
   </div>
+  
   <button class="btn btn-outline-light d-md-none mb-3" type="button" id="sidebarToggle">
     <i class="bi bi-list"></i> Menu
   </button>
+  
   <ul class="nav nav-pills flex-column mb-auto sidebar-nav mt-3">
     {% if request.user.is_authenticated %}
-      {% if request.user.is_superuser or request.user|has_role:'admin' or request.user|has_role:'subadmin' %}
-      <!-- Admin/Subadmin full menu -->
-      <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'admin_dashboard' %}active bg-secondary{% endif %}" href="/panel/dashboard/"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
+    
+      <!-- PRIORITY 1: Check for impersonation FIRST -->
+      {% if request.session.impersonate_publisher_id or request.resolver_match.url_name == 'impersonated_dashboard' or '/as/' in request.path %}
+        <!-- Admin impersonating Publisher - Show Publisher Menu Only -->
+        <li class="nav-item">
+          <a class="nav-link text-white {% if request.resolver_match.url_name == 'publisher_dashboard' or request.resolver_match.url_name == 'impersonated_dashboard' or '/panel/dashboard/publisher/' in request.path or '/as/' in request.path %}active bg-secondary{% endif %}" 
+             href="{% if request.session.impersonate_publisher_id %}/panel/publishers/{{ request.session.impersonate_publisher_id }}/as/{% else %}/panel/dashboard/publisher/{% endif %}">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link text-white d-flex justify-content-between align-items-center {% if '/panel/invoicing/' in request.path %}active bg-secondary{% endif %}" 
+             data-bs-toggle="collapse" href="#publisherInvoicingSubmenu">
+            <span><i class="bi bi-receipt me-2"></i> Invoicing</span>
+            <i class="bi bi-chevron-down"></i>
+          </a>
+          <div class="collapse {% if '/panel/invoicing/' in request.path %}show{% endif %}" id="publisherInvoicingSubmenu">
+            <ul class="nav flex-column ms-3">
+              <li class="nav-item">
+                <a class="nav-link text-white {% if request.resolver_match.url_name == 'invoice_list' or '/panel/invoicing/' == request.path %}active bg-secondary{% endif %}" 
+                   href="/panel/invoicing/">My Invoices</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link text-white {% if request.resolver_match.url_name == 'invoice_create' or '/panel/invoicing/add/' in request.path %}active bg-secondary{% endif %}" 
+                   href="/panel/invoicing/add/">Create Invoice</a>
+              </li>
+            </ul>
+          </div>
+        </li>
       
-      <li class="nav-item">
-        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#advertiserSubmenu">
-          <span><i class="bi bi-person-badge me-2"></i> Advertisers</span>
-          <i class="bi bi-chevron-down"></i>
-        </a>
-        <div class="collapse" id="advertiserSubmenu">
-          <ul class="nav flex-column ms-3">
-            <li class="nav-item"><a class="nav-link text-white" href="/panel/advertisers/">Advertiser List</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="/panel/advertisers/upload/">Upload Offers</a></li>
-          </ul>
-        </div>
-      </li>
+      <!-- PRIORITY 2: Regular Admin/Subadmin full menu -->
+      {% elif request.user.is_superuser or request.user|has_role:'admin' or request.user|has_role:'subadmin' %}
+        <!-- Admin/Subadmin full menu -->
+        <li class="nav-item">
+          <a class="nav-link text-white {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'admin_dashboard' %}active bg-secondary{% endif %}" 
+             href="/panel/dashboard/">
+            <i class="bi bi-speedometer2 me-2"></i> Dashboard
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#advertiserSubmenu">
+            <span><i class="bi bi-person-badge me-2"></i> Advertisers</span>
+            <i class="bi bi-chevron-down"></i>
+          </a>
+          <div class="collapse" id="advertiserSubmenu">
+            <ul class="nav flex-column ms-3">
+              <li class="nav-item"><a class="nav-link text-white" href="/panel/advertisers/">Advertiser List</a></li>
+              <li class="nav-item"><a class="nav-link text-white" href="/panel/advertisers/upload/">Upload Offers</a></li>
+            </ul>
+          </div>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#publisherSubmenu">
+            <span><i class="bi bi-people-fill me-2"></i> Publishers</span>
+            <i class="bi bi-chevron-down"></i>
+          </a>
+          <div class="collapse" id="publisherSubmenu">
+            <ul class="nav flex-column ms-3">
+              <li class="nav-item"><a class="nav-link text-white" href="/panel/publishers/">Publisher List</a></li>
+              <li class="nav-item"><a class="nav-link text-white" href="/panel/publishers/upload/">Upload Wishlist</a></li>
+              <li class="nav-item"><a class="nav-link text-white" href="/panel/publishers/portal/">Publisher Portal</a></li>
+            </ul>
+          </div>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#offersSubmenu">
+            <span><i class="bi bi-bag-check me-2"></i> Offers</span>
+            <i class="bi bi-chevron-down"></i>
+          </a>
+          <div class="collapse" id="offersSubmenu">
+            <ul class="nav flex-column ms-3">
+              <li class="nav-item"><a class="nav-link text-white" href="/panel/offers/matcher/">Offers Matcher</a></li>
+              <li class="nav-item"><a class="nav-link text-white" href="/panel/offers/results/">Matcher Results</a></li>
+            </ul>
+          </div>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#invoicingSubmenu">
+            <span><i class="bi bi-receipt me-2"></i> Invoicing</span>
+            <i class="bi bi-chevron-down"></i>
+          </a>
+          <div class="collapse" id="invoicingSubmenu">
+            <ul class="nav flex-column ms-3">
+              <li class="nav-item"><a class="nav-link text-white" href="/panel/invoicing/">Invoice List</a></li>
+              <li class="nav-item"><a class="nav-link text-white" href="/panel/invoicing/export/">Export Invoices</a></li>
+            </ul>
+          </div>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#drsSubmenu">
+            <span><i class="bi bi-table me-2"></i> DRS</span>
+            <i class="bi bi-chevron-down"></i>
+          </a>
+          <div class="collapse" id="drsSubmenu">
+            <ul class="nav flex-column ms-3">
+              <li class="nav-item"><a class="nav-link text-white" href="/panel/drs/">DRS List</a></li>
+              <li class="nav-item"><a class="nav-link text-white" href="/panel/drs/export/">Export DRS</a></li>
+            </ul>
+          </div>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#validationSubmenu">
+            <span><i class="bi bi-check2-circle me-2"></i> Validation</span>
+            <i class="bi bi-chevron-down"></i>
+          </a>
+          <div class="collapse" id="validationSubmenu">
+            <ul class="nav flex-column ms-3">
+              <li class="nav-item"><a class="nav-link text-white" href="/panel/validation/">Validation List</a></li>
+              <li class="nav-item"><a class="nav-link text-white" href="/panel/validation/export/">Export Validation</a></li>
+            </ul>
+          </div>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#teamMgmtSubmenu">
+            <span><i class="bi bi-people me-2"></i> Team</span>
+            <i class="bi bi-chevron-down"></i>
+          </a>
+          <div class="collapse" id="teamMgmtSubmenu">
+            <ul class="nav flex-column ms-3">
+              <li class="nav-item"><a class="nav-link text-white" href="/panel/users/"><i class="bi bi-people me-2"></i> Team Management</a></li>
+              <li class="nav-item"><a class="nav-link text-white" href="/panel/users/roles/"><i class="bi bi-shield-lock me-2"></i> Role & Access</a></li>
+            </ul>
+          </div>
+        </li>
       
-      <li class="nav-item">
-        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#publisherSubmenu">
-          <span><i class="bi bi-people-fill me-2"></i> Publishers</span>
-          <i class="bi bi-chevron-down"></i>
-        </a>
-        <div class="collapse" id="publisherSubmenu">
-          <ul class="nav flex-column ms-3">
-            <li class="nav-item"><a class="nav-link text-white" href="/panel/publishers/">Publisher List</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="/panel/publishers/upload/">Upload Wishlist</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="/panel/publishers/portal/">Publisher Portal</a></li>
-          </ul>
-        </div>
-      </li>
-      
-      <li class="nav-item">
-        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#offersSubmenu">
-          <span><i class="bi bi-bag-check me-2"></i> Offers</span>
-          <i class="bi bi-chevron-down"></i>
-        </a>
-        <div class="collapse" id="offersSubmenu">
-          <ul class="nav flex-column ms-3">
-            <li class="nav-item"><a class="nav-link text-white" href="/panel/offers/matcher/">Offers Matcher</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="/panel/offers/results/">Matcher Results</a></li>
-          </ul>
-        </div>
-      </li>
-      
-      <li class="nav-item">
-        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#invoicingSubmenu">
-          <span><i class="bi bi-receipt me-2"></i> Invoicing</span>
-          <i class="bi bi-chevron-down"></i>
-        </a>
-        <div class="collapse" id="invoicingSubmenu">
-          <ul class="nav flex-column ms-3">
-            <li class="nav-item"><a class="nav-link text-white" href="/panel/invoicing/">Invoice List</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="/panel/invoicing/export/">Export Invoices</a></li>
-          </ul>
-        </div>
-      </li>
-      
-      <li class="nav-item">
-        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#drsSubmenu">
-          <span><i class="bi bi-table me-2"></i> DRS</span>
-          <i class="bi bi-chevron-down"></i>
-        </a>
-        <div class="collapse" id="drsSubmenu">
-          <ul class="nav flex-column ms-3">
-            <li class="nav-item"><a class="nav-link text-white" href="/panel/drs/">DRS List</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="/panel/drs/export/">Export DRS</a></li>
-          </ul>
-        </div>
-      </li>
-      
-      <li class="nav-item">
-        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#validationSubmenu">
-          <span><i class="bi bi-check2-circle me-2"></i> Validation</span>
-          <i class="bi bi-chevron-down"></i>
-        </a>
-        <div class="collapse" id="validationSubmenu">
-          <ul class="nav flex-column ms-3">
-            <li class="nav-item"><a class="nav-link text-white" href="/panel/validation/">Validation List</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="/panel/validation/export/">Export Validation</a></li>
-          </ul>
-        </div>
-      </li>
-      
-      <li class="nav-item">
-        <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#userMgmtSubmenu">
-          <span><i class="bi bi-person-gear me-2"></i> User & Access</span>
-          <i class="bi bi-chevron-down"></i>
-        </a>
-        <div class="collapse" id="userMgmtSubmenu">
-          <ul class="nav flex-column ms-3">
-            <li class="nav-item"><a class="nav-link text-white" href="/panel/users/"><i class="bi bi-people me-2"></i> Manage Users</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="/panel/users/roles/"><i class="bi bi-shield-lock me-2"></i> Role & Access Control</a></li>
-          </ul>
-        </div>
-      </li>
-      
+      <!-- PRIORITY 3: Regular Publisher menu -->
       {% elif request.user|has_role:'publisher' %}
-      <!-- Publisher menu - Only Dashboard and Invoicing -->
-      <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'publisher_dashboard' or '/panel/dashboard/publisher/' in request.path %}active bg-secondary{% endif %}" href="/panel/dashboard/publisher/"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+        <!-- Publisher menu - Only Dashboard and Invoicing -->
+        <li class="nav-item">
+          <a class="nav-link text-white {% if request.resolver_match.url_name == 'publisher_dashboard' or '/panel/dashboard/publisher/' in request.path %}active bg-secondary{% endif %}" 
+             href="/panel/dashboard/publisher/">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link text-white d-flex justify-content-between align-items-center {% if '/panel/invoicing/' in request.path %}active bg-secondary{% endif %}" 
+             data-bs-toggle="collapse" href="#publisherInvoicingSubmenu">
+            <span><i class="bi bi-receipt me-2"></i> Invoicing</span>
+            <i class="bi bi-chevron-down"></i>
+          </a>
+          <div class="collapse {% if '/panel/invoicing/' in request.path %}show{% endif %}" id="publisherInvoicingSubmenu">
+            <ul class="nav flex-column ms-3">
+              <li class="nav-item">
+                <a class="nav-link text-white {% if request.resolver_match.url_name == 'invoice_list' or '/panel/invoicing/' == request.path %}active bg-secondary{% endif %}" 
+                   href="/panel/invoicing/">My Invoices</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link text-white {% if request.resolver_match.url_name == 'invoice_create' or '/panel/invoicing/add/' in request.path %}active bg-secondary{% endif %}" 
+                   href="/panel/invoicing/add/">Create Invoice</a>
+              </li>
+            </ul>
+          </div>
+        </li>
       
-      <li class="nav-item">
-        <a class="nav-link text-white d-flex justify-content-between align-items-center {% if '/panel/invoicing/' in request.path %}active bg-secondary{% endif %}" data-bs-toggle="collapse" href="#publisherInvoicingSubmenu">
-          <span><i class="bi bi-receipt me-2"></i> Invoicing</span>
-          <i class="bi bi-chevron-down"></i>
-        </a>
-        <div class="collapse {% if '/panel/invoicing/' in request.path %}show{% endif %}" id="publisherInvoicingSubmenu">
-          <ul class="nav flex-column ms-3">
-            <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'invoice_list' or '/panel/invoicing/' == request.path %}active bg-secondary{% endif %}" href="/panel/invoicing/">My Invoices</a></li>
-            <li class="nav-item"><a class="nav-link text-white {% if request.resolver_match.url_name == 'invoice_create' or '/panel/invoicing/add/' in request.path %}active bg-secondary{% endif %}" href="/panel/invoicing/add/">Create Invoice</a></li>
-          </ul>
-        </div>
-      </li>
+      <!-- PRIORITY 4: Default menu for other roles -->
       {% else %}
-      <!-- Default menu for other roles -->
-      <li class="nav-item"><a class="nav-link text-white {% if 'dashboard' in request.path %}active bg-secondary{% endif %}" href="/panel/dashboard/"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
+        <li class="nav-item">
+          <a class="nav-link text-white {% if 'dashboard' in request.path %}active bg-secondary{% endif %}" 
+             href="/panel/dashboard/">
+            <i class="bi bi-speedometer2 me-2"></i> Dashboard
+          </a>
+        </li>
       {% endif %}
     {% endif %}
   </ul>
+  
   <button class="btn btn-outline-light mb-3 sidebar-collapse-btn" type="button" id="sidebarCollapseToggle" title="Collapse Sidebar">
     <i class="bi bi-layout-sidebar-inset-reverse"></i>
   </button>

@@ -24,7 +24,11 @@ def dashboard_view(request):
     total_invoices = Invoice.objects.count()
 
     # --- Revenue & Invoice Statuses ---
-    invoice_status_counts = Invoice.objects.values('status').annotate(count=Sum('drs__campaign_revenue'))
+
+    # Invoice status counts
+    paid_invoices = Invoice.objects.filter(status='Paid').count()
+    unpaid_invoices = Invoice.objects.filter(status='Pending').count()
+    overdue_invoices = Invoice.objects.filter(status='Overdue').count()
 
     today_revenue = Invoice.objects.filter(created_at__date=today).aggregate(total=Sum('drs__campaign_revenue'))['total'] or 0
     week_revenue = Invoice.objects.filter(created_at__date__gte=start_of_week).aggregate(total=Sum('drs__campaign_revenue'))['total'] or 0
@@ -53,7 +57,9 @@ def dashboard_view(request):
         'total_publishers': total_publishers,
         'total_offers': total_offers,
         'total_invoices': total_invoices,
-        'invoice_status_counts': invoice_status_counts,
+        'paid_invoices': paid_invoices,
+        'unpaid_invoices': unpaid_invoices,
+        'overdue_invoices': overdue_invoices,
         'today_revenue': today_revenue,
         'week_revenue': week_revenue,
         'month_revenue': month_revenue,
@@ -68,9 +74,9 @@ def dashboard_view(request):
 @login_required
 @role_required(['publisher'])
 def publisher_dashboard(request):
-    print(f"=== PUBLISHER DASHBOARD VIEW ENTERED ===")
-    print(f"User: {request.user.username}")
-    print(f"Role: {request.user.role}")
+    print("=== PUBLISHER DASHBOARD VIEW ENTERED ===")
+    print("User: {}".format(request.user.username))
+    print("Role: {}".format(request.user.role))
     
     # Import DRS model
     from apps.drs.models import DailyRevenueSheet

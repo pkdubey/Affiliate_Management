@@ -1,7 +1,7 @@
-
 from django.urls import path
 from .views import (
-    PublisherListView, PublisherCreateView, PublisherUpdateView, PublisherDeleteView, PublisherDetailView, PublisherWishlistUploadView, PublisherPortalView
+    PublisherListView, PublisherCreateView, PublisherUpdateView, PublisherDeleteView, PublisherDetailView, PublisherWishlistUploadView, PublisherPortalView,
+    start_impersonate, impersonated_dashboard, stop_impersonate
 )
 from . import views
 
@@ -16,4 +16,7 @@ urlpatterns = [
     path('<int:pk>/', PublisherDetailView.as_view(), name='detail'),
     path('upload/', views.PublisherWishlistUploadView.as_view(), name='wishlist_upload'),
     path('portal/', views.PublisherPortalView.as_view(), name='portal'),
+    path('<int:publisher_id>/impersonate/', start_impersonate, name='impersonate'),
+    path('<int:publisher_id>/as/', impersonated_dashboard, name='impersonated_dashboard'),
+    path('stop-impersonate/', stop_impersonate, name='stop_impersonate'),
 ]

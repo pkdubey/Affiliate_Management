@@ -12,11 +12,51 @@ from django.template.loader import render_to_string
 import weasyprint
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.views import View
+
 
 class InvoiceListView(ListView):
     model = Invoice
     template_name = 'invoicing/invoice_list.html'
     context_object_name = 'invoices'
+
+
+    def get_queryset(self):
+        party_type = self.request.GET.get('tab', 'advertiser')
+        status = self.request.GET.get('status')
+        client = self.request.GET.get('client')
+        month = self.request.GET.get('month')
+        queryset = Invoice.objects.all()
+        if party_type == 'advertiser':
+            queryset = queryset.filter(party_type='advertiser')
+            if client:
+                queryset = queryset.filter(advertiser__id=client)
+        elif party_type == 'publisher':
+            queryset = queryset.filter(party_type='publisher')
+            if client:
+                queryset = queryset.filter(publisher__id=client)
+        if status:
+            queryset = queryset.filter(status=status)
+        if month:
+            queryset = queryset.filter(date__month=month)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        from apps.advertisers.models import Advertiser
+        from apps.publishers.models import Publisher
+        import calendar
+        context = super().get_context_data(**kwargs)
+        active_tab = self.request.GET.get('tab', 'advertiser')
+        context['active_tab'] = active_tab
+        context['selected_status'] = self.request.GET.get('status', '')
+        context['selected_client'] = self.request.GET.get('client', '')
+        context['selected_month'] = self.request.GET.get('month', '')
+        if active_tab == 'advertiser':
+            context['clients'] = Advertiser.objects.all()
+        else:
+            context['clients'] = Publisher.objects.all()
+        context['months'] = [(str(i), calendar.month_name[i]) for i in range(1, 13)]
+        return context
 
 class InvoiceCreateView(CreateView):
     model = Invoice
@@ -25,10 +65,10 @@ class InvoiceCreateView(CreateView):
     success_url = reverse_lazy('invoicing:invoice_list')
 
     def get_initial(self):
+        import contextlib
         initial = super().get_initial()
-        drs_id = self.request.GET.get('drs')
-        if drs_id:
-            try:
+        if drs_id := self.request.GET.get('drs'):
+            with contextlib.suppress(Exception):
                 from apps.drs.models import DailyRevenueSheet
                 drs = DailyRevenueSheet.objects.get(id=drs_id)
                 initial.update({
@@ -36,8 +76,6 @@ class InvoiceCreateView(CreateView):
                     'currency': 'INR',
                     'amount': drs.publisher_payout,
                 })
-            except DailyRevenueSheet.DoesNotExist:
-                pass
         return initial
 
     def get_context_data(self, **kwargs):
@@ -73,59 +111,32 @@ class InvoiceExportView(TemplateView):
     template_name = 'invoicing/invoice_export.html'
 
     def get(self, request, *args, **kwargs):
-        if request.GET.get('export') == 'csv':
-            import csv
-            from django.http import HttpResponse
-            from apps.invoicing.models import Invoice
-            response = HttpResponse(content_type='text/csv')
-            response['Content-Disposition'] = 'attachment; filename="invoices.csv"'
-            writer = csv.writer(response)
-            writer.writerow(['ID', 'Publisher', 'DRS', 'Status', 'Created'])
-            for invoice in Invoice.objects.all():
-                writer.writerow([
-                    invoice.id,
-                    str(invoice.publisher),
-                    str(invoice.drs),
-                    invoice.status,
-                    invoice.created_at.strftime('%Y-%m-%d %H:%M')
-                ])
-            return response
-        return super().get(request, *args, **kwargs)
+        if request.GET.get('export') != 'csv':
+            return super().get(request, *args, **kwargs)
+        import csv
+        from django.http import HttpResponse
+        from apps.invoicing.models import Invoice
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="invoices.csv"'
+        writer = csv.writer(response)
+        writer.writerow(['ID', 'Publisher', 'DRS', 'Status', 'Created'])
+        for invoice in Invoice.objects.all():
+            writer.writerow([
+                invoice.id,
+                str(invoice.publisher),
+                str(invoice.drs),
+                invoice.status,
+                invoice.created_at.strftime('%Y-%m-%d %H:%M')
+            ])
+        return response
 
-class InvoicePDFView(DetailView):
-    model = Invoice
-
-    def get(self, request, *args, **kwargs):
-        invoice = self.get_object()
-
-        drs = invoice.drs
-        invoice_lines = [{
-            'description': getattr(drs, 'campaign_name', 'N/A'),
-            'hsn_sac': '998365',  # or whatever is appropriate
-            'qty': drs.publisher_conversions,
-            'rate': drs.publisher_payout,
-            # keep cgst/sgst in lines if you want per-line display
-            'cgst_amount': invoice.gst_amount / 2 if invoice.gst_amount is not None else 0,
-            'sgst_amount': invoice.gst_amount / 2 if invoice.gst_amount is not None else 0,
-            'amount': drs.publisher_conversions * drs.publisher_payout,
-        }]
-
-        # Define cgst, sgst for use in template (for summary table)
-        cgst = invoice.gst_amount / 2 if invoice.gst_amount is not None else 0
-        sgst = invoice.gst_amount / 2 if invoice.gst_amount is not None else 0
-
-        html = render_to_string(
-            'invoicing/invoice_pdf_template.html',
-            {
-                'invoice': invoice,
-                'invoice_lines': invoice_lines,
-                'cgst': cgst,
-                'sgst': sgst,
-            }
-        )
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = f'filename=invoice_{invoice.id}.pdf'
-        weasyprint.HTML(string=html).write_pdf(response)
+class InvoicePDFView(View):
+    def get(self, request, pk):
+        invoice = get_object_or_404(Invoice, pk=pk)
+        html = render_to_string('invoicing/invoice_pdf.html', {'invoice': invoice})
+        pdf = weasyprint.HTML(string=html, base_url=request.build_absolute_uri()).write_pdf()
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = f'filename="invoice_{invoice.invoice_number}.pdf"'
         return response
     
 @method_decorator(login_required, name='dispatch')

@@ -25,10 +25,21 @@ from django.contrib import messages
 from .forms import UserForm, RoleForm
 
 @login_required
-@role_required(['admin', 'subadmin'])  # Only admin/subadmin should access user management
+@role_required(['admin', 'subadmin'])
 def user_list(request):
-    users = User.objects.all()
-    return render(request, 'users/user_list.html', {'users': users})
+    users       = User.objects.all()
+    add_form    = UserForm()                             # blank form
+    edit_forms  = {u.pk: UserForm(instance=u) for u in users}
+
+    return render(
+        request,
+        "users/user_list.html",
+        {
+            "users": users,
+            "form":  add_form,        # for the “Add User” modal
+            "edit_forms": edit_forms  # for per-row edit modals
+        }
+    )
 
 @login_required
 @role_required(['admin', 'subadmin'])

@@ -9,6 +9,6 @@ class PublisherAdmin(admin.ModelAdmin):
 
 @admin.register(Wishlist)
 class WishlistAdmin(admin.ModelAdmin):
-    list_display = ('id', 'publisher', 'desired_campaign', 'geo', 'category')
+    list_display = ('id', 'publisher', 'desired_campaign', 'geo', 'kpi')
 
 # Register your models here.

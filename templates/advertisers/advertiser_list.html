@@ -104,16 +104,80 @@
   white-space: nowrap !important;
 }
 </style>
+
 <!-- Offer List Modal -->
 <div class="modal fade" id="offerListModal" tabindex="-1" aria-labelledby="offerListModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content animate__animated animate__fadeInUp">
-      <div class="modal-header" style="background: linear-gradient(100deg,#1dbfae 30%, #1963b3 100%);">
-        <h5 class="modal-title text-white" id="offerListModalLabel">
-          <i class="bi bi-bag-check"></i> Advertiser Offers
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1);"></button>
+      <div class="modal-header d-flex align-items-center gap-2" style="background: linear-gradient(100deg,#1dbfae 30%, #1963b3 100%);">
+		  <h5 class="modal-title text-white mb-0 me-auto" id="offerListModalLabel">
+			Offers for <span id="wishlistAdvertiserName" class="fw-bold"></span>
+		  </h5>
+
+		  <div class="d-none d-sm-block" style="min-width: 260px;">
+			<div class="input-group input-group-sm">
+			  <input type="text" id="offerSearch" class="form-control" placeholder="Search offers...">
+			</div>
+		  </div>
+
+		  <button type="button" class="btn-close ms-0" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1);"></button>
+		</div>
+
+
+      <div class="p-2 border-bottom">
+        <form id="uploadOfferForm" enctype="multipart/form-data">
+          <!-- IMPORTANT: name matches the view -->
+          <input type="hidden" name="advertiser" id="offerAdvertiserId">
+
+          <div class="row g-2 align-items-end mb-2">
+            <div class="col">
+              <label for="offer_file" class="form-label mb-1 small">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Upload CSV/XLSX File
+              </label>
+              <input type="file" class="form-control form-control-sm" id="offer_file" name="offer_file" accept=".csv,.xlsx">
+            </div>
+
+            <div class="col-auto d-flex align-items-end">
+              <button type="button" class="btn btn-outline-primary btn-sm" id="toggleManualForm">
+                <i class="bi bi-pencil-square me-1"></i> Or add manually
+              </button>
+            </div>
+
+            <div class="col-auto d-flex align-items-end">
+              <button type="submit" class="btn btn-primary btn-sm">
+                <i class="bi bi-upload me-1"></i> Upload
+              </button>
+            </div>
+          </div>
+
+          <div id="manualOfferForm" style="display:none;">
+            <div class="row g-2">
+              <div class="col">
+                <input type="text" class="form-control form-control-sm" name="campaign_name" placeholder="Campaign Name">
+              </div>
+              <div class="col">
+                <input type="text" class="form-control form-control-sm" name="geo" placeholder="Geo (e.g. IN,US,UK)">
+              </div>
+              <div class="col">
+				<input type="text" class="form-control form-control-sm" name="kpi" placeholder="KPI">                
+              </div>
+              <div class="col">
+                <input type="text" class="form-control form-control-sm" name="mmp" placeholder="MMP">
+              </div>
+              <div class="col">
+                <input type="text" class="form-control form-control-sm" name="payout" placeholder="Payout">
+              </div>
+              <div class="col">
+                <input type="text" class="form-control form-control-sm" name="payable_event" placeholder="Payable Event">
+              </div>
+              <div class="col">
+                <input type="text" class="form-control form-control-sm" name="model" placeholder="Model">
+              </div>
+            </div>
+          </div>
+        </form>
       </div>
+
       <div class="modal-body" id="offer-list-content" style="padding:0;">
         <div class="text-center py-5" id="offer-loading-spinner">
           <div class="spinner-border text-success" role="status">
@@ -121,14 +185,102 @@
           </div>
         </div>
       </div>
+
     </div>
   </div>
 </div>
+
 <script>
+// Pagination handler
+$(document).on('click', '.offer-page-btn', function() {
+  const page = $(this).data('page');
+  const advId = $('#offerAdvertiserId').val();
+  
+  if (!advId) return;
+  
+  // Validate page number
+  let validPage = parseInt(page);
+  if (isNaN(validPage) || validPage < 1) {
+    validPage = 1;
+  }
+  
+  $('#offer-list-content').html(`
+    <div class="text-center py-5">
+      <div class="spinner-border text-success" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  `);
+  
+  $.ajax({
+    url: '/panel/advertisers/' + advId + '/offers/?page=' + validPage,
+    success: function(data) {
+      $('#offer-list-content').html(data.html);
+      bindOfferSearch();
+    },
+    error: function(xhr) {
+      $('#offer-list-content').html('<div class="text-danger text-center py-3">Failed to load offers.</div>');
+    }
+  });
+});
+
+// Attach search functionality
+function bindOfferSearch() {
+  const $input = $('#offerSearch');
+  if (!$input.length || $input.data('bound')) return;
+  $input.data('bound', true);
+
+  $input.on('keyup', function () {
+    const q = $(this).val().toLowerCase();
+    $('#offer-list-content table tbody tr').each(function () {
+      const rowText = $(this).text().toLowerCase();
+      $(this).toggle(rowText.indexOf(q) > -1);
+    });
+  });
+}
+
+// Focus and bind when modal is shown
+document.addEventListener('shown.bs.modal', function (evt) {
+  if (evt.target.id === 'offerListModal') {
+    const $in = $('#offerSearch');
+    if ($in.length) $in.trigger('focus');
+    bindOfferSearch();
+  }
+});
+
+// Re-bind after offers HTML loads via AJAX
+$(document).ajaxSuccess(function (evt, xhr, settings) {
+  if (settings.url && settings.url.match(/\/panel\/advertisers\/\d+\/offers\/$/)) {
+    bindOfferSearch();
+  }
+});
+
+// CSRF helper
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+const csrftoken = getCookie('csrftoken');
+
+// Toggle manual form
+$(document).on('click', '#toggleManualForm', function() {
+  $('#manualOfferForm').slideToggle();
+  $(this).text(function(i, text){
+    return text.includes("Hide") ? "Or add manually" : "Hide manual form";
+  });
+});
+
+// Open modal and load offers
 $(function() {
   $(document).on('click', '.offers-link', function(e) {
     e.preventDefault();
-    var advertiserId = $(this).data('advertiser-id');
+    const advertiserId = $(this).data('advertiser-id');
+    const companyName = $(this).data('company-name');
+
+    $('#wishlistAdvertiserName').text(companyName);
+    $('#offerAdvertiserId').val(advertiserId);
+
     $('#offer-list-content').html(`
       <div class="text-center py-5" id="offer-loading-spinner">
         <div class="spinner-border text-success" role="status">
@@ -136,18 +288,66 @@ $(function() {
         </div>
       </div>
     `);
-    var modal = new bootstrap.Modal(document.getElementById('offerListModal'));
+
+    const modal = new bootstrap.Modal(document.getElementById('offerListModal'));
     modal.show();
+
     $.ajax({
       url: '/panel/advertisers/' + advertiserId + '/offers/',
       success: function(data) {
         $('#offer-list-content').html(data.html);
       },
-      error: function(xhr, status, error) {
-        console.log("AJAX offers error", xhr.status, error, xhr.responseText);
+      error: function(xhr) {
         $('#offer-list-content').html('<div class="text-danger text-center py-3">Failed to load offers.</div>');
       }
     });
+  });
+});
+
+// Submit upload or manual add via AJAX FormData
+$(document).on('submit', '#uploadOfferForm', function(e) {
+  e.preventDefault();
+  const advId = $('#offerAdvertiserId').val();
+  if (!advId) {
+    alert('Missing advertiser id. Open the modal using the Offers link.');
+    return;
+  }
+  const fd = new FormData(this);
+  fd.set('advertiser', advId);
+
+  $.ajax({
+    url: "{% url 'advertisers:offer_upload' %}",
+    type: "POST",
+    data: fd,
+    processData: false,
+    contentType: false,
+    headers: {'X-CSRFToken': csrftoken},
+    beforeSend: function() {
+      $('#uploadOfferForm button[type="submit"]').prop('disabled', true).text('Uploading...');
+    },
+    success: function() {
+      $.ajax({
+        url: '/panel/advertisers/' + advId + '/offers/',
+        success: function(data) {
+          $('#offer-list-content').html(data.html);
+        },
+        error: function() {
+          $('#offer-list-content').html('<div class="text-danger text-center py-3">Failed to load offers.</div>');
+        }
+      });
+
+      const formEl = document.getElementById('uploadOfferForm');
+      if (formEl) formEl.reset();
+      $('#offer_file').val('');
+      $('#manualOfferForm').hide();
+      $('#toggleManualForm').text('Or add manually');
+    },
+    error: function(xhr) {
+      alert('Upload failed: ' + (xhr.responseText || xhr.statusText || 'Unknown error'));
+    },
+    complete: function() {
+      $('#uploadOfferForm button[type="submit"]').prop('disabled', false).html('<i class="bi bi-upload me-1"></i> Upload');
+    }
   });
 });
 </script>
@@ -166,9 +366,7 @@ $(function() {
                 <tr>
                     <th style="width:7%;">ID</th>
                     <th>Name</th>
-                    <th>Company Name</th>
-                    <th>Contact Person</th>
-                    <th>Email</th>
+                    <th>Account Manager</th>
                     <th>Offers Count</th>
                     <th>Status</th>
                     <th style="width:15%;">Actions</th>
@@ -178,17 +376,19 @@ $(function() {
             {% for advertiser in advertisers %}
                 <tr>
                     <td class="fw-medium">{{ advertiser.id }}</td>
-                    <td>{{ advertiser.name }}</td>
                     <td>
                         <a href="{% url 'advertisers:detail' advertiser.id %}" class="text-decoration-none fw-bold text-dark">
-                            <i class="bi bi-person-vcard me-2 text-primary"></i>
-                            {{ advertiser.company_name }}
+                            <span class="fw-bold" style="color:#1963b3;">
+								{{ advertiser.company_name }}
+							</span>
                         </a>
+						<div class="text-muted small">{{ advertiser.email }}</div>
                     </td>
                     <td>{{ advertiser.contact_person }}</td>
-                    <td>{{ advertiser.email }}</td>
                     <td>
-                        <a href="#" class="offers-link" data-advertiser-id="{{ advertiser.id }}">
+                        <a href="#" class="offers-link" 
+						data-advertiser-id="{{ advertiser.id }}"
+						data-company-name="{{ advertiser.company_name }}">
                             {{ advertiser.offers_count }}
                         </a>
                     </td>

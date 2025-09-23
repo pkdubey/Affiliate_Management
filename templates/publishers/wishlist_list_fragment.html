@@ -5,12 +5,10 @@
         <th>ID</th>
         <th class="no-wrap">Offer Name</th>
         <th>Geo</th>
-        <th>Category</th>
+        <th>KPI</th>
         <th>Payout</th>
         <th>Model</th>
         <th class="no-wrap">Payable Event</th>
-        <th>Created At</th>
-        <th>Updated At</th>
       </tr>
     </thead>
     <tbody>
@@ -19,16 +17,46 @@
         <td>{{ item.id }}</td>
         <td>{{ item.desired_campaign }}</td>
         <td>{{ item.geo }}</td>
-        <td>{{ item.category }}</td>
+        <td>{{ item.kpi }}</td>
         <td>{{ item.payout }}</td>
         <td>{{ item.model }}</td>
         <td>{{ item.payable_event }}</td>
-        <td>{{ item.created_at|date:"Y-m-d H:i:s" }}</td>
-        <td>{{ item.updated_at|date:"Y-m-d H:i:s" }}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
+
+  <!-- Pagination controls -->
+  {% if page_obj.paginator.num_pages > 1 %}
+  <nav class="d-flex justify-content-between align-items-center px-3 py-2 border-top">
+    {% if page_obj.has_previous %}
+      <button class="btn btn-sm btn-outline-primary wishlist-page-btn" 
+              data-page="{{ page_obj.previous_page_number }}">
+        ‹ Previous
+      </button>
+    {% else %}
+      <button class="btn btn-sm btn-outline-secondary" disabled>
+        ‹ Previous
+      </button>
+    {% endif %}
+    
+    <span class="small text-muted">
+      Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+      ({{ page_obj.paginator.count }} total items)
+    </span>
+    
+    {% if page_obj.has_next %}
+      <button class="btn btn-sm btn-outline-primary wishlist-page-btn" 
+              data-page="{{ page_obj.next_page_number }}">
+        Next ›
+      </button>
+    {% else %}
+      <button class="btn btn-sm btn-outline-secondary" disabled>
+        Next ›
+      </button>
+    {% endif %}
+  </nav>
+  {% endif %}
 {% else %}
   <div class="text-center text-muted py-4">No wishlist items for this publisher.</div>
 {% endif %}

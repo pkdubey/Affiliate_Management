@@ -117,12 +117,58 @@
 <div class="modal fade" id="wishlistListModal" tabindex="-1" aria-labelledby="wishlistListModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content animate__animated animate__fadeInUp">
-      <div class="modal-header" style="background: linear-gradient(100deg,#1dbfae 30%, #1963b3 100%);">
-        <h5 class="modal-title text-white" id="wishlistListModalLabel">
-          <i class="bi bi-card-checklist"></i> Publisher Wishlist Items
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1);"></button>
+      <div class="modal-header d-flex align-items-center gap-2" style="background: linear-gradient(100deg,#1dbfae 30%, #1963b3 100%);">
+		  <h5 class="modal-title text-white mb-0 me-auto" id="wishlistListModalLabel">
+			Wishlist for <span id="wishlistPublisherName" class="fw-bold"></span>
+		  </h5>
+
+		  <div class="d-none d-sm-block" style="min-width: 260px;">
+			<div class="input-group input-group-sm">
+			  <input type="text" id="wishlistSearch" class="form-control" placeholder="Search wishlist...">
+			</div>
+		  </div>
+
+		  <button type="button" class="btn-close ms-0" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1);"></button>
+		</div>
+
+      <div class="p-2 border-bottom">
+        <form id="uploadWishlistForm" enctype="multipart/form-data">
+          <!-- IMPORTANT: match view key -->
+          <input type="hidden" name="publisher" id="wishlistPublisherId">
+
+          <div class="row g-2 align-items-end mb-2">
+            <div class="col">
+              <label for="wishlist_file" class="form-label mb-1 small">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Upload CSV/XLSX File
+              </label>
+              <input type="file" class="form-control form-control-sm" id="wishlist_file" name="wishlist_file" accept=".csv,.xlsx">
+            </div>
+            <div class="col-auto d-flex align-items-end">
+              <button type="button" class="btn btn-outline-primary btn-sm" id="toggleWishlistManual">
+                <i class="bi bi-pencil-square me-1"></i> Or add manually
+              </button>
+            </div>
+            <div class="col-auto d-flex align-items-end">
+              <button type="submit" class="btn btn-primary btn-sm">
+                <i class="bi bi-upload me-1"></i> Upload
+              </button>
+            </div>
+          </div>
+
+          <!-- Manual input form (hidden by default) -->
+          <div id="wishlistManualForm" style="display:none;">
+            <div class="row g-2">
+              <div class="col"><input type="text" class="form-control form-control-sm" name="desired_campaign" placeholder="Offer Name"></div>
+              <div class="col"><input type="text" class="form-control form-control-sm" name="geo" placeholder="Geo (e.g. IN,US,UK)"></div>
+              <div class="col"><input type="text" class="form-control form-control-sm" name="payout" placeholder="Payout"></div>
+              <div class="col"><input type="text" class="form-control form-control-sm" name="payable_event" placeholder="Payable Event"></div>
+              <div class="col"><input type="text" class="form-control form-control-sm" name="model" placeholder="Model"></div>
+              <div class="col"><input type="text" class="form-control form-control-sm" name="kpi" placeholder="KPI"></div>
+            </div>
+          </div>
+        </form>
       </div>
+
       <div class="modal-body" id="wishlist-list-content" style="padding:0;">
         <div class="text-center py-5" id="wishlist-loading-spinner">
           <div class="spinner-border text-success" role="status">
@@ -130,55 +176,27 @@
           </div>
         </div>
       </div>
+
     </div>
   </div>
 </div>
-{% block extra_js %}
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script>
-$(function() {
-  $(document).on('click', '.wishlist-link', function(e) {
-    e.preventDefault();
-    var publisherId = $(this).data('publisher-id');
-    $('#wishlist-list-content').html(`
-      <div class="text-center py-5">
-        <div class="spinner-border text-success" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    `);
-    var modal = new bootstrap.Modal(document.getElementById('wishlistListModal'));
-    modal.show();
-    // AJAX to backend
-    $.ajax({
-      url: '/panel/publishers/' + publisherId + '/wishlist/', // adjust path if your prefix is different
-      success: function(data) {
-        $('#wishlist-list-content').html(data.html);
-      },
-      error: function(xhr, status, error) {
-        console.log("AJAX wishlist error", xhr.status, error, xhr.responseText);
-        $('#wishlist-list-content').html('<div class="text-danger text-center py-3">Failed to load wishlist.</div>');
-      }
-    });
-  });
-});
-</script>
-{% endblock %}
-<!-- Wishlist Items Modal End Here-->
+
 <div class="card publishers-table-card p-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
-  <h2 class="fw-bold" style="color:#1963b3;"><i class="bi bi-people-fill me-2"></i>Publishers</h2>
-  <a href="{% url 'publishers:add' %}" class="btn glow-btn"><i class="bi bi-plus-circle me-1"></i> Add Publisher</a>
-</div>
+    <h2 class="fw-bold" style="color:#1963b3;">
+      <i class="bi bi-people-fill me-2"></i>Publishers
+    </h2>
+    <a href="{% url 'publishers:add' %}" class="btn glow-btn">
+      <i class="bi bi-plus-circle me-1"></i> Add Publisher
+    </a>
+  </div>
   <div class="table-responsive">
     <table class="table table-hover table-striped align-middle mb-0 table-animated">
       <thead>
         <tr>
           <th style="width:8%">ID</th>
           <th>Name</th>
-          <th>Company Name</th>
-          <th>Contact Person</th>
-          <th>Email</th>        
+          <th>Account Manager</th>
           <th>Wishlist Items</th>
           <th>Status</th>
           <th style="width:20%">Actions</th>
@@ -188,47 +206,213 @@ $(function() {
         {% for publisher in publishers %}
         <tr>
           <td data-label="ID">{{ publisher.id }}</td>
-          <td data-label="Name">{{ publisher.name }}</td>
           <td data-label="Company Name">
             <a href="{% url 'publishers:detail' publisher.id %}" class="text-decoration-none fw-semibold" style="color:#168987;">
-              {{ publisher.company_name }}
+              <span class="fw-bold" style="color:#1963b3;">{{ publisher.company_name }}</span>
             </a>
+            <div class="text-muted small">{{ publisher.email }}</div>
           </td>
           <td data-label="Contact Person">{{ publisher.contact_person }}</td>
-          <td data-label="Email">{{ publisher.email }}</td>
           <td data-label="Wishlist Items">
-            <a href="#" class="wishlist-link" data-publisher-id="{{ publisher.id }}">
-              {{ publisher.wishlist_count }}
+            <a href="#"
+               class="wishlist-link"
+               data-publisher-id="{{ publisher.id }}"
+               data-company-name="{{ publisher.company_name }}">
+               {{ publisher.wishlist_count }}
             </a>
           </td>
           <td data-label="Status">
-              {% if publisher.is_active %}
-                  <span class="badge bg-success">Active</span>
-              {% else %}
-                  <span class="badge bg-secondary">Inactive</span>
-              {% endif %}
-          </td>        
+            {% if publisher.is_active %}
+              <span class="badge bg-success">Active</span>
+            {% else %}
+              <span class="badge bg-secondary">Inactive</span>
+            {% endif %}
+          </td>
           <td data-label="Actions">
-              <a href="{% url 'publishers:edit' publisher.id %}" class="btn btn-sm btn-outline-success me-2"><i class="bi bi-pencil"></i></a>
-              <a href="{% url 'publishers:delete' publisher.id %}" class="btn btn-sm btn-outline-danger me-2"><i class="bi bi-trash"></i></a>
-              {% if request.user.is_superuser %}
-                <a href="{% url 'publishers:impersonate' publisher.id %}" class="btn btn-sm btn-primary me-2"><i class="bi bi-person-badge"></i></a>
-              {% else %}
-                {% for group in request.user.groups.all %}
-                  {% if group.name == 'admin' or group.name == 'subadmin' %}
-                    <a href="{% url 'publishers:impersonate' publisher.id %}" class="btn btn-sm btn-primary me-2"><i class="bi bi-person-badge"></i></a>
-                  {% endif %}
-                {% endfor %}
-              {% endif %}
+            <a href="{% url 'publishers:edit' publisher.id %}" class="btn btn-sm btn-outline-success me-2"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'publishers:delete' publisher.id %}" class="btn btn-sm btn-outline-danger me-2"><i class="bi bi-trash"></i></a>
+            {% if request.user.is_superuser %}
+              <a href="{% url 'publishers:impersonate' publisher.id %}" class="btn btn-sm btn-primary me-2"><i class="bi bi-person-badge"></i></a>
+            {% else %}
+              {% for group in request.user.groups.all %}
+                {% if group.name == 'admin' or group.name == 'subadmin' %}
+                  <a href="{% url 'publishers:impersonate' publisher.id %}" class="btn btn-sm btn-primary me-2"><i class="bi bi-person-badge"></i></a>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
           </td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="3" class="text-center text-muted py-5">No publishers found.</td>
+          <td colspan="6" class="text-center text-muted py-5">No publishers found.</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// Pagination handler for wishlist
+$(document).on('click', '.wishlist-page-btn', function() {
+  const page = $(this).data('page');
+  const pubId = $('#wishlistPublisherId').val();
+  
+  if (!pubId) return;
+  
+  // Validate page number
+  let validPage = parseInt(page);
+  if (isNaN(validPage) || validPage < 1) {
+    validPage = 1;
+  }
+  
+  $('#wishlist-list-content').html(`
+    <div class="text-center py-5">
+      <div class="spinner-border text-success" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  `);
+  
+  $.ajax({
+    url: '/panel/publishers/' + pubId + '/wishlist/?page=' + validPage,
+    success: function(data) {
+      $('#wishlist-list-content').html(data.html);
+      bindWishlistSearch();
+    },
+    error: function(xhr) {
+      $('#wishlist-list-content').html('<div class="text-danger text-center py-3">Failed to load wishlist items.</div>');
+    }
+  });
+});
+
+// Attach search once modal is shown and when content loads
+document.addEventListener('shown.bs.modal', function (evt) {
+  if (evt.target.id !== 'wishlistListModal') return;
+  bindWishlistSearch();
+});
+
+function bindWishlistSearch() {
+  const $input = $('#wishlistSearch');
+  if ($input.data('bound')) return;
+  $input.data('bound', true);
+
+  $input.on('keyup', function () {
+    const q = $(this).val().toLowerCase();
+    $('#wishlist-list-content table tbody tr').each(function () {
+      const txt = $(this).text().toLowerCase();
+      $(this).toggle(txt.indexOf(q) > -1);
+    });
+  });
+}
+
+// Re-bind after AJAX loads the table HTML
+$(document).ajaxSuccess(function (evt, xhr, settings) {
+  if (settings.url && settings.url.match(/\/panel\/publishers\/\d+\/wishlist\/$/)) {
+    bindWishlistSearch();
+  }
+});
+
+// CSRF helper
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+const csrftoken = getCookie('csrftoken');
+
+// Toggle manual wishlist form
+$(document).on('click', '#toggleWishlistManual', function() {
+  $('#wishlistManualForm').slideToggle();
+  $(this).text(function(i, text){
+    return text.includes("Hide") ? "Or add manually" : "Hide manual form";
+  });
+});
+
+// Open modal and load wishlist items
+$(document).on('click', '.wishlist-link', function(e) {
+  e.preventDefault();
+  const publisherId = $(this).data('publisher-id');
+  const companyName = $(this).data('company-name');
+
+  $('#wishlistPublisherName').text(companyName);
+  $('#wishlistPublisherId').val(publisherId);
+
+  $('#wishlist-list-content').html(`
+    <div class="text-center py-5">
+      <div class="spinner-border text-success" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  `);
+
+  const modal = new bootstrap.Modal(document.getElementById('wishlistListModal'));
+  modal.show();
+
+  $.ajax({
+    url: '/panel/publishers/' + publisherId + '/wishlist/',
+    success: function(data) {
+      $('#wishlist-list-content').html(data.html);
+    },
+    error: function(xhr) {
+      $('#wishlist-list-content').html('<div class="text-danger text-center py-3">Failed to load wishlist.</div>');
+    }
+  });
+});
+
+// Submit wishlist upload/manual via AJAX FormData
+$(document).on('submit', '#uploadWishlistForm', function(e) {
+  e.preventDefault();
+  const pubId = $('#wishlistPublisherId').val();
+  if (!pubId) { 
+    alert('Missing publisher id. Open from a publisher row.'); 
+    return; 
+  }
+
+  const fd = new FormData(this);
+  fd.set('publisher', pubId);
+
+  $.ajax({
+    url: "{% url 'publishers:wishlist_upload' %}",
+    type: "POST",
+    data: fd,
+    processData: false,
+    contentType: false,
+    headers: {'X-CSRFToken': csrftoken},
+    beforeSend: function() {
+      $('#uploadWishlistForm button[type="submit"]').prop('disabled', true).text('Uploading...');
+    },
+    success: function() {
+      $.ajax({
+        url: '/panel/publishers/' + pubId + '/wishlist/',
+        success: function(data) { 
+          $('#wishlist-list-content').html(data.html); 
+        },
+        error: function() {
+          $('#wishlist-list-content').html('<div class="text-danger text-center py-3">Failed to load wishlist.</div>');
+        }
+      });
+
+      const formEl = document.getElementById('uploadWishlistForm');
+      if (formEl) formEl.reset();
+      $('#wishlist_file').val('');
+      $('#wishlistManualForm').hide();
+      $('#toggleWishlistManual').text('Or add manually');
+    },
+    error: function(xhr) {
+      alert('Upload failed: ' + (xhr.responseText || xhr.statusText || 'Unknown error'));
+    },
+    complete: function() {
+      $('#uploadWishlistForm button[type="submit"]').prop('disabled', false).html('<i class="bi bi-upload me-1"></i> Upload');
+    }
+  });
+});
+</script>
+
 {% endblock %}

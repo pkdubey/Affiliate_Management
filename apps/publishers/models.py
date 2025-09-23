@@ -23,7 +23,7 @@ class Wishlist(models.Model):
     payout = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)  # New
     payable_event = models.CharField(max_length=255, blank=True, null=True)               # New
     model = models.CharField(max_length=255, blank=True, null=True)                      # New
-    category = models.CharField(max_length=100, blank=True, null=True)
+    kpi = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     # Add more fields as needed

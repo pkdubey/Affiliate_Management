@@ -10,7 +10,7 @@
     <td>{{ offer.advertiser }}</td>
     <td><a href="{% url 'offers:detail' offer.id %}">{{ offer.campaign_name }}</a></td>
     <td>{{ offer.geo }}</td>
-    <td>{{ offer.category }}</td>
+    <td>{{ offer.kpi }}</td>
     <td>
       <a href="{% url 'offers:edit' offer.id %}">Edit</a> |
       <a href="{% url 'offers:delete' offer.id %}">Delete</a>

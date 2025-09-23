@@ -155,3 +155,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Check if you have any custom error handling
 HANDLER403 = 'apps.dashboard.views.forbidden_view'
 HANDLER404 = 'apps.dashboard.views.page_not_found_view'
+
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000  # Default is 1000
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760   # 10MB
+

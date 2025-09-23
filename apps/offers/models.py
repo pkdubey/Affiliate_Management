@@ -10,7 +10,7 @@ class Offer(models.Model):
     payout = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     payable_event = models.CharField(max_length=255, blank=True, null=True)
     model = models.CharField(max_length=255, blank=True, null=True)
-    category = models.CharField(max_length=100)
+    kpi = models.CharField(max_length=255, blank=True)
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=True)

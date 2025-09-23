@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load user_roles %} 
 {% block content %}
 <style>
 .userlist-glass-card {
@@ -133,15 +134,19 @@
 
 <div class="container mt-4">
   <div class="userlist-glass-card">
-    <!-- Use updated title row here -->
+
     <div class="d-flex justify-content-between align-items-center userlist-title-row">
       <span class="userlist-title">
-        <i class="bi bi-people"></i>
-        Manage Users
+        <i class="bi bi-people"></i> Manage Users
       </span>
-      <a href="{% url 'users:user_create' %}" class="btn add-user-btn">
+
+      {# modal trigger — button, not link #}
+      <button type="button"
+              class="btn add-user-btn"
+              data-bs-toggle="modal"
+              data-bs-target="#addUserModal">
         <i class="bi bi-person-plus me-1"></i> Add User
-      </a>
+      </button>
     </div>
     <div class="table-responsive">
       <table class="table userlist-table align-middle">
@@ -194,10 +199,19 @@
               {{ user.is_staff|yesno:"Staff,User" }}
             </td>
             <td style="text-align:center;">
-              <a href="{% url 'users:user_edit' user.pk %}" class="table-action-btn" title="Edit">
+              <!-- EDIT now opens user-specific modal -->
+              <button type="button"
+                      class="table-action-btn"
+                      data-bs-toggle="modal"
+                      data-bs-target="#editUserModal-{{ user.pk }}"
+                      title="Edit">
                 <i class="bi bi-pencil-square"></i>
-              </a>
-              <a href="{% url 'users:user_delete' user.pk %}" class="table-action-btn" title="Delete"
+              </button>
+
+              <!-- delete link unchanged -->
+              <a href="{% url 'users:user_delete' user.pk %}"
+                 class="table-action-btn"
+                 title="Delete"
                  onclick="return confirm('Delete user?');">
                  <i class="bi bi-trash"></i>
               </a>
@@ -209,4 +223,58 @@
     </div>
   </div>
 </div>
+{% endblock %}
+{# ---------------------------------------------------------- #}
+{#  ADD-USER modal (already working)                          #}
+{# ---------------------------------------------------------- #}
+{% block extra_modals %}
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Team Member</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" action="{% url 'users:user_create' %}">
+        {% csrf_token %}
+        <div class="modal-body">{{ form.as_p }}</div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary">Save User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# ---------------------------------------------------------- #}
+{#  One EDIT modal per user (bound form)                      #}
+{# ---------------------------------------------------------- #}
+{% for user in users %}
+  {% with edit_form=edit_forms|dict_get:user.pk %}
+  <div class="modal fade" id="editUserModal-{{ user.pk }}" tabindex="-1"
+       aria-labelledby="editUserModalLabel-{{ user.pk }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editUserModalLabel-{{ user.pk }}">
+            Edit {{ user.first_name }}
+          </h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form method="post" action="{% url 'users:user_edit' user.pk %}">
+          {% csrf_token %}
+          <div class="modal-body">
+            {{ edit_form.as_p }}
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button class="btn btn-primary">Update User</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endwith %}
+{% endfor %}
 {% endblock %}

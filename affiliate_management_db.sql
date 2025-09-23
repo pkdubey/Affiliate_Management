@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 28, 2025 at 10:54 AM
+-- Generation Time: Sep 23, 2025 at 12:19 PM
 -- Server version: 9.3.0
 -- PHP Version: 8.2.12
 
@@ -44,7 +44,8 @@ CREATE TABLE `advertisers_advertiser` (
 
 INSERT INTO `advertisers_advertiser` (`id`, `company_name`, `contact_person`, `email`, `is_active`, `name`, `teams_id`, `telegram_id`) VALUES
 (1, 'Rohan Technology', 'Rohan', 'rohan@gmail.com', 1, 'Rohan', NULL, NULL),
-(2, 'Rohit Technology', 'Rohit', 'rohit@gmail.com', 1, 'Rohit', NULL, NULL);
+(2, 'Rohit Technology', 'Rohit', 'rohit@gmail.com', 1, 'Rohit', NULL, NULL),
+(3, 'PD Tech', 'Pavan', 'pavan@thecloudtree.ai', 1, 'Pavan', '123', '123');
 
 -- --------------------------------------------------------
 
@@ -63,7 +64,8 @@ CREATE TABLE `auth_group` (
 
 INSERT INTO `auth_group` (`id`, `name`) VALUES
 (1, 'Admin'),
-(2, 'Publisher');
+(2, 'Publisher'),
+(3, 'Sub-Admin');
 
 -- --------------------------------------------------------
 
@@ -433,7 +435,14 @@ INSERT INTO `django_migrations` (`id`, `app`, `name`, `applied`) VALUES
 (35, 'validation', '0002_validation_approve_payout_validation_conversions_and_more', '2025-07-26 13:02:13.378864'),
 (36, 'invoicing', '0002_invoice_amount_invoice_currency_invoice_gst_amount_and_more', '2025-07-27 02:19:49.268867'),
 (37, 'invoicing', '0003_currencyrate', '2025-07-27 03:03:40.519732'),
-(38, 'publishers', '0004_wishlist_created_at_wishlist_updated_at', '2025-07-28 08:34:03.669019');
+(38, 'publishers', '0004_wishlist_created_at_wishlist_updated_at', '2025-07-28 08:34:03.669019'),
+(39, 'invoicing', '0004_remove_invoice_publisher_upload_invoice_advertiser_and_more', '2025-08-06 10:45:19.896434'),
+(40, 'users', '0002_alter_user_role', '2025-08-20 06:42:24.331457'),
+(41, 'users', '0003_user_publisher', '2025-08-20 12:58:58.845684'),
+(42, 'invoicing', '0005_invoice_date_invoice_due_date_invoice_invoice_number', '2025-08-27 13:15:49.056100'),
+(43, 'users', '0004_remove_user_publisher_user_advertisers_and_more', '2025-09-07 21:11:12.075461'),
+(44, 'offers', '0004_remove_offer_category_offer_kpi', '2025-09-23 06:36:51.916449'),
+(45, 'publishers', '0005_rename_category_wishlist_kpi', '2025-09-23 06:36:52.006284');
 
 -- --------------------------------------------------------
 
@@ -452,10 +461,9 @@ CREATE TABLE `django_session` (
 --
 
 INSERT INTO `django_session` (`session_key`, `session_data`, `expire_date`) VALUES
-('ccu83xhvic0744oh5ofh6yfdm8x1bpsc', '.eJxVjEEOwiAQRe_C2pAOIBCX7j0DGZgZqRqalHbVeHdt0oVu_3vvbyrhutS0dp7TSOqiQJ1-t4zlyW0H9MB2n3SZ2jKPWe-KPmjXt4n4dT3cv4OKvX5rL4GtQ7JnAPBAjq2JRkIRpiKQM2crEgaXyReOYIWAPdkBY2Q0pN4f_2k5Fw:1ufUsV:UqLPTAdfUpSwm1GFEiq_nzVn2R4Nm3dQwtBmMjj810E', '2025-08-09 02:43:15.848945'),
-('e1uvlp5v3o648wryyv55wvvy2eui53n9', '.eJxVjEEOwiAQRe_C2pAOIBCX7j0DGZgZqRqalHbVeHdt0oVu_3vvbyrhutS0dp7TSOqiQJ1-t4zlyW0H9MB2n3SZ2jKPWe-KPmjXt4n4dT3cv4OKvX5rL4GtQ7JnAPBAjq2JRkIRpiKQM2crEgaXyReOYIWAPdkBY2Q0pN4f_2k5Fw:1udDqv:6BgHOzzvekMHz6-PZu-fUp0tvVyyuHFZ888-fn4y0wU', '2025-08-02 20:08:13.114849'),
-('q9okkjhllvl4fvd0in1gc0lspgvigbhq', '.eJxVjEEOwiAQRe_C2pAOIBCX7j0DGZgZqRqalHbVeHdt0oVu_3vvbyrhutS0dp7TSOqiQJ1-t4zlyW0H9MB2n3SZ2jKPWe-KPmjXt4n4dT3cv4OKvX5rL4GtQ7JnAPBAjq2JRkIRpiKQM2crEgaXyReOYIWAPdkBY2Q0pN4f_2k5Fw:1udM4A:RvOKJvyKI7B1aUWys9e3nf3v4oaoqETedWOmn2vapNk', '2025-08-03 04:54:26.937467'),
-('xhfb0ul0t9qf16byhy404y3fwt0b8a6v', '.eJxVjEEOwiAQRe_C2pAOIBCX7j0DGZgZqRqalHbVeHdt0oVu_3vvbyrhutS0dp7TSOqiQJ1-t4zlyW0H9MB2n3SZ2jKPWe-KPmjXt4n4dT3cv4OKvX5rL4GtQ7JnAPBAjq2JRkIRpiKQM2crEgaXyReOYIWAPdkBY2Q0pN4f_2k5Fw:1udLyh:Dtal83jPM77DxezziE4Ce5CqX_ZVIzmwXM0JfBoeyQM', '2025-08-03 04:48:47.357676');
+('jcepbea9b59lz1w8n0a2ns4iglnlremz', '.eJxVjEEOwiAQRe_C2hAYoAGX7j0DYZhBqgaS0q6Md9cmXej2v_f-S8S0rTVug5c4kzgLLU6_G6b84LYDuqd26zL3ti4zyl2RBx3y2omfl8P9O6hp1G8N1mBR2Whj0Tur0TqjgzNKuxwmQz7lwkAFGAGCIiYfnA06A0_JOxbvD8FFN2w:1uzZZ9:SVNGbhtxSDvY9VF__zmGSv6EFfgZSrbFFGZRjGMljK0', '2025-10-03 11:46:15.413079'),
+('sil27epxdanmhovaiyqetnsq8rl9v2u9', '.eJxVjEEOwiAQRe_C2pAOIBCX7j0DGZgZqRqalHbVeHdt0oVu_3vvbyrhutS0dp7TSOqijDr9bhnLk9sO6IHtPukytWUes94VfdCubxPx63q4fwcVe_3WXgJbh2TPAOCBHFsTjYQiTEUgZ85WJAwuky8cwQoBe7IDxshoSL0_ABE5GA:1uocKz:zKDTLASCAWCCVMKAfiEUdNHwMx44uQ4pvhEzanZaXJg', '2025-09-03 06:30:21.953887'),
+('yps2mugjw8t7yt9xg3ov5pvfqb1ko9pa', '.eJxVjEEOwiAQRe_C2pAOIBCX7j0DGZgZqRqalHbVeHdt0oVu_3vvbyrhutS0dp7TSOqiQJ1-t4zlyW0H9MB2n3SZ2jKPWe-KPmjXt4n4dT3cv4OKvX5rL4GtQ7JnAPBAjq2JRkIRpiKQM2crEgaXyReOYIWAPdkBY2Q0pN4f_2k5Fw:1uooYI:77zGwr50qCLXomyNawXSUxStcKncvi6097beb_Dhp9c', '2025-09-03 19:32:54.973746');
 
 -- --------------------------------------------------------
 
@@ -522,22 +530,26 @@ CREATE TABLE `invoicing_invoice` (
   `status` varchar(20) NOT NULL,
   `created_at` datetime(6) NOT NULL,
   `drs_id` bigint NOT NULL,
-  `publisher_id` bigint NOT NULL,
+  `publisher_id` bigint DEFAULT NULL,
   `amount` decimal(12,2) NOT NULL,
   `currency` varchar(3) NOT NULL,
   `gst_amount` decimal(12,2) NOT NULL,
   `pdf` varchar(100) DEFAULT NULL,
-  `publisher_upload` varchar(100) DEFAULT NULL,
   `total_amount` decimal(12,2) NOT NULL,
-  `updated_at` datetime(6) NOT NULL
+  `updated_at` datetime(6) NOT NULL,
+  `advertiser_id` bigint DEFAULT NULL,
+  `party_type` varchar(16) NOT NULL,
+  `date` date NOT NULL,
+  `due_date` date NOT NULL,
+  `invoice_number` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `invoicing_invoice`
 --
 
-INSERT INTO `invoicing_invoice` (`id`, `status`, `created_at`, `drs_id`, `publisher_id`, `amount`, `currency`, `gst_amount`, `pdf`, `publisher_upload`, `total_amount`, `updated_at`) VALUES
-(1, 'Pending', '2025-07-27 03:22:36.616674', 1, 1, 144.00, 'INR', 25.92, '', '', 169.92, '2025-07-27 04:56:01.379856');
+INSERT INTO `invoicing_invoice` (`id`, `status`, `created_at`, `drs_id`, `publisher_id`, `amount`, `currency`, `gst_amount`, `pdf`, `total_amount`, `updated_at`, `advertiser_id`, `party_type`, `date`, `due_date`, `invoice_number`) VALUES
+(1, 'Pending', '2025-07-27 03:22:36.616674', 1, 1, 144.00, 'INR', 25.92, '', 169.92, '2025-07-28 09:31:21.639727', NULL, 'publisher', '2025-08-27', '2025-08-27', 'INV-0001');
 
 -- --------------------------------------------------------
 
@@ -569,7 +581,6 @@ CREATE TABLE `offers_offer` (
   `id` bigint NOT NULL,
   `campaign_name` varchar(255) NOT NULL,
   `geo` varchar(100) NOT NULL,
-  `category` varchar(100) NOT NULL,
   `title` varchar(255) NOT NULL,
   `description` longtext,
   `payout` decimal(10,2) DEFAULT NULL,
@@ -579,17 +590,41 @@ CREATE TABLE `offers_offer` (
   `advertiser_id` bigint NOT NULL,
   `mmp` varchar(128) DEFAULT NULL,
   `model` varchar(255) DEFAULT NULL,
-  `payable_event` varchar(255) DEFAULT NULL
+  `payable_event` varchar(255) DEFAULT NULL,
+  `kpi` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `offers_offer`
 --
 
-INSERT INTO `offers_offer` (`id`, `campaign_name`, `geo`, `category`, `title`, `description`, `payout`, `is_active`, `created_at`, `updated_at`, `advertiser_id`, `mmp`, `model`, `payable_event`) VALUES
-(1, 'Uber India', 'IN', 'Transport', 'Uber India', NULL, 2.50, 1, '2025-07-26 02:56:20.053383', '2025-07-26 02:56:20.053511', 1, 'Adjust', 'CPI', 'Install'),
-(2, 'Swiggy Food App', 'IN', 'Food', 'Swiggy Food App', NULL, 1.70, 1, '2025-07-26 02:58:26.015264', '2025-07-26 02:58:26.015309', 2, 'AppsFlyer', 'CPI', 'Install'),
-(3, 'Fashion US', 'US', 'Fashion', 'Fashion US', NULL, 3.00, 1, '2025-07-26 02:59:17.820438', '2025-07-26 02:59:17.820488', 1, 'Branch', 'Signup', 'Signup');
+INSERT INTO `offers_offer` (`id`, `campaign_name`, `geo`, `title`, `description`, `payout`, `is_active`, `created_at`, `updated_at`, `advertiser_id`, `mmp`, `model`, `payable_event`, `kpi`) VALUES
+(1, 'Uber India', 'IN', 'Uber India', NULL, 2.50, 1, '2025-07-26 02:56:20.053383', '2025-07-26 02:56:20.053511', 1, 'Adjust', 'CPI', 'Install', ''),
+(2, 'Swiggy Food App', 'IN', 'Swiggy Food App', NULL, 1.70, 1, '2025-07-26 02:58:26.015264', '2025-07-26 02:58:26.015309', 2, 'AppsFlyer', 'CPI', 'Install', ''),
+(3, 'Fashion US', 'US', 'Fashion US', NULL, 3.00, 1, '2025-07-26 02:59:17.820438', '2025-07-26 02:59:17.820488', 1, 'Branch', 'Signup', 'Signup', ''),
+(4, 'PD Tech', 'IN', 'PD Tech', NULL, 10.50, 1, '2025-08-03 17:00:21.535233', '2025-08-03 17:00:21.535308', 3, '123', 'mkdoe', '145', ''),
+(5, 'OLA', 'IN', 'OLA', NULL, 4.00, 1, '2025-09-16 11:05:50.806656', '2025-09-16 11:05:50.806711', 1, 'Branch', 'Travel', 'Dandiya', ''),
+(6, 'OLA', 'IN', 'OLA', NULL, 4.00, 1, '2025-09-21 13:05:46.391554', '2025-09-21 13:05:46.391787', 1, 'Branch', 'Travel', 'Dandiya', ''),
+(7, 'OLA', 'IN', 'OLA', NULL, 4.00, 1, '2025-09-21 13:32:00.403414', '2025-09-21 13:32:00.403475', 2, 'Branch', 'Travel', 'Dandiya', ''),
+(8, 'OLA', 'IN', 'OLA', NULL, 4.00, 1, '2025-09-21 13:32:13.824603', '2025-09-21 13:32:13.824667', 2, 'Branch', 'Travel', 'Dandiya', ''),
+(9, 'OLA', 'IN', 'OLA', NULL, 2.00, 1, '2025-09-23 06:46:55.393995', '2025-09-23 06:46:55.394040', 1, 'Rate', 'CPS', 'Shopping', 'Travel'),
+(10, 'OLA', 'IN', 'OLA', NULL, 2.00, 1, '2025-09-23 06:49:26.038351', '2025-09-23 06:49:26.038531', 1, 'Rate', 'CPS', 'Shopping', 'Travel'),
+(11, '888 Casino', 'NZ, CA', '888 Casino', NULL, 100.00, 1, '2025-09-23 07:13:02.891139', '2025-09-23 07:13:02.891189', 1, 'MMP', 'abc', 'MB_First_Deposit', 'cat'),
+(12, 'ByBit', 'Mutlitple', 'ByBit', NULL, 1200.00, 1, '2025-09-23 07:13:02.902616', '2025-09-23 07:13:02.902686', 1, 'MMP', 'bce', 'eFTD', 'cat'),
+(13, 'PlayUZU', 'USA FR DE', 'PlayUZU', NULL, 15.00, 1, '2025-09-23 07:13:02.908072', '2025-09-23 07:13:02.908152', 1, 'API', '', 'userfirsttimedeposit', ''),
+(14, 'Paybis', '', 'Paybis', NULL, 48.00, 1, '2025-09-23 07:13:02.918256', '2025-09-23 07:13:02.918464', 1, 'MMP', '', 'first transaction', ''),
+(15, 'Photoleap', 'US, UK, CA, FR, ES, IT', 'Photoleap', NULL, 15.00, 1, '2025-09-23 07:13:02.936861', '2025-09-23 07:13:02.936923', 1, '', '', 'sigma_editor_first_payment_priced', ''),
+(16, 'Videoleap', 'US, UK, CA, FR, ES, IT', 'Videoleap', NULL, 15.00, 1, '2025-09-23 07:13:02.945175', '2025-09-23 07:13:02.945223', 1, '', '', 'sigma_editor_first_payment_priced', ''),
+(17, 'Vantage', 'DE;FR;UK;IT;NL;BR;MX;TH;UY;CZ', 'Vantage', NULL, 0.00, 1, '2025-09-23 07:13:02.952837', '2025-09-23 07:13:02.952913', 1, '', '', 'P_FTD', ''),
+(18, 'Pacific Financial Derivatives', 'US', 'Pacific Financial Derivatives', NULL, 0.00, 1, '2025-09-23 07:13:02.957698', '2025-09-23 07:13:02.957772', 1, 'MMP', '', 'FTD', ''),
+(19, '888 Casino', 'NZ, CA', '888 Casino', NULL, 100.00, 1, '2025-09-23 10:15:44.462568', '2025-09-23 10:15:44.462600', 2, 'MMP', 'abc', 'MB_First_Deposit', 'cat'),
+(20, 'ByBit', 'Mutlitple', 'ByBit', NULL, 1200.00, 1, '2025-09-23 10:15:44.472588', '2025-09-23 10:15:44.472622', 2, 'MMP', 'bce', 'eFTD', 'cat'),
+(21, 'PlayUZU', 'USA FR DE', 'PlayUZU', NULL, 15.00, 1, '2025-09-23 10:15:44.476239', '2025-09-23 10:15:44.476283', 2, 'API', '', 'userfirsttimedeposit', ''),
+(22, 'Paybis', '', 'Paybis', NULL, 48.00, 1, '2025-09-23 10:15:44.479911', '2025-09-23 10:15:44.479938', 2, 'MMP', '', 'first transaction', ''),
+(23, 'Photoleap', 'US, UK, CA, FR, ES, IT', 'Photoleap', NULL, 15.00, 1, '2025-09-23 10:15:44.486113', '2025-09-23 10:15:44.486176', 2, '', '', 'sigma_editor_first_payment_priced', ''),
+(24, 'Videoleap', 'US, UK, CA, FR, ES, IT', 'Videoleap', NULL, 15.00, 1, '2025-09-23 10:15:44.490059', '2025-09-23 10:15:44.490090', 2, '', '', 'sigma_editor_first_payment_priced', ''),
+(25, 'Vantage', 'DE;FR;UK;IT;NL;BR;MX;TH;UY;CZ', 'Vantage', NULL, 0.00, 1, '2025-09-23 10:15:44.493561', '2025-09-23 10:15:44.493592', 2, '', '', 'P_FTD', ''),
+(26, 'Pacific Financial Derivatives', 'US', 'Pacific Financial Derivatives', NULL, 0.00, 1, '2025-09-23 10:15:44.497171', '2025-09-23 10:15:44.497201', 2, 'MMP', '', 'FTD', '');
 
 -- --------------------------------------------------------
 
@@ -613,7 +648,8 @@ CREATE TABLE `publishers_publisher` (
 --
 
 INSERT INTO `publishers_publisher` (`id`, `company_name`, `contact_person`, `email`, `is_active`, `name`, `teams_id`, `telegram_id`) VALUES
-(1, 'Arsad Technology', 'Arsad', 'arsad@gmail.com', 1, 'Arsad', NULL, NULL);
+(1, 'Arsad Technology', 'Arsad', 'arsad@gmail.com', 1, 'Arsad', NULL, NULL),
+(2, 'PD Tech', 'Pavan', 'pavan@thecloudtree.ai', 1, 'Pavan', '123', '1234');
 
 -- --------------------------------------------------------
 
@@ -625,7 +661,7 @@ CREATE TABLE `publishers_wishlist` (
   `id` bigint NOT NULL,
   `desired_campaign` varchar(255) NOT NULL,
   `geo` varchar(100) NOT NULL,
-  `category` varchar(100) DEFAULT NULL,
+  `kpi` varchar(100) DEFAULT NULL,
   `publisher_id` bigint NOT NULL,
   `model` varchar(255) DEFAULT NULL,
   `payable_event` varchar(255) DEFAULT NULL,
@@ -638,10 +674,15 @@ CREATE TABLE `publishers_wishlist` (
 -- Dumping data for table `publishers_wishlist`
 --
 
-INSERT INTO `publishers_wishlist` (`id`, `desired_campaign`, `geo`, `category`, `publisher_id`, `model`, `payable_event`, `payout`, `created_at`, `updated_at`) VALUES
+INSERT INTO `publishers_wishlist` (`id`, `desired_campaign`, `geo`, `kpi`, `publisher_id`, `model`, `payable_event`, `payout`, `created_at`, `updated_at`) VALUES
 (1, 'Uber India', 'IN', 'Transport', 1, 'CPI', 'Install', 1.50, '2025-07-28 08:33:50.258824', '2025-07-28 08:34:03.608019'),
 (2, 'Zara US', 'US', 'Fashion', 1, 'CPS', 'Purchase', 2.50, '2025-07-28 08:33:50.258824', '2025-07-28 08:34:03.608019'),
-(3, 'Flipkart IN', 'IN', 'Shopping', 1, 'CPS', 'Registration', 2.00, '2025-07-28 08:33:50.258824', '2025-07-28 08:34:03.608019');
+(3, 'Flipkart IN', 'IN', 'Shopping', 1, 'CPS', 'Registration', 2.00, '2025-07-28 08:33:50.258824', '2025-07-28 08:34:03.608019'),
+(4, 'Hello', 'IN', 'Private', 1, 'KJ', 'HJ', 7894.00, '2025-07-28 09:28:16.509103', '2025-07-28 09:28:16.509164'),
+(5, 'Amazon', 'IN', 'Registration', 2, 'CPS', 'Shopping', 2.00, '2025-09-16 11:20:35.630957', '2025-09-16 11:20:35.631009'),
+(6, 'Amazon', 'IN', 'Registration', 2, 'CPS', 'Shopping', 2.00, '2025-09-21 13:36:06.230556', '2025-09-21 13:36:06.230794'),
+(7, 'Amazon', 'IN', 'Travel', 1, 'CPS', 'Shopping', 2.00, '2025-09-23 07:30:03.975901', '2025-09-23 07:30:03.975973'),
+(8, 'Amazon', 'IN', 'Travel', 1, 'CPS', 'Shopping', 2.00, '2025-09-23 07:30:09.013534', '2025-09-23 07:30:09.013595');
 
 -- --------------------------------------------------------
 
@@ -669,9 +710,31 @@ CREATE TABLE `users_user` (
 --
 
 INSERT INTO `users_user` (`id`, `password`, `last_login`, `is_superuser`, `username`, `first_name`, `last_name`, `email`, `is_staff`, `is_active`, `date_joined`, `role`) VALUES
-(1, 'pbkdf2_sha256$1000000$O7FHrw82Zn4hXr2Qp9ddY5$w85tShSyKlChNGv/I7ZXaSEUStWtIJDVDmSXrTJQNiE=', '2025-07-26 02:43:15.843820', 1, 'pavan05992@gmail.com', 'Pavan', 'Dubey', 'pavan05992@gmail.com', 1, 1, '2025-07-15 13:28:46.000000', 'admin'),
-(2, 'pbkdf2_sha256$1000000$O7FHrw82Zn4hXr2Qp9ddY5$w85tShSyKlChNGv/I7ZXaSEUStWtIJDVDmSXrTJQNiE=', '2025-07-20 08:15:16.325604', 0, 'publisher@example.com', 'publisher', 'User', 'publisher@example.com', 1, 1, '2025-07-17 06:11:11.000000', 'publisher'),
-(3, 'pbkdf2_sha256$1000000$O7FHrw82Zn4hXr2Qp9ddY5$w85tShSyKlChNGv/I7ZXaSEUStWtIJDVDmSXrTJQNiE=', NULL, 0, 'arsadali636@gmail.com', 'Arsad', 'Ali', 'arsadali636@gmail.com', 1, 1, '2025-07-20 07:35:41.000000', 'admin');
+(1, 'pbkdf2_sha256$1000000$OS59iT85cgkSuKfdE3LfVc$t6T0kYW17r9waczXFMApYL/vZDT1tIDL7xg9jkcrB7E=', '2025-09-19 11:46:15.408678', 1, 'pavan05992@gmail.com', 'Pavan', 'Dubey', 'pavan05992@gmail.com', 1, 1, '2025-07-15 13:28:46.000000', 'admin'),
+(2, 'pbkdf2_sha256$1000000$omaFC0UMZBQYhOT0yBWw2z$rRACnwbVvBIRUx3WKiTJeUx2QBw4O/zKyeM+N5xvJtE=', '2025-08-21 11:06:30.961092', 0, 'publisher@example.com', 'publisher', 'User', 'publisher@example.com', 1, 1, '2025-07-17 06:11:11.000000', 'publisher'),
+(3, '', NULL, 0, 'arsadali636@gmail.com', 'Arsad', 'Ali', 'arsadali636@gmail.com', 1, 1, '2025-07-20 07:35:41.000000', 'admin'),
+(11, 'pbkdf2_sha256$1000000$4epG6jekAQJ30zCkEWF4wt$VaEl+EgnX/ylNs1BicmogQd72iPfzYrJlcKcjssYwiw=', NULL, 0, 'sdmnl@example.com', 'Shubham', '', 'shubham@gmail.com', 1, 1, '2025-09-12 09:49:40.161482', 'publisher');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users_user_advertisers`
+--
+
+CREATE TABLE `users_user_advertisers` (
+  `id` bigint NOT NULL,
+  `user_id` bigint NOT NULL,
+  `advertiser_id` bigint NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `users_user_advertisers`
+--
+
+INSERT INTO `users_user_advertisers` (`id`, `user_id`, `advertiser_id`) VALUES
+(1, 1, 1),
+(4, 2, 1),
+(5, 3, 1);
 
 -- --------------------------------------------------------
 
@@ -692,7 +755,29 @@ CREATE TABLE `users_user_groups` (
 INSERT INTO `users_user_groups` (`id`, `user_id`, `group_id`) VALUES
 (1, 1, 1),
 (2, 2, 2),
-(3, 3, 1);
+(3, 3, 1),
+(11, 11, 2);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users_user_publishers`
+--
+
+CREATE TABLE `users_user_publishers` (
+  `id` bigint NOT NULL,
+  `user_id` bigint NOT NULL,
+  `publisher_id` bigint NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `users_user_publishers`
+--
+
+INSERT INTO `users_user_publishers` (`id`, `user_id`, `publisher_id`) VALUES
+(1, 1, 1),
+(3, 2, 1),
+(4, 3, 1);
 
 -- --------------------------------------------------------
 
@@ -886,6 +971,7 @@ ALTER TABLE `invoicing_currencyrate`
 ALTER TABLE `invoicing_invoice`
   ADD PRIMARY KEY (`id`),
   ADD KEY `invoicing_invoice_drs_id_36ca7614_fk_drs_dailyrevenuesheet_id` (`drs_id`),
+  ADD KEY `invoicing_invoice_advertiser_id_26e378b5_fk_advertise` (`advertiser_id`),
   ADD KEY `invoicing_invoice_publisher_id_141079a0_fk_publisher` (`publisher_id`);
 
 --
@@ -924,12 +1010,28 @@ ALTER TABLE `users_user`
   ADD UNIQUE KEY `username` (`username`);
 
 --
+-- Indexes for table `users_user_advertisers`
+--
+ALTER TABLE `users_user_advertisers`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `users_user_advertisers_user_id_advertiser_id_2b70fe9a_uniq` (`user_id`,`advertiser_id`),
+  ADD KEY `users_user_advertise_advertiser_id_d7c79102_fk_advertise` (`advertiser_id`);
+
+--
 -- Indexes for table `users_user_groups`
 --
 ALTER TABLE `users_user_groups`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `users_user_groups_user_id_group_id_b88eab82_uniq` (`user_id`,`group_id`),
   ADD KEY `users_user_groups_group_id_9afc8d0e_fk_auth_group_id` (`group_id`);
+
+--
+-- Indexes for table `users_user_publishers`
+--
+ALTER TABLE `users_user_publishers`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `users_user_publishers_user_id_publisher_id_c0a6e03d_uniq` (`user_id`,`publisher_id`),
+  ADD KEY `users_user_publisher_publisher_id_67205319_fk_publisher` (`publisher_id`);
 
 --
 -- Indexes for table `users_user_user_permissions`
@@ -955,13 +1057,13 @@ ALTER TABLE `validation_validation`
 -- AUTO_INCREMENT for table `advertisers_advertiser`
 --
 ALTER TABLE `advertisers_advertiser`
-  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `auth_group`
 --
 ALTER TABLE `auth_group`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `auth_group_permissions`
@@ -997,7 +1099,7 @@ ALTER TABLE `django_content_type`
 -- AUTO_INCREMENT for table `django_migrations`
 --
 ALTER TABLE `django_migrations`
-  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
 
 --
 -- AUTO_INCREMENT for table `drs_dailyrevenuesheet`
@@ -1027,31 +1129,43 @@ ALTER TABLE `offers_matchhistory`
 -- AUTO_INCREMENT for table `offers_offer`
 --
 ALTER TABLE `offers_offer`
-  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `publishers_publisher`
 --
 ALTER TABLE `publishers_publisher`
-  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `publishers_wishlist`
 --
 ALTER TABLE `publishers_wishlist`
-  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `users_user`
 --
 ALTER TABLE `users_user`
-  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+
+--
+-- AUTO_INCREMENT for table `users_user_advertisers`
+--
+ALTER TABLE `users_user_advertisers`
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `users_user_groups`
 --
 ALTER TABLE `users_user_groups`
-  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+
+--
+-- AUTO_INCREMENT for table `users_user_publishers`
+--
+ALTER TABLE `users_user_publishers`
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `users_user_user_permissions`
@@ -1100,6 +1214,7 @@ ALTER TABLE `drs_dailyrevenuesheet`
 -- Constraints for table `invoicing_invoice`
 --
 ALTER TABLE `invoicing_invoice`
+  ADD CONSTRAINT `invoicing_invoice_advertiser_id_26e378b5_fk_advertise` FOREIGN KEY (`advertiser_id`) REFERENCES `advertisers_advertiser` (`id`),
   ADD CONSTRAINT `invoicing_invoice_drs_id_36ca7614_fk_drs_dailyrevenuesheet_id` FOREIGN KEY (`drs_id`) REFERENCES `drs_dailyrevenuesheet` (`id`),
   ADD CONSTRAINT `invoicing_invoice_publisher_id_141079a0_fk_publisher` FOREIGN KEY (`publisher_id`) REFERENCES `publishers_publisher` (`id`);
 
@@ -1123,11 +1238,25 @@ ALTER TABLE `publishers_wishlist`
   ADD CONSTRAINT `publishers_wishlist_publisher_id_0fa8050e_fk_publisher` FOREIGN KEY (`publisher_id`) REFERENCES `publishers_publisher` (`id`);
 
 --
+-- Constraints for table `users_user_advertisers`
+--
+ALTER TABLE `users_user_advertisers`
+  ADD CONSTRAINT `users_user_advertise_advertiser_id_d7c79102_fk_advertise` FOREIGN KEY (`advertiser_id`) REFERENCES `advertisers_advertiser` (`id`),
+  ADD CONSTRAINT `users_user_advertisers_user_id_6f89ccad_fk_users_user_id` FOREIGN KEY (`user_id`) REFERENCES `users_user` (`id`);
+
+--
 -- Constraints for table `users_user_groups`
 --
 ALTER TABLE `users_user_groups`
   ADD CONSTRAINT `users_user_groups_group_id_9afc8d0e_fk_auth_group_id` FOREIGN KEY (`group_id`) REFERENCES `auth_group` (`id`),
   ADD CONSTRAINT `users_user_groups_user_id_5f6f5a90_fk_users_user_id` FOREIGN KEY (`user_id`) REFERENCES `users_user` (`id`);
+
+--
+-- Constraints for table `users_user_publishers`
+--
+ALTER TABLE `users_user_publishers`
+  ADD CONSTRAINT `users_user_publisher_publisher_id_67205319_fk_publisher` FOREIGN KEY (`publisher_id`) REFERENCES `publishers_publisher` (`id`),
+  ADD CONSTRAINT `users_user_publishers_user_id_6bf924e9_fk_users_user_id` FOREIGN KEY (`user_id`) REFERENCES `users_user` (`id`);
 
 --
 -- Constraints for table `users_user_user_permissions`

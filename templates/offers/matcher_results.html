@@ -204,13 +204,13 @@
           <th>Publisher</th>
           <th>Wishlist Campaign</th>
           <th>Geo</th>
-          <th>Category</th>
+          <th>KPI</th>
           <th>Wishlist Payout</th>
           <th>Wishlist Model</th>
           <th>Matched Offer</th>
           <th>Advertiser</th>
           <th>Offer Geo</th>
-          <th>Offer Category</th>
+          <th>Offer KPI</th>
           <th>Offer Payout</th>
           <th>Offer Model</th>
         </tr>
@@ -221,13 +221,13 @@
           <td>{{ match.wishlist.publisher.company_name }}</td>
           <td>{{ match.wishlist.desired_campaign }}</td>
           <td>{{ match.wishlist.geo }}</td>
-          <td>{{ match.wishlist.category }}</td>
+          <td>{{ match.wishlist.kpi }}</td>
           <td>{{ match.wishlist.payout|default:"-" }}</td>
           <td>{{ match.wishlist.model|default:"-" }}</td>
           <td class="fw-semibold text-primary">{{ match.offer.campaign_name }}</td>
           <td>{{ match.offer.advertiser.company_name }}</td>
           <td>{{ match.offer.geo }}</td>
-          <td>{{ match.offer.category }}</td>
+          <td>{{ match.offer.kpi }}</td>
           <td>{{ match.offer.payout|default:"-" }}</td>
           <td>{{ match.offer.model|default:"-" }}</td>
         </tr>
@@ -258,18 +258,18 @@
             <option value="" disabled selected>Select match type</option>
             <option value="exact">Exact Match</option>
             <option value="geo">Geo Match</option>
-            <option value="category">Category Match</option>
+            <option value="kpi">KPI Match</option>
           </select>
         </div>
 
         <div class="mb-3">
           <label for="offer_name" class="form-label">Offer Name</label>
-          <input type="text" class="form-control" id="offer_name" name="offer_name" placeholder="Enter offer name" required>
+          <input type="text" class="form-control" id="offer_name" name="offer_name" placeholder="Enter offer name">
         </div>
 
         <div class="mb-3">
           <label for="geo" class="form-label">Geo</label>
-          <input type="text" class="form-control" id="geo" name="geo" placeholder="Enter geo (e.g. IN,US,UK)" required>
+          <input type="text" class="form-control" id="geo" name="geo" placeholder="Enter geo (e.g. IN,US,UK)">
         </div>
       </div>
       <div class="modal-footer">
@@ -280,33 +280,40 @@
   </div>
 </div>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   const form = document.getElementById('manualMatcherForm');
+  const offerName = form.offer_name;
+  const geo = form.geo;
 
-  form.addEventListener('submit', function(e) {
+  function validateAtLeastOne() {
+    const emptyBoth = !offerName.value.trim() && !geo.value.trim();
+    const msg = 'Enter Offer Name or Geo (at least one).';
+    // Set custom validity when both are empty; clear otherwise
+    offerName.setCustomValidity(emptyBoth ? msg : '');
+    geo.setCustomValidity(emptyBoth ? msg : '');
+  }
+
+  // Validate live as user types
+  offerName.addEventListener('input', validateAtLeastOne);
+  geo.addEventListener('input', validateAtLeastOne);
+
+  // Initial state
+  validateAtLeastOne();
+
+  form.addEventListener('submit', function (e) {
     e.preventDefault();
-
-    const matchType = form.match_type.value;
-    const offerName = form.offer_name.value.trim();
-    const geo = form.geo.value.trim();
-
-    if (!matchType || !offerName || !geo) {
-      alert('Please fill in all required fields');
-      return;
+    validateAtLeastOne();
+    if (!form.reportValidity()) {
+      return; // Browser shows the message and blocks submit
     }
-
     const params = new URLSearchParams({
-      match_type: matchType,
-      offer_name: offerName,
-      geo: geo,
+      match_type: form.match_type.value,
+      offer_name: offerName.value.trim(),
+      geo: geo.value.trim(),
     }).toString();
-
-    // Hide the modal (requires Bootstrap 5 JS)
     const modalEl = document.getElementById('manualMatcherModal');
     const bootstrapModal = bootstrap.Modal.getInstance(modalEl);
     bootstrapModal.hide();
-
-    // Redirect to your matcher results page (update URL name as needed)
     window.location.href = "{% url 'offers:matcher_results' %}?" + params;
   });
 });

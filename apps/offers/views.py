@@ -51,99 +51,120 @@ class OffersMatcherResultsView(TemplateView):
         from apps.offers.models import Offer, MatchHistory
         from apps.publishers.models import Wishlist
 
-        # Fetch query params for manual matcher
-        match_type = request.GET.get('match_type')
-        offer_name = request.GET.get('offer_name', '').strip().lower()
-        geo = request.GET.get('geo', '').strip().lower()
+        match_type = (request.GET.get('match_type') or '').strip().lower()
+        offer_name_q = (request.GET.get('offer_name') or '').strip()
+        geo_q = (request.GET.get('geo') or '').strip()
 
-        matches = []
-        suggestions = []
-        # Date filter params for match history
+        # Normalized helpers
+        def norm(s: str) -> str:
+            return (s or '').strip().casefold()
+
+        def norm_geo(s: str) -> str:
+            # For country codes, uppercase is common; casefold also fine. Use upper for readability.
+            return (s or '').strip().upper()
+
+        offer_name_norm = norm(offer_name_q)
+        geo_norm = norm_geo(geo_q)
+
+        matches, suggestions = [], []
         start_date_str = request.GET.get('start_date', '')
         end_date_str = request.GET.get('end_date', '')
 
-        if match_type and offer_name and geo:
-            # Manual matcher logic
+        # Decide if we have enough input to run manual matcher
+        run_manual = False
+        if match_type == 'exact':
+            # Expect both name and geo
+            run_manual = bool(offer_name_norm and geo_norm)
+        elif match_type == 'geo':
+            # Allow geo-only OR both
+            run_manual = bool(geo_norm)
+        elif match_type == 'category':
+            # Category uses DB fields, no need for offer_name/geo
+            run_manual = True
+
+        if match_type and run_manual:
             offers = Offer.objects.filter(is_active=True)
             wishlists = Wishlist.objects.all()
 
-            for wishlist in wishlists:
-                for offer in offers:
-                    cmp_offer_name = (offer.campaign_name or '').strip().lower()
-                    cmp_wishlist_campaign = (wishlist.desired_campaign or '').strip().lower()
-                    cmp_offer_geo = (offer.geo or '').strip().lower()
-                    cmp_wishlist_geo = (wishlist.geo or '').strip().lower()
-                    cmp_offer_category = (offer.category or '').strip().lower()
-                    cmp_wishlist_category = (wishlist.category or '').strip().lower()
+            # Helper to normalize stored values
+            def offer_geo_set(offer) -> set:
+                # Support "IN,US, UK" -> {"IN","US","UK"}
+                raw = getattr(offer, 'geo', '') or ''
+                parts = [p.strip().upper() for p in raw.split(',') if p.strip()]
+                return set(parts) if parts else set()
+
+            def wl_geo_set(wl) -> set:
+                raw = getattr(wl, 'geo', '') or ''
+                parts = [p.strip().upper() for p in raw.split(',') if p.strip()]
+                return set(parts) if parts else set()
+
+            for wl in wishlists:
+                cmp_wl_name = norm(getattr(wl, 'desired_campaign', ''))
+                cmp_wl_geo_set = wl_geo_set(wl)
+                cmp_wl_cat = norm(getattr(wl, 'category', ''))
+
+                for off in offers:
+                    cmp_off_name = norm(getattr(off, 'campaign_name', ''))
+                    cmp_off_geo_set = offer_geo_set(off)
+                    cmp_off_cat = norm(getattr(off, 'category', ''))
 
                     if match_type == 'exact':
-                        if (
-                            cmp_offer_name == offer_name and
-                            cmp_offer_geo == geo and
-                            cmp_offer_category == cmp_wishlist_category and
-                            cmp_wishlist_campaign == cmp_offer_name
-                        ):
-                            matches.append({'wishlist': wishlist, 'offer': offer})
+                        # exact: name and single-geo exact match, plus wishlist name equals offer name and category equal
+                        ok = (
+                            cmp_off_name == offer_name_norm and
+                            (geo_norm in cmp_off_geo_set) and
+                            (geo_norm in cmp_wl_geo_set) and
+                            cmp_off_cat == cmp_wl_cat and
+                            cmp_wl_name == cmp_off_name
+                        )
+                        if ok:
+                            matches.append({'wishlist': wl, 'offer': off})
 
                     elif match_type == 'geo':
-                        if cmp_offer_geo == geo and cmp_wishlist_geo == geo:
-                            matches.append({'wishlist': wishlist, 'offer': offer})
+                        # geo: match if selected GEO is present in BOTH offer and wishlist
+                        if geo_norm and (geo_norm in cmp_off_geo_set) and (geo_norm in cmp_wl_geo_set):
+                            matches.append({'wishlist': wl, 'offer': off})
 
                     elif match_type == 'category':
-                        if cmp_offer_category == cmp_wishlist_category:
-                            matches.append({'wishlist': wishlist, 'offer': offer})
+                        if cmp_off_cat == cmp_wl_cat:
+                            matches.append({'wishlist': wl, 'offer': off})
 
-            # Suggestions and match history left empty or you may decide to populate differently
             suggestions = []
             match_history = []
-
         else:
-            # Existing normal functionality (strict matches + suggestions + match history)
-
-            # Strict matches (exact)
+            # Existing normal flow unchanged...
             offers = Offer.objects.filter(is_active=True)
             wishlists = Wishlist.objects.all()
-
-            for wishlist in wishlists:
-                for offer in offers:
+            for wl in wishlists:
+                for off in offers:
                     if (
-                        offer.campaign_name.strip().lower() == wishlist.desired_campaign.strip().lower() and
-                        offer.geo.strip().lower() == wishlist.geo.strip().lower() and
-                        offer.category.strip().lower() == (wishlist.category or '').strip().lower()
+                        (off.campaign_name or '').strip().casefold() == (wl.desired_campaign or '').strip().casefold() and
+                        (off.geo or '').strip().casefold() == (wl.geo or '').strip().casefold() and
+                        (off.category or '').strip().casefold() == ((wl.category or '')).strip().casefold()
                     ):
-                        matches.append({'wishlist': wishlist, 'offer': offer})
-                        # Save match history if not saved
-                        MatchHistory.objects.get_or_create(offer=offer, wishlist=wishlist)
-                    # Suggestions based on geo or category similarity
+                        matches.append({'wishlist': wl, 'offer': off})
+                        MatchHistory.objects.get_or_create(offer=off, wishlist=wl)
                     elif (
-                        offer.geo.strip().lower() == wishlist.geo.strip().lower() or
-                        offer.category.strip().lower() == (wishlist.category or '').strip().lower()
+                        (off.geo or '').strip().casefold() == (wl.geo or '').strip().casefold() or
+                        (off.category or '').strip().casefold() == ((wl.category or '')).strip().casefold()
                     ):
-                        suggestions.append({'wishlist': wishlist, 'offer': offer})
+                        suggestions.append({'wishlist': wl, 'offer': off})
 
-            # Remove duplicates from suggestions
             matched_pairs = {(m['wishlist'].id, m['offer'].id) for m in matches}
-            suggestions = [
-                s for s in suggestions
-                if (s['wishlist'].id, s['offer'].id) not in matched_pairs
-            ]
+            suggestions = [s for s in suggestions if (s['wishlist'].id, s['offer'].id) not in matched_pairs]
 
             match_history_qs = MatchHistory.objects.select_related('offer', 'wishlist').order_by('-matched_at')
-
-            # Apply date filtering
+            from django.utils.dateparse import parse_date
             if start_date_str:
-                start_date = parse_date(start_date_str)
-                if start_date:
-                    match_history_qs = match_history_qs.filter(matched_at__date__gte=start_date)
+                sd = parse_date(start_date_str)
+                if sd:
+                    match_history_qs = match_history_qs.filter(matched_at__date__gte=sd)
             if end_date_str:
-                end_date = parse_date(end_date_str)
-                if end_date:
-                    match_history_qs = match_history_qs.filter(matched_at__date__lte=end_date)
-
-            # Limit to 100
+                ed = parse_date(end_date_str)
+                if ed:
+                    match_history_qs = match_history_qs.filter(matched_at__date__lte=ed)
             match_history = match_history_qs[:100]
 
-        # Export CSV for matches if requested
         if request.GET.get('export') == '1':
             return self.write_matches_csv(matches)
 
@@ -154,11 +175,11 @@ class OffersMatcherResultsView(TemplateView):
             start_date=start_date_str,
             end_date=end_date_str,
             match_type=match_type,
-            offer_name=offer_name,
-            geo=geo,
+            offer_name=offer_name_q,
+            geo=geo_q,
         )
         return self.render_to_response(context)
-    
+
 class OffersMatcherView(TemplateView):
     def write_match_history_csv(self, match_history_qs):
         response = HttpResponse(content_type='text/csv')

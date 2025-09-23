@@ -3,32 +3,62 @@
     <thead>
       <tr>
         <th>ID</th>
-        <th class="no-wrap">Campaign Name</th>
-        <th>Geo</th>
-        <th>MMP</th>
-        <th>Payout</th>
-        <th>Model</th>
-        <th>Category</th>
-        <th>Created At</th>
-        <th>Updated At</th>
+        <th class="no-wrap">Campaign</th>
+        <th class="no-wrap">Geo</th>
+        <th class="no-wrap">KPI</th>
+        <th class="no-wrap">MMP</th>
+        <th class="no-wrap">Payout</th>
+        <th class="no-wrap">Payable Event</th>
+        <th class="no-wrap">Model</th>
       </tr>
     </thead>
     <tbody>
       {% for offer in offers %}
         <tr>
           <td>{{ offer.id }}</td>
-          <td>{{ offer.campaign_name }}</td>
-          <td>{{ offer.geo }}</td>
-          <td>{{ offer.mmp }}</td>
-          <td>{{ offer.payout }}</td>
-          <td>{{ offer.model }}</td>
-          <td>{{ offer.category }}</td>
-          <td>{{ offer.created_at|date:"Y-m-d H:i:s" }}</td>
-          <td>{{ offer.updated_at|date:"Y-m-d H:i:s" }}</td>
+          <td class="no-wrap">{{ offer.campaign_name }}</td>
+          <td class="no-wrap">{{ offer.geo }}</td>
+          <td class="no-wrap">{{ offer.kpi }}</td>
+          <td class="no-wrap">{{ offer.mmp }}</td>
+          <td class="no-wrap">{{ offer.payout }}</td>
+          <td class="no-wrap">{{ offer.payable_event }}</td>
+          <td class="no-wrap">{{ offer.model }}</td>
         </tr>
       {% endfor %}
     </tbody>
   </table>
+
+  <!-- Pagination controls -->
+  {% if page_obj.paginator.num_pages > 1 %}
+  <nav class="d-flex justify-content-between align-items-center px-3 py-2 border-top">
+    {% if page_obj.has_previous %}
+      <button class="btn btn-sm btn-outline-primary offer-page-btn" 
+              data-page="{{ page_obj.previous_page_number }}">
+        ‹ Previous
+      </button>
+    {% else %}
+      <button class="btn btn-sm btn-outline-secondary" disabled>
+        ‹ Previous
+      </button>
+    {% endif %}
+    
+    <span class="small text-muted">
+      Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+      ({{ page_obj.paginator.count }} total offers)
+    </span>
+    
+    {% if page_obj.has_next %}
+      <button class="btn btn-sm btn-outline-primary offer-page-btn" 
+              data-page="{{ page_obj.next_page_number }}">
+        Next ›
+      </button>
+    {% else %}
+      <button class="btn btn-sm btn-outline-secondary" disabled>
+        Next ›
+      </button>
+    {% endif %}
+  </nav>
+  {% endif %}
 {% else %}
   <div class="text-center text-muted py-4">No offers for this advertiser.</div>
 {% endif %}

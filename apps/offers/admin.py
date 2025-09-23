@@ -4,11 +4,11 @@ from .models import Offer, MatchHistory
 @admin.register(Offer)
 class OfferAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'advertiser', 'campaign_name', 'geo', 'category', 'mmp', 'payout',
+        'id', 'advertiser', 'campaign_name', 'geo', 'kpi', 'mmp', 'payout',
         'payable_event', 'model', 'title', 'is_active', 'created_at'
     )
-    list_filter = ('advertiser', 'geo', 'category', 'is_active',)
-    search_fields = ('campaign_name', 'title', 'category')
+    list_filter = ('advertiser', 'geo', 'kpi', 'is_active',)
+    search_fields = ('campaign_name', 'title', 'kpi')
 
 @admin.register(MatchHistory)
 class MatchHistoryAdmin(admin.ModelAdmin):

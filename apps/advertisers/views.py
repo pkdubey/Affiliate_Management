@@ -20,11 +20,17 @@ logger = logging.getLogger(__name__)
 
 def advertiser_offers_ajax(request, advertiser_id):
     try:
+        search_q = request.GET.get('search', '').strip()
         offers_qs = Offer.objects.filter(advertiser_id=advertiser_id).order_by('-id')
+
+        if search_q:
+            offers_qs = offers_qs.filter(
+                campaign_name__icontains=search_q
+            )
+
         page_str = request.GET.get('page', '1')
         paginator = Paginator(offers_qs, 10)
         
-        # Validate and convert page number
         try:
             page = int(page_str)
             if page < 1:
@@ -36,18 +42,16 @@ def advertiser_offers_ajax(request, advertiser_id):
         
         try:
             offers = paginator.page(page)
-        except PageNotAnInteger:
+        except (PageNotAnInteger, EmptyPage):
             offers = paginator.page(1)
-        except EmptyPage:
-            offers = paginator.page(paginator.num_pages if paginator.num_pages > 0 else 1)
         
         html = render_to_string('advertisers/offer_list_fragment.html', {
             'offers': offers,
             'page_obj': offers,
             'paginator': paginator
         })
-        
         return JsonResponse({'html': html})
+    
     except Exception as e:
         return JsonResponse({'html': f'<div style="color:red">Django error: {str(e)}</div>'}, status=500)
 
@@ -74,7 +78,7 @@ class AdvertiserUpdateView(UpdateView):
 class AdvertiserDeleteView(DeleteView):
     model = Advertiser
     template_name = 'advertisers/advertiser_confirm_delete.html'
-    success_url = reverse_lazy('advertisers:list')
+    success_url = reverse_lazy('advertisers:advertiser_list')
 
 class AdvertiserDetailView(DetailView):
     model = Advertiser

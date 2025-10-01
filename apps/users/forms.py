@@ -61,12 +61,11 @@ class UserForm(forms.ModelForm):
 
     class Meta:
         model = User
-        # groups handled manually, so omit
         fields = [
             "full_name",
             "username",
             "email",
-            "password",     # password now comes before role
+            "password",
             "publishers",
             "advertisers",
         ]
@@ -80,16 +79,29 @@ class UserForm(forms.ModelForm):
                 f"{self.instance.first_name} {self.instance.last_name}".strip()
             )
 
-        # explicit field order for rendering
         self.order_fields([
             "full_name",
             "username",
             "email",
-            "password",     # password first
-            "groups",       # then role
+            "password",
+            "groups",
             "publishers",
             "advertisers",
         ])
+
+    def clean_email(self):
+        """Ensure email is unique across all users."""
+        email = self.cleaned_data.get("email")
+        qs = User.objects.filter(email=email)
+
+        # exclude current user when editing
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
+            raise forms.ValidationError("This email address is already in use. Please choose another.")
+
+        return email
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -106,15 +118,14 @@ class UserForm(forms.ModelForm):
             uname = slugify(self.cleaned_data["email"].split("@")[0])
         user.username = uname
 
-        # optional password hashing
+        # password hashing
         pwd = self.cleaned_data.get("password")
         if pwd:
             user.set_password(pwd)
 
-        # defaults for brand-new users
-        if not user.pk:
+        if not user.pk:  # new user defaults
             user.is_active = True
-            user.is_staff  = True   # staff by default
+            user.is_staff  = True
 
         if commit:
             user.save()
@@ -123,7 +134,6 @@ class UserForm(forms.ModelForm):
             group = self.cleaned_data["groups"]
             user.groups.set([group] if group else [])
 
-            # remaining M2M fields
             self.save_m2m()
 
         return user

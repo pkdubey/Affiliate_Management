@@ -71,9 +71,9 @@ def publisher_wishlist_ajax(request, publisher_id):
         # Get wishlist queryset with ordering
         wishlist_qs = Wishlist.objects.filter(publisher_id=publisher_id).order_by('-id')
         
-        # Pagination - 10 items per page
+        # Pagination - 5 items per page
         page_str = request.GET.get('page', '1')
-        paginator = Paginator(wishlist_qs, 5)  # 10 wishlist items per page
+        paginator = Paginator(wishlist_qs, 5)
         
         # Validate and convert page number
         try:
@@ -134,7 +134,6 @@ class PublisherDetailView(DetailView):
     model = Publisher
     template_name = 'publishers/publisher_detail.html'
     context_object_name = 'publisher'
-from django.views.generic import TemplateView
 
 class PublisherWishlistUploadView(TemplateView):
     template_name = 'publishers/wishlist_upload.html'
@@ -188,9 +187,6 @@ class PublisherWishlistUploadView(TemplateView):
                     desired_campaign=(request.POST.get('desired_campaign') or '').strip()[:255],
                     geo=(request.POST.get('geo') or '').strip()[:100],
                     payout=safe_decimal_from_post(request.POST.get('payout')),
-                    payable_event=(request.POST.get('payable_event') or '').strip()[:100],
-                    model=(request.POST.get('model') or '').strip()[:100],
-                    kpi=(request.POST.get('kpi') or '').strip()[:100],
                 )
             
             messages.success(request, "Wishlist offer added successfully.")
@@ -297,18 +293,19 @@ class PublisherWishlistUploadView(TemplateView):
                     # Get required field
                     desired_campaign = get_field_value(row, 'Desired Campaign')
                     if not desired_campaign:
+                        # Try alternative column names
+                        desired_campaign = get_field_value(row, 'Offer Name') or get_field_value(row, 'Campaign')
+                    
+                    if not desired_campaign:
                         logger.warning(f"CSV row {row_number}: No desired campaign, skipping")
                         continue
                     
-                    # Create wishlist entry object
+                    # Create wishlist entry object with only the fields that exist in the model
                     wishlist_entry = Wishlist(
                         publisher=publisher,
                         desired_campaign=safe_string(desired_campaign, 255),
                         geo=safe_string(get_field_value(row, 'Geo'), 100),
-                        payout=safe_decimal(get_field_value(row, 'Payout')),
-                        payable_event=safe_string(get_field_value(row, 'Payable Event'), 100),
-                        model=safe_string(get_field_value(row, 'Model'), 100),
-                        kpi=safe_string(get_field_value(row, 'KPI'), 100)
+                        payout=safe_decimal(get_field_value(row, 'Payout'))
                     )
                     
                     wishlist_entries.append(wishlist_entry)
@@ -331,7 +328,7 @@ class PublisherWishlistUploadView(TemplateView):
                             created_count += len(batch)
                             logger.info(f"Created batch {i//batch_size + 1}: {len(batch)} wishlist entries")
                     
-                    success_message = f"Successfully uploaded {created_count} wishlist entries from CSV for {publisher.name}."
+                    success_message = f"Successfully uploaded {created_count} wishlist entries from CSV for {publisher.company_name}."
                     if error_count > 0:
                         success_message += f" {error_count} rows had errors and were skipped."
                     messages.success(request, success_message)
@@ -400,15 +397,18 @@ class PublisherWishlistUploadView(TemplateView):
                         return i
                 return -1
             
-            # Map column indices
+            # Map column indices - only for fields that exist in the model
             column_mapping = {
                 'campaign': find_column_index(headers, 'Desired Campaign'),
                 'geo': find_column_index(headers, 'Geo'),
-                'kpi': find_column_index(headers, 'KPI'),
                 'payout': find_column_index(headers, 'Payout'),
-                'event': find_column_index(headers, 'Payable Event'),
-                'model': find_column_index(headers, 'Model'),
             }
+            
+            # Try alternative column names if not found
+            if column_mapping['campaign'] == -1:
+                column_mapping['campaign'] = find_column_index(headers, 'Offer Name')
+            if column_mapping['campaign'] == -1:
+                column_mapping['campaign'] = find_column_index(headers, 'Campaign')
             
             logger.info(f"XLSX column mapping: {column_mapping}")
             
@@ -458,15 +458,12 @@ class PublisherWishlistUploadView(TemplateView):
                         logger.warning(f"XLSX row {row_number}: No desired campaign, skipping")
                         continue
                     
-                    # Create wishlist entry
+                    # Create wishlist entry with only model fields
                     wishlist_entry = Wishlist(
                         publisher=publisher,
                         desired_campaign=desired_campaign,
                         geo=get_cell_value(row, column_mapping['geo'], 100),
-                        payout=safe_decimal(get_cell_value(row, column_mapping['payout'])),
-                        payable_event=get_cell_value(row, column_mapping['event'], 100),
-                        model=get_cell_value(row, column_mapping['model'], 100),
-                        kpi=get_cell_value(row, column_mapping['kpi'], 100)
+                        payout=safe_decimal(get_cell_value(row, column_mapping['payout']))
                     )
                     
                     wishlist_entries.append(wishlist_entry)
@@ -489,7 +486,7 @@ class PublisherWishlistUploadView(TemplateView):
                             created_count += len(batch)
                             logger.info(f"Created batch {i//batch_size + 1}: {len(batch)} wishlist entries")
                     
-                    success_message = f"Successfully uploaded {created_count} wishlist entries from XLSX for {publisher.name}."
+                    success_message = f"Successfully uploaded {created_count} wishlist entries from XLSX for {publisher.company_name}."
                     if error_count > 0:
                         success_message += f" {error_count} rows had errors and were skipped."
                     messages.success(request, success_message)

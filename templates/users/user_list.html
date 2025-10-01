@@ -2,6 +2,9 @@
 {% load user_roles %} 
 {% block content %}
 <style>
+.hidden-field {
+    display: none !important;
+}
 .userlist-glass-card {
   border-radius: 1.25rem;
   background: rgba(255,255,255,0.38);
@@ -16,7 +19,7 @@
   from { opacity:0; transform:translateY(42px);}
   to { opacity:1; transform:translateY(0);}
 }
-/* Title row improvements */
+
 .userlist-title-row {
   gap: 1em;
   flex-wrap: wrap;
@@ -24,9 +27,9 @@
 }
 .userlist-title {
   display: flex;
-  align-items: center;      /* <-- Center icon and text */
+  align-items: center;
   gap: 0.7em;
-  font-size: 2.05rem;       /* <-- Bigger than before */
+  font-size: 2.05rem;
   color: #1963b3;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -34,7 +37,7 @@
 }
 .userlist-title .bi {
   font-size: 2.2rem;
-  margin-bottom: 0;         /* <-- Remove mb-0 class, not needed */
+  margin-bottom: 0;
   color: #1dbfae;
   filter: drop-shadow(0 3px 8px #1dbfae33);
   animation: pop-in 1s cubic-bezier(.31,1.42,.44,1.1);
@@ -62,7 +65,39 @@
   color: #fff;
   box-shadow: 0 4px 22px #1963b331;
 }
-/* Responsive */
+
+/* Error Styling - RED COLOR */
+.form-error {
+  color: #dc3545 !important;
+  font-size: 0.875em;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.field-error input,
+.field-error select {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.alert-success {
+  background-color: #d1edff;
+  border-color: #bee5eb;
+  color: #0c5460;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
 @media (max-width: 440px) {
   .userlist-title-row {
     flex-direction: column;
@@ -74,6 +109,7 @@
     margin-top: .65em;
   }
 }
+
 .userlist-table th {
   background: linear-gradient(90deg,#1dbfae22 30%, #1963b312 100%);
   color: #154360;
@@ -118,8 +154,6 @@
 ::-webkit-scrollbar-thumb { background: #1dbfae22; border-radius:8px;}
 ::-webkit-scrollbar { width:9px; background: #f6ffff;}
 
-.userlist-table tbody tr { animation: fadeUserRow 0.77s both; }
-
 .userlist-table tbody tr:nth-child(1)  { animation-delay: 0.06s; }
 .userlist-table tbody tr:nth-child(2)  { animation-delay: 0.12s; }
 .userlist-table tbody tr:nth-child(3)  { animation-delay: 0.18s; }
@@ -134,13 +168,10 @@
 
 <div class="container mt-4">
   <div class="userlist-glass-card">
-
     <div class="d-flex justify-content-between align-items-center userlist-title-row">
       <span class="userlist-title">
         <i class="bi bi-people"></i> Manage Users
       </span>
-
-      {# modal trigger — button, not link #}
       <button type="button"
               class="btn add-user-btn"
               data-bs-toggle="modal"
@@ -148,6 +179,7 @@
         <i class="bi bi-person-plus me-1"></i> Add User
       </button>
     </div>
+    
     <div class="table-responsive">
       <table class="table userlist-table align-middle">
         <thead>
@@ -155,7 +187,7 @@
             <th>Name</th>            
             <th>Role</th>
             <th>Assigned</th>
-			<th>Active</th>
+            <th>Active</th>
             <th>Staff</th>
             <th style="text-align:center;">Actions</th>
           </tr>
@@ -164,14 +196,14 @@
           {% for user in users %}
           <tr>
             <td>
-			  <span class="fw-bold" style="color:#1963b3;">
-				{{ user.first_name }} {{ user.last_name }}
-			  </span>
-			  {% if user == request.user %}
-				<span class="badge bg-info ms-1">You</span>
-			  {% endif %}
-			  <div class="text-muted small">{{ user.email }}</div>
-			</td>            
+              <span class="fw-bold" style="color:#1963b3;">
+                {{ user.first_name }} {{ user.last_name }}
+              </span>
+              {% if user == request.user %}
+                <span class="badge bg-info ms-1">You</span>
+              {% endif %}
+              <div class="text-muted small">{{ user.email }}</div>
+            </td>            
             <td>
               {% for group in user.groups.all %}
                 <span class="badge bg-light text-primary border border-primary rounded-pill fw-normal shadow-sm px-2 me-1">{{ group.name }}</span>
@@ -190,7 +222,7 @@
                 <span class="text-muted">—</span>
               {% endif %}
             </td>
-			<td>
+            <td>
               <span class="status-dot {% if user.is_active %}active{% else %}inactive{% endif %}"></span>
               {{ user.is_active|yesno:"Active,Inactive" }}
             </td>
@@ -199,7 +231,6 @@
               {{ user.is_staff|yesno:"Staff,User" }}
             </td>
             <td style="text-align:center;">
-              <!-- EDIT now opens user-specific modal -->
               <button type="button"
                       class="table-action-btn"
                       data-bs-toggle="modal"
@@ -207,8 +238,6 @@
                       title="Edit">
                 <i class="bi bi-pencil-square"></i>
               </button>
-
-              <!-- delete link unchanged -->
               <a href="{% url 'users:user_delete' user.pk %}"
                  class="table-action-btn"
                  title="Delete"
@@ -223,53 +252,54 @@
     </div>
   </div>
 </div>
-{% endblock %}
-{# ---------------------------------------------------------- #}
-{#  ADD-USER modal (already working)                          #}
-{# ---------------------------------------------------------- #}
-{% block extra_modals %}
-<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Add Team Member</h5>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <form method="post" action="{% url 'users:user_create' %}">
+      <form id="addUserForm" method="post" action="{% url 'users:user_create' %}">
         {% csrf_token %}
-        <div class="modal-body">{{ form.as_p }}</div>
+        <div class="modal-header">
+          <h5 class="modal-title">Add User</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="addUserErrors"></div>
+          <div id="addUserSuccess"></div>
+          {{ form.as_p }}
+        </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button class="btn btn-primary">Save User</button>
+          <button type="submit" class="btn btn-success">Save</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         </div>
       </form>
     </div>
   </div>
 </div>
 
-{# ---------------------------------------------------------- #}
-{#  One EDIT modal per user (bound form)                      #}
-{# ---------------------------------------------------------- #}
+<!-- Edit User Modals -->
 {% for user in users %}
   {% with edit_form=edit_forms|dict_get:user.pk %}
   <div class="modal fade" id="editUserModal-{{ user.pk }}" tabindex="-1"
        aria-labelledby="editUserModalLabel-{{ user.pk }}" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-lg">
       <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="editUserModalLabel-{{ user.pk }}">
-            Edit {{ user.first_name }}
-          </h5>
-          <button class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <form method="post" action="{% url 'users:user_edit' user.pk %}">
+        <form class="editUserForm" method="post" action="{% url 'users:user_edit' user.pk %}" data-user-id="{{ user.pk }}">
           {% csrf_token %}
+          <div class="modal-header">
+            <h5 class="modal-title" id="editUserModalLabel-{{ user.pk }}">
+              Edit {{ user.first_name }}
+            </h5>
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
           <div class="modal-body">
+            <div id="editUserErrors-{{ user.pk }}"></div>
+            <div id="editUserSuccess-{{ user.pk }}"></div>
             {{ edit_form.as_p }}
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button class="btn btn-primary">Update User</button>
+            <button type="submit" class="btn btn-primary">Update User</button>
           </div>
         </form>
       </div>
@@ -277,4 +307,213 @@
   </div>
   {% endwith %}
 {% endfor %}
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Function to display errors
+    function displayErrors(errors, errorContainer, formContainer) {
+        let errorHtml = '<div class="alert alert-danger"><ul class="mb-0">';
+        
+        // Clear previous field errors
+        formContainer.find('.field-error').removeClass('field-error');
+        formContainer.find('.form-error').remove();
+        
+        for (let field in errors) {
+            let errorList = errors[field];
+            for (let i = 0; i < errorList.length; i++) {
+                errorHtml += '<li>' + errorList[i] + '</li>';
+                
+                // Add field-specific error styling
+                let fieldElement = formContainer.find('[name="' + field + '"]');
+                if (fieldElement.length) {
+                    fieldElement.closest('p, div').addClass('field-error');
+                    fieldElement.after('<span class="form-error">' + errorList[i] + '</span>');
+                }
+            }
+        }
+        
+        errorHtml += '</ul></div>';
+        errorContainer.html(errorHtml);
+    }
+    
+    // Function to display success message
+    function displaySuccess(message, successContainer) {
+        successContainer.html('<div class="alert alert-success">' + message + '</div>');
+    }
+    
+    // Function to clear messages
+    function clearMessages(errorContainer, successContainer) {
+        errorContainer.empty();
+        successContainer.empty();
+        errorContainer.closest('form').find('.field-error').removeClass('field-error');
+        errorContainer.closest('form').find('.form-error').remove();
+    }
+
+    // Function to toggle publisher and advertiser fields based on role selection
+    function toggleAssignFields(form) {
+        const roleSelect = form.find('select[name="groups"]');
+        
+        function applyToggle() {
+            if (!roleSelect.length) return;
+            
+            // Get selected option texts
+            const selectedOptions = roleSelect.find('option:selected');
+            let hasAdmin = false;
+            let hasSubAdmin = false;
+            let hasPublisher = false;
+            
+            // Check what roles are selected
+            selectedOptions.each(function() {
+                const roleText = $(this).text().toLowerCase();
+                if (roleText.includes('admin') && !roleText.includes('sub')) {
+                    hasAdmin = true;
+                } else if (roleText.includes('sub-admin') || roleText.includes('subadmin')) {
+                    hasSubAdmin = true;
+                } else if (roleText.includes('publisher')) {
+                    hasPublisher = true;
+                }
+            });
+            
+            // Find publisher and advertiser field containers
+            const publishersField = form.find('[name="publishers"]').closest('p');
+            const advertisersField = form.find('[name="advertisers"]').closest('p');
+            
+            // Apply visibility rules
+            if (hasAdmin) {
+                // Admin: Hide both fields
+                publishersField.addClass('hidden-field');
+                advertisersField.addClass('hidden-field');
+                form.find('[name="publishers"]').val([]);
+                form.find('[name="advertisers"]').val([]);
+            } else if (hasPublisher && !hasSubAdmin) {
+                // Publisher role only: Show publishers, hide advertisers
+                publishersField.removeClass('hidden-field');
+                advertisersField.addClass('hidden-field');
+                form.find('[name="advertisers"]').val([]);
+            } else if (hasSubAdmin) {
+                // Sub-admin: Show both fields
+                publishersField.removeClass('hidden-field');
+                advertisersField.removeClass('hidden-field');
+            } else {
+                // Other roles: Show both fields (default behavior)
+                publishersField.removeClass('hidden-field');
+                advertisersField.removeClass('hidden-field');
+            }
+        }
+        
+        // Apply on role change
+        roleSelect.off('change.toggleAssign').on('change.toggleAssign', applyToggle);
+        
+        // Apply initially when modal opens
+        applyToggle();
+    }
+
+    // Initialize for Add User modal
+    $('#addUserModal').on('shown.bs.modal', function() {
+        toggleAssignFields($(this));
+    });
+
+    // Initialize for Edit User modals
+    $('[id^="editUserModal-"]').on('shown.bs.modal', function() {
+        toggleAssignFields($(this));
+    });
+
+    // Add User Form Submission
+    $('#addUserForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        let form = $(this);
+        let errorContainer = $('#addUserErrors');
+        let successContainer = $('#addUserSuccess');
+        let formData = new FormData(this);
+        
+        // Clear previous messages
+        clearMessages(errorContainer, successContainer);
+        
+        $.ajax({
+            url: form.attr('action'),
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                if (response.success) {
+                    displaySuccess(response.message, successContainer);
+                    form[0].reset();
+                    
+                    // Re-initialize toggle after reset
+                    setTimeout(function() {
+                        toggleAssignFields($('#addUserModal'));
+                    }, 100);
+                    
+                    // Reload page after 1.5 seconds to show new user
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    displayErrors(response.errors, errorContainer, form);
+                }
+            },
+            error: function(xhr, status, error) {
+                errorContainer.html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
+            }
+        });
+    });
+    
+    // Edit User Form Submission
+    $('.editUserForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        let form = $(this);
+        let userId = form.data('user-id');
+        let errorContainer = $('#editUserErrors-' + userId);
+        let successContainer = $('#editUserSuccess-' + userId);
+        let formData = new FormData(this);
+        
+        // Clear previous messages
+        clearMessages(errorContainer, successContainer);
+        
+        $.ajax({
+            url: form.attr('action'),
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                if (response.success) {
+                    displaySuccess(response.message, successContainer);
+                    
+                    // Reload page after 1.5 seconds to show updated user
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    displayErrors(response.errors, errorContainer, form);
+                }
+            },
+            error: function(xhr, status, error) {
+                errorContainer.html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
+            }
+        });
+    });
+    
+    // Clear messages when modal is hidden
+    $('.modal').on('hidden.bs.modal', function() {
+        let modal = $(this);
+        modal.find('[id$="Errors"], [id$="Success"]').empty();
+        modal.find('.field-error').removeClass('field-error');
+        modal.find('.form-error').remove();
+    });
+});
+</script>
+
+
+
 {% endblock %}

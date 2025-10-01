@@ -230,14 +230,49 @@ function bindOfferSearch() {
   if (!$input.length || $input.data('bound')) return;
   $input.data('bound', true);
 
+  let typingTimer;
+  const doneTypingInterval = 300; // ms
+
   $input.on('keyup', function () {
-    const q = $(this).val().toLowerCase();
-    $('#offer-list-content table tbody tr').each(function () {
-      const rowText = $(this).text().toLowerCase();
-      $(this).toggle(rowText.indexOf(q) > -1);
-    });
+    clearTimeout(typingTimer);
+    const q = $(this).val();
+    typingTimer = setTimeout(function() {
+      loadOffersPage(1, q); // search always starts from page 1
+    }, doneTypingInterval);
   });
 }
+
+// Load offers AJAX function
+function loadOffersPage(page = 1, search = '') {
+  const advId = $('#offerAdvertiserId').val();
+  if (!advId) return;
+
+  $('#offer-list-content').html(`
+    <div class="text-center py-5">
+      <div class="spinner-border text-success" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  `);
+
+  $.ajax({
+    url: `/panel/advertisers/${advId}/offers/`,
+    data: { page: page, search: search },
+    success: function(data) {
+      $('#offer-list-content').html(data.html);
+    },
+    error: function(xhr) {
+      $('#offer-list-content').html('<div class="text-danger text-center py-3">Failed to load offers.</div>');
+    }
+  });
+}
+
+// Pagination buttons should now also pass the current search
+$(document).on('click', '.offer-page-btn', function() {
+  const page = $(this).data('page');
+  const search = $('#offerSearch').val();
+  loadOffersPage(page, search);
+});
 
 // Focus and bind when modal is shown
 document.addEventListener('shown.bs.modal', function (evt) {

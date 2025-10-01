@@ -25,6 +25,14 @@ class Invoice(models.Model):
     publisher = models.ForeignKey('publishers.Publisher', on_delete=models.CASCADE, blank=True, null=True)
     advertiser = models.ForeignKey('advertisers.Advertiser', on_delete=models.CASCADE, blank=True, null=True)
     drs = models.ForeignKey('drs.DailyRevenueSheet', on_delete=models.CASCADE)
+
+    # Add these fields
+    bill_from_details = models.TextField(blank=True, null=True)
+    bill_to_details = models.TextField(blank=True, null=True)
+    bank_details = models.TextField(blank=True, null=True)
+    terms = models.TextField(blank=True, null=True, default="Thanks for your business.")
+    signature = models.ImageField(upload_to="invoices/signatures/", blank=True, null=True)
+
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default='USD')
     amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)

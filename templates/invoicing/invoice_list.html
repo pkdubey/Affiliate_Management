@@ -2,10 +2,10 @@
 {% block content %}
 
 <style>
-/* Glassy card for the table */
+/* Existing list styles remain the same */
 .invoice-list-card {
     border-radius: 1.5rem;
-    background: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.95);
     box-shadow: 0 4px 32px #1dbfae22, 0 1.5px 7px #1963b319;
     border: 1.5px solid rgba(29,191,174,.11);
     backdrop-filter: blur(6px);
@@ -13,15 +13,16 @@
     padding: 0;
     overflow: hidden;
 }
+
 @keyframes fadeCardList {
     from { opacity:0; transform: translateY(30px);}
     to   { opacity:1; transform: none;}
 }
 
-/* Animated row effect */
 .animated-table tbody tr {
     transition: box-shadow .18s, background .22s;
 }
+
 .animated-table tbody tr:hover {
     background: linear-gradient(90deg, #1dbfae11, #1963b30b 80%);
     box-shadow: 0 2px 16px #1dbfae29;
@@ -39,6 +40,7 @@
     vertical-align: middle;
     text-align: center;
 }
+
 .invoice-status {
     border-radius: .6rem;
     font-size: .95em;
@@ -47,9 +49,11 @@
     display: inline-block;
     background: #eaf9ff;
 }
+
 .invoice-status.paid { background: #e8fbe9; color: #0a944e; }
 .invoice-status.pending { background: #fffbe6; color: #93890a;}
 .invoice-status.cancelled { background: #ffe5e6; color: #b71e36; }
+.invoice-status.overdue { background:#fff3ed; color:#b4411c;}
 
 .invoice-action-btn {
     font-size: 1em;
@@ -60,12 +64,12 @@
     padding: 0 .2em;
     transition: color .2s, text-shadow .18s;
 }
+
 .invoice-action-btn:hover {
     color: #1963b3;
     text-shadow: 0 2px 12px #1dbfae1a;
 }
 
-/* Top bar Add button style */
 .add-invoice-btn {
     background: linear-gradient(90deg, #1dbfae 0 53%, #1963b3 100%);
     color: #fff;
@@ -76,30 +80,381 @@
     box-shadow: 0 2px 14px #1dbfae38;
     transition: background .19s, box-shadow .19s, transform .13s;
 }
+
 .add-invoice-btn:hover, .add-invoice-btn:focus {
     background: linear-gradient(90deg, #1963b3 10%, #1dbfae 90%);
     box-shadow: 0 4px 24px #1dbfae57;
     color: #fff;
     transform: translateY(-2px);
 }
+
 .invoice-table-responsive {
     overflow-x: auto;
     margin-top: 1.7rem;
 }
-.invoice-status.overdue { background:#fff3ed; color:#b4411c;}
+
+/* Modal Styles - Light Theme */
+.invoice-modal {
+    display: none;
+    position: fixed;
+    z-index: 1050;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(2px);
+}
+
+.invoice-modal.show {
+    display: block;
+    animation: fadeInModal 0.3s ease-out;
+}
+
+@keyframes fadeInModal {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.invoice-modal-dialog {
+    position: relative;
+    width: auto;
+    max-width: 1000px;
+    margin: 1rem auto;
+    pointer-events: none;
+    padding: 0 15px;
+    height: calc(100vh - 2rem);
+    display: flex;
+    align-items: flex-start;
+    padding-top: 2rem;
+}
+
+.invoice-modal-content {
+    position: relative;
+    pointer-events: auto;
+    background: #ffffff;
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+    animation: slideInModal 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes slideInModal {
+    from { 
+        transform: translateY(-30px) scale(0.98);
+        opacity: 0;
+    }
+    to { 
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.invoice-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e9ecef;
+    background: #ffffff;
+    border-radius: 1rem 1rem 0 0;
+}
+
+.invoice-modal-title {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.invoice-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.invoice-modal-close:hover {
+    background: #f8f9fa;
+    color: #495057;
+}
+
+.invoice-modal-body {
+    padding: 1rem;
+    background: #ffffff;
+}
+
+/* Form Styles - Light Theme */
+.form-section {
+    margin-bottom: 1.25rem;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.form-row {
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 0.75rem;
+}
+
+.form-label {
+    color: #495057;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+    font-size: 0.9rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    background: #ffffff;
+    color: #495057;
+    font-size: 0.95rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    background: #ffffff;
+}
+
+.form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 16px 12px;
+    padding-right: 2.5rem;
+}
+
+/* Items Table */
+.items-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.items-table th {
+    background: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+    font-size: 0.9rem;
+}
+
+.items-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #f1f3f4;
+    vertical-align: middle;
+}
+
+.items-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.item-remove {
+    color: #dc3545;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: color 0.2s;
+}
+
+.item-remove:hover {
+    color: #c82333;
+}
+
+.add-item-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: end;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.add-item-row .form-control {
+    margin-bottom: 0;
+}
+
+.add-item-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+    white-space: nowrap;
+}
+
+.add-item-btn:hover {
+    background: #218838;
+}
+
+/* Totals Section */
+.totals-section {
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    border: 1px solid #e9ecef;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.total-row.final {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #2c3e50;
+    border-top: 2px solid #dee2e6;
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+    margin-bottom: 0;
+}
+
+/* Modal Footer */
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1.5rem 2rem;
+    border-top: 1px solid #dee2e6;
+    background: #f8f9fa;
+    border-radius: 0 0 1rem 1rem;
+}
+
+.btn-cancel {
+    background: #ffffff;
+    color: #6c757d;
+    border: 1px solid #ced4da;
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+}
+
+.btn-cancel:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.btn-save {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 0.5rem 2rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.btn-save:hover {
+    background: #0056b3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .invoice-modal-dialog {
+        margin: 0.5rem auto;
+        height: calc(100vh - 1rem);
+        padding: 0 10px;
+        padding-top: 1rem;
+    }
+    
+    .invoice-modal-content {
+        max-height: calc(100vh - 2rem);
+    }
+    
+    .invoice-modal-body {
+        padding: 1rem;
+    }
+    
+    .add-item-row {
+        flex-direction: column;
+    }
+    
+    .add-item-row .form-control {
+        width: 100%;
+    }
+    
+    .modal-footer {
+        flex-direction: column-reverse;
+        gap: 0.5rem;
+    }
+    
+    .btn-cancel,
+    .btn-save {
+        width: 100%;
+    }
+}
+
+/* Small text inputs for better alignment */
+.small-input {
+    max-width: 120px;
+}
+
+.medium-input {
+    max-width: 200px;
+}
 </style>
-
-
 
 <div class="card invoice-list-card mx-auto">
     <div class="d-flex flex-wrap justify-content-between align-items-center px-4 py-4 border-bottom">
-        <h2 class="fs-3 mb-0" style="color:#1963b3">
-            <i class="bi bi-receipt"></i> Invoices
-        </h2>
-        <a href="{% url 'invoicing:add' %}" class="add-invoice-btn d-flex align-items-center gap-2">
-            <i class="bi bi-plus-lg"></i> Add Invoice
-        </a>
-    </div>
+	  <h2 class="fs-3 mb-0" style="color:#1963b3">
+		<i class="bi bi-receipt"></i> Invoices
+	  </h2>
+
+	  {% if active_tab == 'advertiser' %}
+		<button type="button" class="add-invoice-btn d-flex align-items-center gap-2" onclick="openInvoiceModal()">
+		  <i class="bi bi-plus-lg"></i> Create Advertiser Invoice
+		</button>
+	  {% else %}
+		<button type="button" class="add-invoice-btn d-flex align-items-center gap-2" onclick="openPublisherModal()">
+		  <i class="bi bi-upload"></i> Upload Publisher Invoice
+		</button>
+	  {% endif %}
+	</div>
+    
     <div class="px-4 pt-3 pb-0">
         <ul class="nav nav-tabs mb-3" id="invoiceTabs">
             <li class="nav-item">
@@ -109,6 +464,7 @@
                 <a class="nav-link {% if active_tab == 'publisher' %}active{% endif %}" href="?tab=publisher{% if selected_status %}&status={{ selected_status }}{% endif %}">Publisher Invoices</a>
             </li>
         </ul>
+        
         <form method="get" class="row g-2 mb-3 align-items-center">
             <input type="hidden" name="tab" value="{{ active_tab }}">
             <div class="col-auto">
@@ -137,15 +493,17 @@
             </div>
         </form>
     </div>
+    
     <div class="invoice-table-responsive px-2 px-md-4 py-3">
         <table class="table table-hover animated-table align-middle mb-0">
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>{% if active_tab == 'advertiser' %}Advertiser{% else %}Publisher{% endif %}</th>
-                    <th>DRS</th>
+                    <th>Invoice#</th>
+					<th>Client</th>
+                    <th>Amount</th>
+					<th>Due Date</th>
                     <th>Status</th>
-                    <th>Created</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -153,19 +511,38 @@
             {% for invoice in invoices %}
                 <tr>
                     <td><span class="fw-bold text-primary">#{{ invoice.id }}</span></td>
+					<td>
+						<span class="fw-bold" style="color:#1963b3;">
+							{{ invoice.invoice_number }}
+						</span>
+						<div class="text-muted small">{{ invoice.created_at|date:'d-m-Y' }}</div>
+					</td>
+					
                     <td>{% if active_tab == 'advertiser' %}{{ invoice.advertiser }}{% else %}{{ invoice.publisher }}{% endif %}</td>
-                    <td>{{ invoice.drs }}</td>
+                    <td>{{ invoice.total_amount }}</td>
+					<td>{{ invoice.due_date }}</td>
                     <td>
                         <span class="invoice-status {% if invoice.status == 'Paid' %}paid{% elif invoice.status == 'Pending' %}pending{% elif invoice.status == 'Cancelled' %}cancelled{% elif invoice.status == 'Overdue' %}overdue{% endif %}">
                             {{ invoice.status }}
                         </span>
                     </td>
-                    <td>{{ invoice.created_at|date:'Y-m-d' }}</td>
                     <td>
-                        <a href="{% url 'invoicing:edit' invoice.id %}" class="invoice-action-btn" title="Edit"><i class="bi bi-pencil-square"></i></a>
-                        <a href="{% url 'invoicing:delete' invoice.id %}" class="invoice-action-btn" title="Delete"><i class="bi bi-trash"></i></a>
-                        <a href="{% url 'invoicing:pdf' invoice.id %}" class="invoice-action-btn" title="Download PDF"><i class="bi bi-file-earmark-pdf"></i></a>
-                    </td>
+						<!-- Edit button now uses Django namespaced URL -->
+						<button class="invoice-action-btn" title="Edit"
+								onclick="location.href='{% url 'invoicing:edit' invoice.id %}'">
+							<i class="bi bi-pencil-square"></i>
+						</button>
+
+						<!-- Delete button -->
+						<a href="{% url 'invoicing:delete' invoice.id %}" class="invoice-action-btn" title="Delete">
+							<i class="bi bi-trash"></i>
+						</a>
+
+						<!-- PDF Download button -->
+						<a href="{% url 'invoicing:pdf' invoice.id %}" class="invoice-action-btn" title="Download PDF">
+							<i class="bi bi-file-earmark-pdf"></i>
+						</a>
+					</td>
                 </tr>
             {% empty %}
                 <tr>
@@ -176,5 +553,437 @@
         </table>
     </div>
 </div>
+
+<!-- Advertiser Invoice Modal -->
+<div class="invoice-modal" id="invoiceModal">
+  <div class="invoice-modal-dialog">
+    <div class="invoice-modal-content">
+      <div class="invoice-modal-header">
+        <h3 class="invoice-modal-title">Create Advertiser Invoice</h3>
+        <button type="button" class="invoice-modal-close" onclick="closeInvoiceModal()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <div class="invoice-modal-body">
+        <form id="invoiceForm" method="post" action="{% url 'invoicing:add' %}" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="hidden" name="party_type" value="advertiser">
+
+          <!-- Bill From / Bill To -->
+          <div class="form-section">
+            <div class="row">
+              <div class="col-md-6 form-group">
+                <label class="form-label">Bill From</label>
+                <textarea name="bill_from_details" class="form-control" rows="6" readonly>WiGROUP
+Trademan 0, Seohara Thakurdwara Road, Bazar Krashi
+Seohara, Bijnor, Uttar Pradesh, India, 246746
+
+Company Registration No: 09AMFPV3992D1ZL
+MSME: UDYAM-UP-17-0028662</textarea>
+              </div>
+
+              <div class="col-md-6 form-group">
+                <label class="form-label">Bill To</label>
+                <!-- Add data-* attributes for client info so JS can auto-fill -->
+                <select name="advertiser" class="form-control form-select" id="advertiserSelect" required>
+                  <option value="">Select Advertiser</option>
+                  {% for client in clients %}
+                    <option
+                      value="{{ client.id }}"
+                      data-company="{{ client.company_name|default_if_none:'' }}"
+                      data-contact="{{ client.contact_name|default_if_none:'' }}"
+                      data-email="{{ client.email|default_if_none:'' }}"
+                      data-item="{{ client.default_item|default_if_none:'Service' }}"
+                      data-qty="{{ client.default_qty|default:48 }}"
+                      data-rate="{{ client.default_rate|default:50 }}"
+                    >{{ client.company_name }}</option>
+                  {% endfor %}
+                </select>
+                <textarea name="bill_to_details" class="form-control mt-2" rows="4" id="billToTextarea" placeholder="Company
+Contact
+email@example.com"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Invoice Details Row -->
+          <div class="form-section">
+            <div class="row">
+              <div class="col-md-3 form-group">
+                <label class="form-label">Invoice Number</label>
+                <input type="text" name="invoice_number" class="form-control" placeholder="INV-001" required>
+              </div>
+              <div class="col-md-3 form-group">
+                <label class="form-label">Invoice Date</label>
+                <input type="date" name="date" class="form-control" required>
+              </div>
+              <div class="col-md-3 form-group">
+                <label class="form-label">Net Terms</label>
+                <input type="number" class="form-control" value="30" min="0">
+              </div>
+              <div class="col-md-3 form-group">
+                <label class="form-label">Due Date</label>
+                <input type="date" name="due_date" class="form-control" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- Items -->
+          <div class="form-section">
+            <label class="form-label">Items</label>
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>ITEM</th>
+                  <th style="width: 100px; text-align:center;">QUANTITY</th>
+                  <th style="width: 100px; text-align:center;">RATE</th>
+                  <th style="width: 120px; text-align:right;">AMOUNT</th>
+                  <th style="width: 30px;"></th>
+                </tr>
+              </thead>
+              <tbody id="itemsTableBody"></tbody>
+            </table>
+
+            <div class="add-item-row">
+              <input type="text" id="itemDescription" class="form-control" placeholder="Item description" style="flex:2;">
+              <input type="number" id="itemQuantity" class="form-control small-input" value="1" min="1">
+              <input type="number" id="itemRate" class="form-control small-input" value="0" min="0" step="0.01">
+              <button type="button" class="add-item-btn" onclick="addItem()">Add Item</button>
+            </div>
+          </div>
+
+          <!-- Bank + Right column (currency/totals/status) -->
+          <div class="form-section">
+            <div class="row">
+              <div class="col-md-6 form-group">
+                <label class="form-label">Bank Details</label>
+                <textarea name="bank_details" class="form-control" rows="6">Account Name: W GURU
+Account No: 19, Muslim Choukhandi,
+Dhampur, Hastinapur Seohara Bijnor - 246748
+A/C No: 50200094727751
+IFSC: HDFC0003738
+SWIFT CODE: HDFCINBB</textarea>
+              </div>
+
+              <div class="col-md-6">
+                <div class="row">
+                  <div class="col-12 form-group">
+                    <label class="form-label">Currency</label>
+                    <select name="currency" class="form-control form-select" id="currencySelect">
+                      <option value="USD" selected>USD</option>
+                      <option value="INR">INR</option>
+                      <option value="EUR">EUR</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="totals-section">
+                  <div class="total-row">
+                    <span>Subtotal</span>
+                    <span id="subtotalAmount">$0.00</span>
+                  </div>
+                  <div class="total-row">
+                    <span>Tax (0%)</span>
+                    <span id="taxAmount">$0.00</span>
+                  </div>
+                  <div class="total-row final">
+                    <span>Total</span>
+                    <span id="totalAmount">$0.00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Terms below Bank (same section order as image) -->
+          <div class="form-section">
+            <div class="row">
+              <div class="col-md-6 form-group" style="margin-top: -4.90rem;">
+                <label class="form-label">Terms</label>
+                <textarea name="terms" class="form-control" rows="2">Thanks for your business, WIGROUP</textarea>
+              </div>
+              <div class="col-md-6 form-group">
+                <label class="form-label">Status</label>
+                  <select name="status" class="form-control form-select">
+                    <option value="Pending" selected>Pending</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="Overdue">Overdue</option>
+                  </select>
+              </div>
+            </div>
+          </div>
+		  
+		  <!-- Terms and Signature (compact, signature on left) -->
+		  <div class="form-section">
+			  <div class="row g-3">
+				<div class="col-md-6 form-group" style="margin-top: -3.75rem;">
+				  <label class="form-label">Signature / Stamp (Optional)</label>
+				  <input type="file" name="signature" class="form-control" accept="image/*">
+				</div>
+			  </div>
+			</div>
+
+          <!-- Hidden calc -->
+          <input type="hidden" name="subtotal" id="hiddenSubtotal" value="0">
+          <input type="hidden" name="tax" id="hiddenTax" value="0">
+          <input type="hidden" name="amount" id="hiddenAmount" value="0">
+          <input type="hidden" name="drs" value="1">
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="closeInvoiceModal()">Cancel</button>
+        <button type="submit" form="invoiceForm" class="btn-save">Save Invoice</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Publisher Upload Modal (light theme, compact) -->
+<div class="invoice-modal" id="publisherModal">
+  <div class="invoice-modal-dialog" style="max-width: 560px;">
+    <div class="invoice-modal-content" style="border-radius: 12px;">
+      <div class="invoice-modal-header">
+        <h3 class="invoice-modal-title" style="font-size:1.15rem;">Upload Publisher Invoice</h3>
+        <button type="button" class="invoice-modal-close" onclick="closePublisherModal()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <div class="invoice-modal-body" style="padding: 1rem 1.25rem 1.25rem;">
+        <form id="publisherInvoiceForm" method="post" action="{% url 'invoicing:add' %}" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="hidden" name="party_type" value="publisher">
+
+          <div class="form-section" style="margin-bottom: .9rem;">
+            <div class="form-group">
+              <label class="form-label">Invoice PDF/Image</label>
+              <input type="file" name="pdf" class="form-control" accept="application/pdf,image/*" required>
+            </div>
+          </div>
+
+          <div class="form-section" style="margin-bottom: .9rem;">
+            <div class="form-group">
+              <label class="form-label">Publisher</label>
+              <select name="publisher" class="form-control form-select" required>
+                <option value="">Select Publisher</option>
+                {% for client in clients %}
+                  <option value="{{ client.id }}">{{ client.company_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-section" style="margin-bottom: .9rem;">
+            <div class="row">
+              <div class="col-6 form-group">
+                <label class="form-label">Amount</label>
+                <input type="number" name="amount" class="form-control" min="0" step="0.01" placeholder="0.00" required>
+              </div>
+              <div class="col-6 form-group">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-control form-select" required>
+                  <option value="Pending" selected>Pending</option>
+                  <option value="Paid">Paid</option>
+                  <option value="Cancelled">Cancelled</option>
+                  <option value="Overdue">Overdue</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section" style="margin-bottom: .2rem;">
+            <div class="row">
+              <div class="col-6 form-group">
+                <label class="form-label">Invoice Date</label>
+                <input type="date" name="date" class="form-control" required>
+              </div>
+              <div class="col-6 form-group">
+                <label class="form-label">Due Date</label>
+                <input type="date" name="due_date" class="form-control" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hidden fields needed by your model -->
+          <input type="hidden" name="invoice_number" value="">
+          <input type="hidden" name="currency" value="INR">
+          <input type="hidden" name="drs" value="">
+          <input type="hidden" name="advertiser" value="">
+        </form>
+      </div>
+
+      <div class="modal-footer" style="padding: 1rem 1.25rem;">
+        <button type="button" class="btn-cancel" onclick="closePublisherModal()">Cancel</button>
+        <button type="submit" form="publisherInvoiceForm" class="btn-save">Save Invoice</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Items state
+let items = [];
+let itemCounter = 0;
+
+function openInvoiceModal() {
+  document.getElementById('invoiceModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+
+  // Default dates
+  const today = new Date().toISOString().split('T')[0];
+  document.querySelector('input[name="date"]').value = today;
+  const due = new Date(); due.setDate(due.getDate() + 30);
+  document.querySelector('input[name="due_date"]').value = due.toISOString().split('T')[0];
+
+  // Start clean
+  items = []; itemCounter = 0; updateItemsTable(); updateTotals();
+}
+
+function closeInvoiceModal() {
+  document.getElementById('invoiceModal').classList.remove('show');
+  document.body.style.overflow = '';
+  document.getElementById('invoiceForm').reset();
+  items = []; itemCounter = 0; updateItemsTable(); updateTotals();
+}
+
+
+
+// Add/remove items
+function addItem() {
+  const desc = document.getElementById('itemDescription').value.trim();
+  const qty = parseInt(document.getElementById('itemQuantity').value) || 1;
+  const rate = parseFloat(document.getElementById('itemRate').value) || 0;
+  if (!desc) return alert('Please enter item description');
+  addItemToList(desc, qty, rate);
+  document.getElementById('itemDescription').value = '';
+  document.getElementById('itemQuantity').value = 1;
+  document.getElementById('itemRate').value = 0;
+}
+
+function addItemToList(description, quantity, rate) {
+  const item = { id: ++itemCounter, description, quantity, rate, amount: quantity * rate };
+  items.push(item);
+  updateItemsTable(); updateTotals();
+}
+
+function removeItem(id) {
+  items = items.filter(i => i.id !== id);
+  updateItemsTable(); updateTotals();
+}
+
+function updateItemsTable() {
+  const tbody = document.getElementById('itemsTableBody');
+  tbody.innerHTML = '';
+  items.forEach(i => {
+    tbody.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td>${i.description}</td>
+        <td style="text-align:center;">${i.quantity}</td>
+        <td style="text-align:center;">${i.rate}</td>
+        <td style="text-align:right;">$${i.amount.toFixed(2)}</td>
+        <td style="text-align:center;">
+          <span class="item-remove" onclick="removeItem(${i.id})" title="Remove item">
+            <i class="bi bi-x-lg"></i>
+          </span>
+        </td>
+      </tr>
+    `);
+  });
+}
+
+function updateTotals() {
+  const subtotal = items.reduce((s, i) => s + i.amount, 0);
+  const taxRate = 0; // adjust if needed
+  const tax = subtotal * taxRate / 100;
+  const total = subtotal + tax;
+
+  const currency = document.getElementById('currencySelect').value;
+  const sym = { USD: '$', INR: '₹', EUR: '€' }[currency] || '$';
+
+  document.getElementById('subtotalAmount').textContent = `${sym}${subtotal.toFixed(2)}`;
+  document.getElementById('taxAmount').textContent = `${sym}${tax.toFixed(2)}`;
+  document.getElementById('totalAmount').textContent = `${sym}${total.toFixed(2)}`;
+
+  document.getElementById('hiddenSubtotal').value = subtotal.toFixed(2);
+  document.getElementById('hiddenTax').value = tax.toFixed(2);
+  document.getElementById('hiddenAmount').value = total.toFixed(2);
+}
+
+// Auto-fill Bill To + Items from select option data-*
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('currencySelect').addEventListener('change', updateTotals);
+
+  const advSelect = document.getElementById('advertiserSelect');
+  advSelect.addEventListener('change', function() {
+    const opt = this.options[this.selectedIndex];
+    const company = opt.getAttribute('data-company') || '';
+    const contact = opt.getAttribute('data-contact') || '';
+    const email   = opt.getAttribute('data-email') || '';
+    document.getElementById('billToTextarea').value = [company, contact, email].filter(Boolean).join('\n');
+
+    // Auto-fill one default item for the selected advertiser
+    const defItem = opt.getAttribute('data-item') || 'Service';
+    const defQty  = parseInt(opt.getAttribute('data-qty') || '1');
+    const defRate = parseFloat(opt.getAttribute('data-rate') || '0');
+
+    // Reset items and add default
+    items = []; itemCounter = 0;
+    if (defItem) addItemToList(defItem, defQty, defRate);
+  });
+
+  // Close modal on backdrop click
+  document.getElementById('invoiceModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeInvoiceModal();
+  });
+
+  // Close on Esc
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.getElementById('invoiceModal').classList.contains('show')) {
+      closeInvoiceModal();
+    }
+  });
+});
+
+function openPublisherModal() {
+  const modal = document.getElementById('publisherModal');
+  modal.classList.add('show');
+  document.body.style.overflow = 'hidden';
+
+  // Defaults: today and +30 days
+  const today = new Date().toISOString().split('T')[0];
+  const due = new Date(); due.setDate(due.getDate() + 30);
+  const form = document.getElementById('publisherInvoiceForm');
+  form.querySelector('input[name="date"]').value = today;
+  form.querySelector('input[name="due_date"]').value = due.toISOString().split('T')[0];
+
+  // Generate a lightweight invoice number if blank
+  const inv = form.querySelector('input[name="invoice_number"]');
+  if (!inv.value) {
+    inv.value = 'PUB-' + Math.floor(100000 + Math.random()*900000);
+  }
+}
+
+function closePublisherModal() {
+  const modal = document.getElementById('publisherModal');
+  modal.classList.remove('show');
+  document.body.style.overflow = '';
+  document.getElementById('publisherInvoiceForm').reset();
+}
+
+// Close publisher modal when clicking backdrop
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('publisherModal').addEventListener('click', function(e) {
+    if (e.target === this) closePublisherModal();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && document.getElementById('publisherModal').classList.contains('show')) {
+      closePublisherModal();
+    }
+  });
+});
+</script>
 
 {% endblock %}

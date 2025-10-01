@@ -1,6 +1,4 @@
 from django.contrib import admin
-
-# Register your models here.
 from .models import Publisher, Wishlist
 
 @admin.register(Publisher)
@@ -9,6 +7,4 @@ class PublisherAdmin(admin.ModelAdmin):
 
 @admin.register(Wishlist)
 class WishlistAdmin(admin.ModelAdmin):
-    list_display = ('id', 'publisher', 'desired_campaign', 'geo', 'kpi')
-
-# Register your models here.
+    list_display = ('id', 'publisher', 'desired_campaign', 'geo', 'payout')

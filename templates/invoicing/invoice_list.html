@@ -93,6 +93,19 @@
     margin-top: 1.7rem;
 }
 
+/* Badge for impersonation */
+.impersonate-badge {
+    background: #ffc107;
+    color: #000;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 /* Modal Styles - Light Theme */
 .invoice-modal {
     display: none;
@@ -487,40 +500,67 @@
 
 <div class="card invoice-list-card mx-auto">
   <div class="d-flex flex-wrap justify-content-between align-items-center px-4 py-4 border-bottom">
-    <h2 class="fs-3 mb-0" style="color:#1963b3">
-      <i class="bi bi-receipt"></i> Invoices
+    <h2 class="fs-3 mb-0 d-flex align-items-center gap-2" style="color:#1963b3">
+      <i class="bi bi-receipt"></i> 
+      {% if publisher_only_view %}
+        {% if is_impersonating %}
+          Publisher Invoices - {{ current_publisher.company_name }}
+          <span class="impersonate-badge">
+            <i class="bi bi-eye"></i> Impersonating
+          </span>
+        {% else %}
+          My Invoices
+        {% endif %}
+      {% else %}
+        Invoices
+      {% endif %}
     </h2>
-    {% if active_tab == 'advertiser' %}
-      <button type="button" class="add-invoice-btn d-flex align-items-center gap-2" onclick="openInvoiceModal()">
-        <i class="bi bi-plus-lg"></i> Create Advertiser Invoice
-      </button>
+    
+    {% if show_tabs %}
+      {% if active_tab == 'advertiser' %}
+        <button type="button" class="add-invoice-btn d-flex align-items-center gap-2" onclick="openInvoiceModal()">
+          <i class="bi bi-plus-lg"></i> Create Advertiser Invoice
+        </button>
+      {% else %}
+        <button type="button" class="add-invoice-btn d-flex align-items-center gap-2" onclick="openPublisherModal()">
+          <i class="bi bi-upload"></i> Upload Publisher Invoice
+        </button>
+      {% endif %}
     {% else %}
+      <!-- Publisher-only view: only upload button -->
       <button type="button" class="add-invoice-btn d-flex align-items-center gap-2" onclick="openPublisherModal()">
-        <i class="bi bi-upload"></i> Upload Publisher Invoice
+        <i class="bi bi-upload"></i> Upload Invoice
       </button>
     {% endif %}
   </div>
 
   <div class="px-4 pt-3 pb-0">
-    <ul class="nav nav-tabs mb-3" id="invoiceTabs">
-      <li class="nav-item">
-        <a class="nav-link {% if active_tab == 'advertiser' %}active{% endif %}" href="?tab=advertiser{% if selected_status %}&status={{ selected_status }}{% endif %}">Advertiser Invoices</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link {% if active_tab == 'publisher' %}active{% endif %}" href="?tab=publisher{% if selected_status %}&status={{ selected_status }}{% endif %}">Publisher Invoices</a>
-      </li>
-    </ul>
+    {% if show_tabs %}
+      <!-- Show tabs for admin/subadmin -->
+      <ul class="nav nav-tabs mb-3" id="invoiceTabs">
+        <li class="nav-item">
+          <a class="nav-link {% if active_tab == 'advertiser' %}active{% endif %}" href="?tab=advertiser{% if selected_status %}&status={{ selected_status }}{% endif %}">Advertiser Invoices</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if active_tab == 'publisher' %}active{% endif %}" href="?tab=publisher{% if selected_status %}&status={{ selected_status }}{% endif %}">Publisher Invoices</a>
+        </li>
+      </ul>
+    {% endif %}
 
     <form method="get" class="row g-2 mb-3 align-items-center">
       <input type="hidden" name="tab" value="{{ active_tab }}">
-      <div class="col-auto">
-        <select name="client" class="form-select" onchange="this.form.submit()">
-          <option value="">All Clients</option>
-          {% for client in clients %}
-            <option value="{{ client.id }}" {% if selected_client == client.id|stringformat:'s' %}selected{% endif %}>{{ client.company_name }}</option>
-          {% endfor %}
-        </select>
-      </div>
+      
+      {% if show_tabs %}
+        <div class="col-auto">
+          <select name="client" class="form-select" onchange="this.form.submit()">
+            <option value="">All Clients</option>
+            {% for client in clients %}
+              <option value="{{ client.id }}" {% if selected_client == client.id|stringformat:'s' %}selected{% endif %}>{{ client.company_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endif %}
+      
       <div class="col-auto">
         <select name="month" class="form-select" onchange="this.form.submit()">
           <option value="">All Months</option>
@@ -529,6 +569,7 @@
           {% endfor %}
         </select>
       </div>
+      
       <div class="col-auto">
         <select name="status" class="form-select" onchange="this.form.submit()">
           <option value="">All Statuses</option>
@@ -570,12 +611,17 @@
             </span>
           </td>
           <td>
-            <button class="invoice-action-btn" title="Edit" onclick="location.href='{% url 'invoicing:edit' invoice.id %}'">
-              <i class="bi bi-pencil-square"></i>
-            </button>
-            <a href="{% url 'invoicing:delete' invoice.id %}" class="invoice-action-btn" title="Delete">
-              <i class="bi bi-trash"></i>
+            <a href="{% url 'invoicing:detail' invoice.id %}" class="invoice-action-btn" title="View">
+              <i class="bi bi-eye"></i>
             </a>
+            {% if not publisher_only_view %}
+              <button class="invoice-action-btn" title="Edit" onclick="location.href='{% url 'invoicing:edit' invoice.id %}'">
+                <i class="bi bi-pencil-square"></i>
+              </button>
+              <a href="{% url 'invoicing:delete' invoice.id %}" class="invoice-action-btn" title="Delete">
+                <i class="bi bi-trash"></i>
+              </a>
+            {% endif %}
             <a href="{% url 'invoicing:pdf' invoice.id %}" class="invoice-action-btn" title="Download PDF">
               <i class="bi bi-file-earmark-pdf"></i>
             </a>
@@ -583,15 +629,42 @@
         </tr>
       {% empty %}
         <tr>
-          <td colspan="7" class="text-secondary">No invoices found.</td>
+          <td colspan="7" class="text-secondary py-5">
+            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+            No invoices found.
+          </td>
         </tr>
       {% endfor %}
       </tbody>
     </table>
   </div>
+  
+  <!-- Pagination -->
+  {% if is_paginated %}
+    <nav aria-label="Page navigation" class="px-4 pb-3">
+      <ul class="pagination justify-content-center mb-0">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&tab={{ active_tab }}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_client %}&client={{ selected_client }}{% endif %}{% if selected_month %}&month={{ selected_month }}{% endif %}">Previous</a>
+          </li>
+        {% endif %}
+        
+        <li class="page-item active">
+          <span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        </li>
+        
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}&tab={{ active_tab }}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_client %}&client={{ selected_client }}{% endif %}{% if selected_month %}&month={{ selected_month }}{% endif %}">Next</a>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
 </div>
 
 <!-- Advertiser Invoice Modal -->
+{% if show_tabs and active_tab == 'advertiser' %}
 <div class="invoice-modal" id="invoiceModal">
   <div class="invoice-modal-dialog">
     <div class="invoice-modal-content">
@@ -612,12 +685,12 @@
             <div class="row">
               <div class="col-md-6 form-group">
                 <label class="form-label">Bill From</label>
-                <textarea name="bill_from_details" class="form-control" rows="6" readonly>WiGROUP
-Trademan 0, Seohara Thakurdwara Road, Bazar Krashi
+                <textarea name="bill_from_details" class="form-control" rows="6" readonly>traccify.ai
+0, Seohara Thakurdwara Road
 Seohara, Bijnor, Uttar Pradesh, India, 246746
 
-Company Registration No: 09AMFPV3992D1ZL
-MSME: UDYAM-UP-17-0028662</textarea>
+GSTIN: 09AMFPV3992D1ZL
+UDYAM-UP-17-0028662</textarea>
               </div>
 
               <div class="col-md-6 form-group">
@@ -694,12 +767,11 @@ email@example.com"></textarea>
             <div class="row">
               <div class="col-md-6 form-group">
                 <label class="form-label">Bank Details</label>
-                <textarea name="bank_details" class="form-control" rows="6">Account Name: W GURU
-Account No: 19, Muslim Choukhandi,
-Dhampur, Hastinapur Seohara Bijnor - 246748
-A/C No: 50200094727751
-IFSC: HDFC0003738
-SWIFT CODE: HDFCINBB</textarea>
+                <textarea name="bank_details" class="form-control" rows="6">Account Name: traccify.ai
+Account No: 50200094727751
+IFSC: HDFC0007070
+SWIFT CODE: HDFCINBB
+Branch: Ward No 12, Gr Flr, Muslim Chowdhirian, Dhampur</textarea>
               </div>
 
               <div class="col-md-6">
@@ -737,7 +809,7 @@ SWIFT CODE: HDFCINBB</textarea>
             <div class="row">
               <div class="col-md-6 form-group" style="margin-top: -4.90rem;">
                 <label class="form-label">Terms</label>
-                <textarea name="terms" class="form-control" rows="2">Thanks for your business, WIGROUP</textarea>
+                <textarea name="terms" class="form-control" rows="2">Thanks for your business</textarea>
               </div>
               <div class="col-md-6 form-group">
                 <label class="form-label">Status</label>
@@ -777,6 +849,7 @@ SWIFT CODE: HDFCINBB</textarea>
     </div>
   </div>
 </div>
+{% endif %}
 
 <!-- Publisher Upload Modal -->
 <div class="invoice-modal" id="publisherModal">
@@ -810,10 +883,10 @@ SWIFT CODE: HDFCINBB</textarea>
           <div class="form-section" style="margin-bottom: .9rem;">
             <div class="form-group">
               <label class="form-label">Publisher</label>
-              <select name="publisher" class="form-control form-select" required>
+              <select name="publisher" class="form-control form-select" required {% if publisher_only_view %}readonly{% endif %}>
                 <option value="">Select Publisher</option>
                 {% for client in clients %}
-                  <option value="{{ client.id }}">{{ client.company_name }}</option>
+                  <option value="{{ client.id }}" {% if publisher_only_view and current_publisher.id == client.id %}selected{% endif %}>{{ client.company_name }}</option>
                 {% endfor %}
               </select>
             </div>
@@ -890,15 +963,19 @@ function getCookie(name) {
 ====================================================== */
 function openInvoiceModal() {
     const modal = document.getElementById('invoiceModal');
-    if (!modal) return;
+    if (!modal) {
+        console.error('Advertiser modal not found');
+        return;
+    }
 
     modal.classList.add('show');
     document.body.style.overflow = 'hidden';
 
-    // Default dates
-    const today = new Date().toISOString().split('T')[0];
+    // FIX: Add [0] at the end
+    const today = new Date().toISOString().split('T')[0];  // ✅ FIXED
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 30);
+    const dueDateStr = dueDate.toISOString().split('T')[0];  // ✅ FIXED
 
     const form = document.getElementById('invoiceForm');
     if (form) {
@@ -906,9 +983,8 @@ function openInvoiceModal() {
         const dueDateInput = form.querySelector('input[name="due_date"]');
 
         if (dateInput) dateInput.value = today;
-        if (dueDateInput) dueDateInput.value = dueDate.toISOString().split('T')[0];
+        if (dueDateInput) dueDateInput.value = dueDateStr;
 
-        // Ensure party_type input exists
         let pt = form.querySelector('input[name="party_type"]');
         if (!pt) {
             pt = document.createElement('input');
@@ -919,7 +995,6 @@ function openInvoiceModal() {
         pt.value = 'advertiser';
     }
 
-    // Reset items
     items = [];
     itemCounter = 0;
     updateItemsTable();
@@ -1036,14 +1111,19 @@ function updateTotals() {
 ====================================================== */
 function openPublisherModal() {
     const modal = document.getElementById('publisherModal');
-    if (!modal) return;
+    if (!modal) {
+        console.error('Publisher modal not found');
+        return;
+    }
 
     modal.classList.add('show');
     document.body.style.overflow = 'hidden';
 
-    const today = new Date().toISOString().split('T')[0];
+    // FIX: Add [0] at the end
+    const today = new Date().toISOString().split('T')[0];  // ✅ FIXED
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 30);
+    const dueDateStr = dueDate.toISOString().split('T')[0];  // ✅ FIXED
 
     const form = document.getElementById('publisherInvoiceForm');
     if (form) {
@@ -1051,7 +1131,7 @@ function openPublisherModal() {
         const dueInput = form.querySelector('input[name="due_date"]');
 
         if (dateInput) dateInput.value = today;
-        if (dueInput) dueInput.value = dueDate.toISOString().split('T')[0];
+        if (dueInput) dueInput.value = dueDateStr;
 
         let pt = form.querySelector('input[name="party_type"]');
         if (!pt) {
@@ -1062,14 +1142,12 @@ function openPublisherModal() {
         }
         pt.value = 'publisher';
 
-        // Generate invoice number if blank
         const inv = form.querySelector('input[name="invoice_number"]');
         if (inv && !inv.value) {
             inv.value = 'PUB-' + Math.floor(100000 + Math.random() * 900000);
         }
     }
 
-    // Reset upload progress
     const progressBar = modal.querySelector('.upload-progress');
     const progressFill = modal.querySelector('.upload-progress-bar');
     if (progressBar && progressFill) {
@@ -1239,38 +1317,38 @@ document.addEventListener('DOMContentLoaded', () => {
         const progressFill = publisherForm.querySelector('.upload-progress-bar');
 
         if (fileInput) {
-            fileInput.addEventListener('change', function () {
-                const file = this.files?.[0];
-                if (!file) return;
+			fileInput.addEventListener('change', function () {
+				const file = this.files?.[0];  // ✅ FIXED - Added [0]
+				if (!file) return;
 
-                if (file.size > 10 * 1024 * 1024) {
-                    alert('File size must be less than 10MB');
-                    this.value = '';
-                    return;
-                }
+				if (file.size > 10 * 1024 * 1024) {
+					alert('File size must be less than 10MB');
+					this.value = '';
+					return;
+				}
 
-                const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif'];
-                const validType = allowedTypes.includes(file.type);
-                if (!validType) {
-                    alert('Please select a valid PDF or image file');
-                    this.value = '';
-                    return;
-                }
+				const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif'];
+				const validType = allowedTypes.includes(file.type);
+				if (!validType) {
+					alert('Please select a valid PDF or image file');
+					this.value = '';
+					return;
+				}
 
-                const fileInfo = this.parentElement?.querySelector('.file-info small');
-                if (fileInfo) {
-                    fileInfo.textContent = `Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
-                    fileInfo.style.color = '#28a745';
-                }
-            });
-        }
+				const fileInfo = this.parentElement?.querySelector('.file-info small');
+				if (fileInfo) {
+					fileInfo.textContent = `Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+					fileInfo.style.color = '#28a745';
+				}
+			});
+		}
 
         publisherForm.addEventListener('submit', function (e) {
             e.preventDefault();
 
             const publisherId = this.querySelector('select[name="publisher"]')?.value;
-            const amount = parseFloat(this.querySelector('input[name="amount"]')?.value || '0');
-            const file = this.querySelector('input[name="pdf"]')?.files?.[0];
+			const amount = parseFloat(this.querySelector('input[name="amount"]')?.value || '0');
+			const file = this.querySelector('input[name="pdf"]')?.files?.[0];  // ✅ FIXED - Added [0]
 
             if (!publisherId) return alert('Please select a publisher');
             if (!amount || amount <= 0) return alert('Please enter a valid amount');

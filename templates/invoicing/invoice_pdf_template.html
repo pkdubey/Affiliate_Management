@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Invoice #{{ invoice.id }}</title>
+  <title>Invoice #{{ invoice.invoice_number }}</title>
   <style>
     @page { size: A4; margin: 28px 32px 25px 32px; }
     body {
@@ -12,6 +12,7 @@
       font-size: 15px;
       margin: 0;
       padding: 20px;
+      line-height: 1.4;
     }
     .invoice-glass {
       background: #fff;
@@ -24,7 +25,7 @@
       max-width: 780px;
     }
     
-    /* ACTION BUTTONS - NEW IMPROVED STYLES */
+    /* ACTION BUTTONS */
     .action-buttons-container {
       display: flex;
       justify-content: flex-end;
@@ -65,82 +66,128 @@
     .action-button:active {
       transform: translateY(0);
     }
-    /* Rest of your existing styles... */
+    
+    /* HEADER SECTION */
     .top-flex {
-      display: flex; justify-content: space-between; align-items: flex-start;
-      flex-wrap: wrap; margin-bottom:12px;
+      display: flex; 
+      justify-content: space-between; 
+      align-items: flex-start;
+      flex-wrap: wrap; 
+      margin-bottom: 20px;
     }
-    .tleft, .tright { font-size: 15px;}
-    .tleft { max-width:52%;}
-    .tright { text-align:right; }
+    .tleft, .tright { 
+      font-size: 15px;
+    }
+    .tleft { 
+      max-width: 52%;
+    }
+    .tright { 
+      text-align: right; 
+    }
     .company-title {
       font-weight: 800;
       color: #1762b3;
       font-size: 1.32rem;
       letter-spacing: 1px;
-      margin-bottom: 2px;
+      margin-bottom: 8px;
       text-shadow: 0 1px 5px #1963b305;
     }
-    .mid-info { margin:22px 0 8px 0; }
     .inv-label {
       text-transform: uppercase;
       font-size: .96em;
       color: #27aa94;
-      font-weight:600;
-      letter-spacing:.06em;
-      margin-right:.09em;
+      font-weight: 600;
+      letter-spacing: .06em;
+      margin-right: .09em;
+    }
+    
+    /* BILLING INFORMATION */
+    .mid-info { 
+      margin: 22px 0 8px 0; 
     }
     .heading-table {
-      width: 100%; margin-bottom: 1.2em; border-collapse: collapse;
+      width: 100%; 
+      margin-bottom: 1.2em; 
+      border-collapse: collapse;
     }
-    .heading-table td, .heading-table th { padding: 2px 8px; font-size: 14px; }
-    .heading-table tr th { color:#158b88; font-weight:600;
-      border-bottom:1.7px solid #e8efef;}
-    .bank-details {
-      margin-top: 1.2em;
-      font-size: 14px;
-      color: #303b61;
+    .heading-table td, .heading-table th { 
+      padding: 12px 8px; 
+      font-size: 14px; 
+      border: 1px solid #c2e7ef55;
     }
-    .gst-row td, .gst-row th { border-top: 1.2px dashed #6bd6e8; }
+    .heading-table tr th { 
+      color: #158b88; 
+      font-weight: 600;
+      background: linear-gradient(90deg, #f4fbfa, #e6f9f7 90%);
+      border-bottom: 2px solid #1dbfae44;
+    }
+    
+    /* INVOICE TABLE */
     .invoice-table {
-      width: 100%; border-collapse: collapse; margin-top: 16px; margin-bottom: 6px;
-      font-size:15px;
+      width: 100%; 
+      border-collapse: collapse; 
+      margin-top: 16px; 
+      margin-bottom: 6px;
+      font-size: 15px;
     }
     .invoice-table th, .invoice-table td {
       border: 1px solid #c2e7ef55;
-      padding: 7px 6px;
+      padding: 8px 6px;
       text-align: center;
     }
     .invoice-table thead th {
-      background: linear-gradient(90deg,#f4fbfa, #e6f9f7 90%);
+      background: linear-gradient(90deg, #f4fbfa, #e6f9f7 90%);
       color: #1dbfae;
-      font-weight:700;
-      border-bottom:2.1px solid #1dbfae44;
+      font-weight: 700;
+      border-bottom: 2.1px solid #1dbfae44;
     }
     .invoice-table tbody td {
       background: rgba(255,255,255,0.96);
     }
+    .invoice-table .description {
+      text-align: left;
+    }
     .totals-row th, .totals-row td {
       font-weight: 700;
       color: #1479ab;
-      border-top:2px solid #1dbfae38;
+      border-top: 2px solid #1dbfae38;
       background: #f2fcff;
     }
+    
+    /* BANK DETAILS */
+    .bank-details {
+      margin-top: 1.2em;
+      padding: 15px;
+      background: #f8fafc;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #303b61;
+      border-left: 4px solid #1dbfae;
+    }
+    
+    /* SIGNATURE AND FOOTER */
     .signature {
-      margin-top:32px; text-align:right; font-size:1.08em;
-      color: #16918b; font-weight: 500;
+      margin-top: 32px; 
+      text-align: right; 
+      font-size: 1.08em;
+      color: #16918b; 
+      font-weight: 500;
     }
-    .inwords { margin: 1.2em 0 1em 0; font-size: 1.01em; color:#545e7a;}
-    .gst-table td, .gst-table th { text-align: right; padding: 4px 9px;}
-    .gst-table { margin-left:auto; margin-right:0; font-size: 14px;}
-    .leftbank { float:left; font-size:14px;}
-    .clearboth { clear:both;}
-    .tax-break { font-size:86%; color: #888bb8;}
+    .inwords { 
+      margin: 1.2em 0 1em 0; 
+      font-size: 1.01em; 
+      color: #545e7a;
+      font-weight: 600;
+    }
     .page-footer {
-      margin-top: 30px; border-top: 1.3px solid #eafafc; color: #a4adaf;
-      font-size: 0.98em; text-align: center; letter-spacing:.022em;
+      margin-top: 30px; 
+      border-top: 1.3px solid #eafafc; 
+      color: #a4adaf;
+      font-size: 0.98em; 
+      text-align: center; 
+      letter-spacing: .022em;
+      padding-top: 15px;
     }
-    .logo { height:35px; margin-bottom: 9px;}
     
     @media print {
       .no-print { display: none !important; }
@@ -152,8 +199,8 @@
 </head>
 <body>
 {% load humanize %}
-{% load num_to_words %}
-<!-- BUTTONS - NEW IMPLEMENTATION -->
+
+<!-- ACTION BUTTONS -->
 <div class="action-buttons-container no-print">
   <button class="action-button print-button" onclick="window.print()">
     <i class="bi bi-printer"></i> Print Invoice
@@ -164,119 +211,206 @@
 </div>
 
 <div class="invoice-glass">
+  <!-- HEADER WITH BILL FROM AND INVOICE INFO -->
   <div class="top-flex">
     <div class="tleft">
-      <div class="company-title">traccify.ai</div>
-      <div>0, Seohara Thakurdwara Road, Seohara Uttar Pradesh 246746 India</div>
-      <div class="mt-1">GSTIN: 09AMFPV3992D1ZL</div>
-      <div>UDYAM-UP-17-0028662</div>
-      <div>finance@traccify.ai</div>
+      <div class="company-title">{{ invoice.bill_from_company|default:"Traccify" }}</div>
+      <div>
+        {% if invoice.bill_from_address_line1 %}
+          {{ invoice.bill_from_address_line1 }}<br>
+          {{ invoice.bill_from_address_line2|default:"" }}
+        {% else %}
+          Trademark Sechura Thakurdwara Road, Bazar<br>
+          Krishn, Bijnor, Uttar Pradesh, India, 246746
+        {% endif %}
+      </div>
+      <div class="mt-1">{{ invoice.bill_from_registration_new|default:"Company Registration No: 09AMFPV3992D1ZL" }}</div>
+      {% if invoice.bill_from_msme_new %}
+        <div>{{ invoice.bill_from_msme_new }}</div>
+      {% endif %}
+      <div>{{ invoice.bill_from_email|default:"finance@traccify.ai" }}</div>
     </div>
     <div class="tright">
-      <span class="inv-label">TAX INVOICE</span><br>
-      No: <strong>TA-{{ invoice.id }}</strong><br>
-      Invoice Date: <strong>{{ invoice.created_at|date:"d/m/Y" }}</strong><br>
-      Due Date: <strong>{{ invoice.created_at|date:"d/m/Y" }}</strong><br>
-      Terms: Net 30
+      <div class="inv-label">{{ invoice.bill_to_company_new|default:"Rohan Technology" }}</div>
+      <div><strong>{{ invoice.bill_to_email_new|default:"rohan@gmail.com" }}</strong></div>
+      {% if invoice.bill_to_address_new %}
+        <div>{{ invoice.bill_to_address_new|linebreaks }}</div>
+      {% endif %}
     </div>
   </div>
 
-  <!-- Rest of your invoice content remains the same -->
+  <!-- INVOICE DETAILS TABLE -->
   <table class="heading-table">
     <tr>
-      <th>Bill To (Client)</th>
-      <th>Supplier</th>
+      <th style="width: 20%;">Invoice Number</th>
+      <th style="width: 20%;">Invoice Date</th>
+      <th style="width: 20%;">Net Terms</th>
+      <th style="width: 20%;">Due Date</th>
+      <th style="width: 20%;">Status</th>
     </tr>
     <tr>
-      <td>
-        Trackback Media<br>
-        1001 IS tower UTC Noida Sector 132<br>
-        Gautam Buddha Nagar, Noida, 201301 Uttar Pradesh <br>
-        GSTIN: 09AAMFT2871J1ZL
-      </td>
-      <td>
-        traccify.ai<br>
-        0, Seohara Thakurdwara Road, 246746<br>
-        Uttar Pradesh, India<br>
-        GSTIN: 09AMFPV3992D1ZL
-      </td>
+      <td><strong>{{ invoice.invoice_number }}</strong></td>
+      <td>{{ invoice.date|date:"d/m/Y"|default:invoice.created_at|date:"d/m/Y" }}</td>
+      <td>{{ invoice.terms_days|default:"30" }}</td>
+      <td>{{ invoice.due_date|date:"d/m/Y" }}</td>
+      <td><span style="color: {% if invoice.status == 'Paid' %}#28a745{% elif invoice.status == 'Pending' %}#ffc107{% else %}#dc3545{% endif %};">{{ invoice.get_status_display }}</span></td>
     </tr>
   </table>
-  <div class="inwords">
-      <strong>Total in Words:</strong>
-      {{ invoice.total_amount|amount_words }}
-  </div>
 
+  <!-- ITEMS TABLE -->
   <table class="invoice-table">
     <thead>
       <tr>
-        <th>#</th>
-        <th>Description</th>
-        <th>HSN/SAC</th>
-        <th>Qty</th>
-        <th>Rate</th>
-        <th>CGST<br>9%</th>
-        <th>SGST<br>9%</th>
-        <th>Amount</th>
+        <th style="width: 5%;">#</th>
+        <th style="width: 35%;">ITEM</th>
+        <th style="width: 15%;">QUANTITY</th>
+        <th style="width: 15%;">RATE</th>
+        <th style="width: 15%;">AMOUNT</th>
+        {% if invoice.currency == "INR" %}
+          <th style="width: 7.5%;">CGST<br>9%</th>
+          <th style="width: 7.5%;">SGST<br>9%</th>
+        {% endif %}
       </tr>
     </thead>
     <tbody>
-      {% for line in invoice_lines %}
-      <tr>
-        <td>{{ forloop.counter }}</td>
-        <td>{{ line.description }}</td>
-        <td>{{ line.hsn_sac }}</td>
-        <td>{{ line.qty }}</td>
-        <td>{{ line.rate }}</td>
-        <td>{{ line.cgst_amount }}</td>
-        <td>{{ line.sgst_amount }}</td>
-        <td>{{ line.amount }}</td>
-      </tr>
-      {% endfor %}
+      {% if invoice.lines.all %}
+        {% for line in invoice.lines.all %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td class="description">{{ line.item_description }}</td>
+            <td>{{ line.quantity|floatformat:0 }}</td>
+            <td>
+              {% if invoice.currency == "INR" %}
+                ₹{{ line.rate|floatformat:2 }}
+              {% else %}
+                ${{ line.rate|floatformat:2 }}
+              {% endif %}
+            </td>
+            <td>
+              {% if invoice.currency == "INR" %}
+                ₹{{ line.amount|floatformat:2 }}
+              {% else %}
+                ${{ line.amount|floatformat:2 }}
+              {% endif %}
+            </td>
+            {% if invoice.currency == "INR" %}
+              <td>₹{{ line.cgst_amount|floatformat:2 }}</td>
+              <td>₹{{ line.sgst_amount|floatformat:2 }}</td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      {% else %}
+        <!-- Default service entry if no lines exist -->
+        <tr>
+          <td>1</td>
+          <td class="description">{{ default_service.description|default:"Service" }}</td>
+          <td>{{ default_service.quantity|default:"48" }}</td>
+          <td>
+            {% if invoice.currency == "INR" %}
+              ₹{{ default_service.rate|default:"50"|floatformat:2 }}
+            {% else %}
+              ${{ default_service.rate|default:"50"|floatformat:2 }}
+            {% endif %}
+          </td>
+          <td>
+            {% if invoice.currency == "INR" %}
+              ₹{{ invoice.amount|default:"2400.00"|floatformat:2 }}
+            {% else %}
+              ${{ invoice.amount|default:"2400.00"|floatformat:2 }}
+            {% endif %}
+          </td>
+          {% if invoice.currency == "INR" %}
+            <td>₹{{ cgst|default:"0.00"|floatformat:2 }}</td>
+            <td>₹{{ sgst|default:"0.00"|floatformat:2 }}</td>
+          {% endif %}
+        </tr>
+      {% endif %}
     </tbody>
-    <tr class="totals-row">
-      <th colspan="7" style="text-align:right;">Sub Total</th>
-      <td>{{ invoice.amount }}</td>
-    </tr>
-    {% if invoice.currency == "INR" %}
-    <tr>
-      <th colspan="7" style="text-align:right;">CGST 9%</th>
-      <td>{{ cgst }}</td>
-    </tr>
-    <tr>
-      <th colspan="7" style="text-align:right;">SGST 9%</th>
-      <td>{{ sgst }}</td>
-    </tr>
-    <tr class="totals-row">
-      <th colspan="7" style="text-align:right;">Total</th>
-      <td><strong>{{ invoice.total_amount }}</strong></td>
-    </tr>
-    {% else %}
-    <tr class="totals-row">
-      <th colspan="7" style="text-align:right;">Total</th>
-      <td><strong>{{ invoice.amount }}</strong></td>
-    </tr>
-    {% endif %}
   </table>
 
+  <!-- TOTALS SECTION -->
+  <table class="invoice-table" style="width: 100%; margin-top: 10px;">
+    <tr class="totals-row">
+      <th colspan="{% if invoice.currency == 'INR' %}6{% else %}4{% endif %}" style="text-align:right;">Sub Total</th>
+      <td style="text-align:right;">
+        {% if invoice.currency == "INR" %}
+          ₹{{ invoice.subtotal|default:invoice.amount|floatformat:2 }}
+        {% else %}
+          ${{ invoice.subtotal|default:invoice.amount|floatformat:2 }}
+        {% endif %}
+      </td>
+    </tr>
+    {% if invoice.currency == "INR" %}
+      <tr>
+        <th colspan="6" style="text-align:right;">CGST 9%</th>
+        <td style="text-align:right;">₹{{ invoice.cgst_amount|default:cgst|floatformat:2 }}</td>
+      </tr>
+      <tr>
+        <th colspan="6" style="text-align:right;">SGST 9%</th>
+        <td style="text-align:right;">₹{{ invoice.sgst_amount|default:sgst|floatformat:2 }}</td>
+      </tr>
+    {% else %}
+      <tr>
+        <th colspan="4" style="text-align:right;">Tax (0%)</th>
+        <td style="text-align:right;">$0.00</td>
+      </tr>
+    {% endif %}
+    <tr class="totals-row">
+      <th colspan="{% if invoice.currency == 'INR' %}6{% else %}4{% endif %}" style="text-align:right;">Total</th>
+      <td style="text-align:right;">
+        <strong>
+          {% if invoice.currency == "INR" %}
+            ₹{{ invoice.total_amount|floatformat:2 }}
+          {% else %}
+            ${{ invoice.total_amount|floatformat:2 }}
+          {% endif %}
+        </strong>
+      </td>
+    </tr>
+  </table>
+
+  <!-- AMOUNT IN WORDS -->
+  <div class="inwords">
+    <strong>Total in Words:</strong>
+    {% if invoice.currency == "INR" %}
+      Rupees {{ invoice.total_amount|floatformat:0 }} Only
+    {% else %}
+      Dollars {{ invoice.total_amount|floatformat:0 }} Only
+    {% endif %}
+  </div>
+
+  <!-- BANK DETAILS -->
   <div class="bank-details">
     <strong>Bank Details:</strong><br>
-    Bank: HDFC Bank<br>
-    Name: traccify.ai<br>
-    A/C No: 50200094727751<br>
-    IFSC: HDFC0007070<br>
-    SWIFT: HDFCINBB<br>
-    Address: Ward No 12, Gr Flr, Muslim Chowdhirian, Dhampur, Hayatnagar Seohara Bijnor - 246746
+    <div style="margin-top: 10px;">
+      <strong>Bank:</strong> {{ invoice.bank_name|default:"HDFC Bank" }}<br>
+      <strong>Name:</strong> {{ invoice.bank_account_name|default:"traccify.ai" }}<br>
+      <strong>A/C No:</strong> {{ invoice.bank_account_number|default:"50200094727751" }}<br>
+      <strong>IFSC:</strong> {{ invoice.bank_ifsc_code|default:"HDFC0007070" }}<br>
+      <strong>SWIFT:</strong> {{ invoice.bank_swift_code|default:"HDFCINBB" }}<br>
+      {% if invoice.bank_branch_address %}
+        <strong>Address:</strong> {{ invoice.bank_branch_address }}
+      {% endif %}
+    </div>
   </div>
 
+  <!-- SIGNATURE -->
   <div class="signature">
-    <div>Thanks for your business.</div>
-    <div style="margin-top:16px;"><strong>traccify.ai</strong></div>
+    <div>{{ invoice.terms|default:"Thanks for your business." }}</div>
+    <div style="margin-top:16px;"><strong>{{ invoice.bill_from_company|default:"Traccify" }}</strong></div>
+    {% if invoice.signature %}
+      <img src="{{ invoice.signature.url }}" alt="Signature" style="max-height: 60px; margin-top: 10px;">
+    {% endif %}
   </div>
 
+  <!-- FOOTER -->
   <div class="page-footer">
-    This is a computer generated invoice by traccify.ai | GSTIN: 09AMFPV3992D1ZL | finance@traccify.ai
+    <p>This is a computer generated invoice by {{ invoice.bill_from_company|default:"Traccify" }} | 
+       {{ invoice.bill_from_registration_new|default:"Company Registration Available" }} | 
+       <a href="mailto:{{ invoice.bill_from_email|default:'finance@traccify.ai' }}">{{ invoice.bill_from_email|default:"finance@traccify.ai" }}</a>
+    </p>
   </div>
 </div>
+
 </body>
 </html>

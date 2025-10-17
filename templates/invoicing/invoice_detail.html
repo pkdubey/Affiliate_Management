@@ -1,133 +1,357 @@
 {% extends 'base.html' %}
 {% block content %}
-<style>
-.invoice-detail-card {
-    border-radius: 2rem;
-    background: rgba(255,255,255,0.25);
-    box-shadow: 0 8px 36px #1dbfae16, 0 1.5px 10px #09355413;
-    backdrop-filter: blur(7px) saturate(120%);
-    padding: 2.5rem 2.7rem 2.2rem 2.7rem;
-    max-width: 480px;
-    margin: 0 auto 2.5rem auto;
-    animation: fadeInvoiceCardUp 1s cubic-bezier(.58,.12,.13,1) backwards;
-    position: relative;
-}
-@keyframes fadeInvoiceCardUp {
-    from { opacity:0; transform: translateY(50px) scale(0.97);}
-    to { opacity:1; transform: none;}
-}
-.invoice-title {
-    font-weight: 700;
-    color: #1963b3;
-    letter-spacing: .7px;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-size: 2rem;
-}
-.invoice-detail-list {
-    list-style: none;
-    padding: 0;
-    margin-bottom: 2.2rem;
-}
-.invoice-detail-list li {
-    display: flex;
-    align-items: center;
-    font-size: 1.09rem;
-    margin-bottom: 1.0rem;
-    color: #123153;
-    letter-spacing: .01em;
-    gap: 0.7rem;
-    position: relative;
-    animation: fadeInListItem .7s cubic-bezier(.5,1.3,.58,1.05) backwards;
-}
-.invoice-detail-list li:nth-child(1) { animation-delay: .08s;}
-.invoice-detail-list li:nth-child(2) { animation-delay: .18s;}
-.invoice-detail-list li:nth-child(3) { animation-delay: .27s;}
-.invoice-detail-list li:nth-child(4) { animation-delay: .36s;}
-@keyframes fadeInListItem {
-    from {opacity:0; transform: translateX(24px);}
-    to {opacity:1; transform: none;}
-}
-.invoice-status-badge {
-    font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: .09em;
-    border-radius: 1em;
-    padding: .23em 1.1em .23em 1em;
-    margin-left: 12px;
-    background: linear-gradient(90deg, #1dbfae 60%, #1963b3 100%);
-    color: #fff;
-    display: inline-block;
-    box-shadow: 0 2px 10px #1dbfae16;
-    animation: pulseBadge 1s infinite alternate;
-}
-@keyframes pulseBadge {
-    0% { filter:brightness(1);}
-    100% {filter:brightness(1.09);}
-}
-.status-paid { background: linear-gradient(90deg, #19bf98 70%, #31c6b3 100%);}
-.status-pending { background: linear-gradient(90deg, #f3c623 70%, #e67d15 100%);}
-.status-cancelled { background: linear-gradient(90deg, #fa4f4d 70%, #cc185d 100%);}
-.invoice-action-group {
-    display: flex; gap: 1rem;
-    justify-content: center;
-    margin-top: 5px;
-    flex-wrap: wrap;
-}
-.btn-glass {
-    background: rgba(29,191,174,0.13);
-    border: 1.4px solid #1dbfae33;
-    color: #1963b3;
-    font-weight: 600;
-    border-radius: 1.25rem;
-    padding: 0.5rem 1.5rem;
-    transition: background .18s, color .12s, box-shadow .19s, transform 0.18s;
-    box-shadow: 0 2px 10px #1963b322;
-    letter-spacing: .07em;
-}
-.btn-glass:hover, .btn-glass:focus {
-    background: linear-gradient(90deg, #1dbfae 70%, #1963b3 100%);
-    color: #fff;
-    box-shadow: 0 4px 16px #1dbfae41;
-    transform: scale(1.035);
-    text-decoration: none;
-}
-</style>
+<head>
+  <meta charset="UTF-8">
+  <title>Invoice #{{ invoice.invoice_number }}</title>
+  <style>
+    @page { size: A4; margin: 28px 32px 25px 32px; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f7fcfd;
+      color: #154265;
+      font-size: 15px;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.4;
+    }
+    .invoice-glass {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 8px 32px #1dbfae15, 0 2px 10px #1963b318;
+      border: 1.2px solid #1dbfae29;
+      padding: 28px 32px 24px 32px;
+      margin: 10px auto;
+      min-width: 0;
+      max-width: 780px;
+    }
+    .action-buttons-container {
+      display: flex;
+      justify-content: flex-end;
+      margin: 20px auto;
+      max-width: 780px;
+      padding: 0 20px;
+    }
+    .action-button {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 20px;
+      margin-left: 15px;
+      border-radius: 25px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .action-button i {
+      margin-right: 8px;
+      font-size: 16px;
+    }
+    .back-button { background: #1963b3; color: white; border: 2px solid #1963b3; }
+    .print-button { background: #1dbfae; color: white; border: 2px solid #1dbfae; }
+    .action-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .action-button:active { transform: translateY(0); }
+    .top-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .tleft, .tright { font-size: 15px; }
+    .tleft { max-width: 52%; }
+    .tright { text-align: right; }
+    .company-title {
+      font-weight: 800;
+      color: #1762b3;
+      font-size: 1.32rem;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      text-shadow: 0 1px 5px #1963b305;
+    }
+    .inv-label {
+      text-transform: uppercase;
+      font-size: .96em;
+      color: #27aa94;
+      font-weight: 600;
+      letter-spacing: .06em;
+      margin-right: .09em;
+    }
+    .invoice-title {
+      font-weight: 700;
+      color: #1963b3;
+      letter-spacing: .7px;
+      margin-bottom: 1.0rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 2rem;
+      margin-top: 10px;
+    }
+    .invoice-detail-list {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 1.2rem;
+    }
+    .invoice-detail-list li {
+      display: flex;
+      align-items: center;
+      font-size: 1.09rem;
+      margin-bottom: 0.7rem;
+      color: #123153;
+      letter-spacing: .01em;
+      gap: 0.7rem;
+    }
+    .invoice-status-badge {
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: .09em;
+      border-radius: 1em;
+      padding: .23em 1.1em .23em 1em;
+      margin-left: 12px;
+      background: linear-gradient(90deg, #1dbfae 60%, #1963b3 100%);
+      color: #fff;
+      display: inline-block;
+      box-shadow: 0 2px 10px #1dbfae16;
+    }
+    .status-paid { background: linear-gradient(90deg, #19bf98 70%, #31c6b3 100%);}
+    .status-pending { background: linear-gradient(90deg, #f3c623 70%, #e67d15 100%);}
+    .status-cancelled { background: linear-gradient(90deg, #fa4f4d 70%, #cc185d 100%);}
+    .invoice-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+    .invoice-table th, .invoice-table td {
+      border: 1px solid #c2e7ef55;
+      padding: 8px 6px;
+      text-align: center;
+    }
+    .invoice-table thead th {
+      background: linear-gradient(90deg, #f4fbfa, #e6f9f7 90%);
+      color: #1dbfae;
+      font-weight: 700;
+      border-bottom: 2.1px solid #1dbfae44;
+    }
+    .invoice-table tbody td { background: rgba(255,255,255,0.96); }
+    .invoice-table .description { text-align: left; }
+    .totals-row th, .totals-row td {
+      font-weight: 700;
+      color: #1479ab;
+      border-top: 2px solid #1dbfae38;
+      background: #f2fcff;
+    }
+    .page-footer {
+      margin-top: 30px;
+      border-top: 1.3px solid #eafafc;
+      color: #a4adaf;
+      font-size: 0.98em;
+      text-align: center;
+      letter-spacing: .022em;
+      padding-top: 15px;
+    }
+    
+	@media print {
+	  body { background: #fff; padding: 0; }
+	  .invoice-glass { box-shadow: none; border: none; }
 
-<div class="invoice-detail-card">
-    <div class="invoice-title">
-        <i class="bi bi-receipt"></i> Invoice #{{ invoice.id }}
+	  /* Hide buttons, top menu/header for print */
+	  .action-buttons-container,
+	  nav,
+	  .navbar,
+	  .header,
+	  .main-header,
+	  .topbar,
+	  .menu,
+	  .sidebar,
+	  .dashboard-header-bar {  /* Add this line */
+		display: none !important;
+	  }
+	}
+
+	@media print {
+		body { background: #fff; padding: 0; }
+		.invoice-glass { box-shadow: none; border: none; }
+		nav, header, footer, .navbar, .menu, .sidebar, .topbar, .action-buttons-container {
+		  display: none !important;
+		}
+	  }
+
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+</head>
+<body>
+{% load humanize %}
+
+<div class="action-buttons-container">
+  <button class="action-button print-button" onclick="window.print()">
+    <i class="bi bi-printer"></i> Print Invoice
+  </button>
+  <a href="{% url 'invoicing:invoice_list' %}" class="action-button back-button">
+    <i class="bi bi-arrow-left"></i> Back to Invoices
+  </a>
+</div>
+
+<div class="invoice-glass">
+  <div class="top-flex">
+    <div class="tleft" >
+      <div class="company-title">{{ invoice.bill_from_company|default:"Traccify" }}</div>
+      <div>
+        {% if invoice.bill_from_address_line1 %}{{ invoice.bill_from_address_line1 }}<br>
+          {% if invoice.bill_from_address_line2 %}{{ invoice.bill_from_address_line2 }}{% endif %}
+        {% else %}
+          Trademark Sechura Thakurdwara Road, Bazar<br>
+          Krishn, Bijnor, Uttar Pradesh, India, 246746
+        {% endif %}
+      </div>
+      <div class="mt-1">Reg: {{ invoice.bill_from_registration_new|default:"Company Registration No: 09AMFPV3992D1ZL" }}</div>
+      {% if invoice.bill_from_msme_new %}
+        <div>{{ invoice.bill_from_msme_new }}</div>
+      {% endif %}
+      <div>{{ invoice.bill_from_email|default:"finance@traccify.ai" }}</div>
     </div>
-    <ul class="invoice-detail-list">
-        <li><i class="bi bi-person-circle text-info"></i>
-            <span>Publisher: <strong>{{ invoice.publisher }}</strong></span>
-        </li>
-        <li><i class="bi bi-table text-primary"></i>
-            <span>DRS: <strong>{{ invoice.drs }}</strong></span>
-        </li>
-        <li><i class="bi bi-hourglass-split text-secondary"></i>
-            <span>Status:
-              {% if invoice.status|lower == 'paid' %}
-                <span class="invoice-status-badge status-paid">Paid</span>
-              {% elif invoice.status|lower == 'pending' %}
-                <span class="invoice-status-badge status-pending">Pending</span>
-              {% elif invoice.status|lower == 'cancelled' %}
-                <span class="invoice-status-badge status-cancelled">Cancelled</span>
-              {% else %}
-                <span class="invoice-status-badge">{{ invoice.status }}</span>
-              {% endif %}
-            </span>
-        </li>
-        <li><i class="bi bi-calendar-event text-success"></i>
-            <span>Created: <strong>{{ invoice.created_at|date:"Y-m-d H:i" }}</strong></span>
-        </li>
-    </ul>
-    <div class="invoice-action-group">
-        <a href="{% url 'invoicing:edit' invoice.id %}" class="btn btn-glass"><i class="bi bi-pencil-square me-1"></i>Edit</a>
-        <a href="{% url 'invoicing:delete' invoice.id %}" class="btn btn-glass"><i class="bi bi-trash me-1"></i>Delete</a>
-        <a href="{% url 'invoicing:list' %}" class="btn btn-glass"><i class="bi bi-arrow-left-circle me-1"></i>Back to list</a>
+    <div class="tright">
+      <div class="inv-label">{{ invoice.bill_to_company_new|default:"Rohan Technology" }}</div>
+      <div><strong>{{ invoice.bill_to_email_new|default:"rohan@gmail.com" }}</strong></div>
+	  <div class="invoice-title">
+		<i class="bi bi-receipt"></i> Invoice #{{ invoice.invoice_number }}
+	  </div>
+      {% if invoice.bill_to_address_new %}
+        <div>{{ invoice.bill_to_address_new|linebreaks }}</div>
+      {% endif %}
     </div>
+  </div>
+  
+  <!-- Date & Due in one row -->
+<div style="display: flex; justify-content: space-between; margin-bottom: 7px;">
+  <div style="display:flex; align-items:center; gap:7px;">
+    <i class="bi bi-calendar"></i>
+    <span>Date: <strong>{{ invoice.date|date:"d/m/Y" }}</strong></span>
+  </div>
+  <div style="display:flex; align-items:center; gap:7px;">
+    <i class="bi bi-hourglass"></i>
+    <span>Due: <strong>{{ invoice.due_date|date:"d/m/Y" }}</strong></span>
+  </div>
+</div>
+
+<!-- Status & Currency in one row -->
+<div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+  <div style="display:flex; align-items:center; gap:7px;">
+    <i class="bi bi-graph-up"></i>
+    <span>Status:
+      {% with status_lower=invoice.status|lower %}
+        {% if status_lower == 'paid' %}
+          <span class="invoice-status-badge status-paid">Paid</span>
+        {% elif status_lower == 'pending' %}
+          <span class="invoice-status-badge status-pending">Pending</span>
+        {% else %}
+          <span class="invoice-status-badge status-cancelled">{{ invoice.status }}</span>
+        {% endif %}
+      {% endwith %}
+    </span>
+  </div>
+  <div style="display:flex; align-items:center; gap:7px;">
+    <i class="bi bi-coin"></i>
+    <span>Currency: <strong>{{ invoice.currency }}</strong></span>
+  </div>
+</div>
+
+  <!-- Itemized table with fallback to default line -->
+  <table class="invoice-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Description</th>
+        <th>Qty</th>
+        <th>Rate</th>
+        <th>Amount</th>
+        {% if invoice.currency == "INR" %}
+        <th>CGST 9%</th>
+        <th>SGST 9%</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+  {% if invoice.lines.exists %}
+    {% for line in invoice.lines.all %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td class="description">{{ line.item_description }}</td>
+        <td>{{ line.quantity|floatformat:0 }}</td>
+        <td>{{ line.rate|floatformat:2 }}</td>
+        <td>{{ line.amount|floatformat:2 }}</td>
+        {% if invoice.currency == "INR" %}
+          <td>{{ line.cgst_amount|floatformat:2 }}</td>
+          <td>{{ line.sgst_amount|floatformat:2 }}</td>
+        {% endif %}
+      </tr>
+    {% endfor %}
+  {% else %}
+    <tr>
+      <td>1</td>
+      <td class="description">
+        {% if default_service.description %}{{ default_service.description }}{% else %}Service{% endif %}
+      </td>
+      <td>
+        {% if default_service.quantity %}{{ default_service.quantity }}{% else %}1{% endif %}
+      </td>
+      <td>
+        {% if default_service.rate %}{{ default_service.rate|floatformat:2 }}{% else %}{{ invoice.amount|default:"0.00"|floatformat:2 }}{% endif %}
+      </td>
+      <td>
+        {% if default_service.amount %}{{ default_service.amount|floatformat:2 }}{% else %}{{ invoice.amount|default:"0.00"|floatformat:2 }}{% endif %}
+      </td>
+      {% if invoice.currency == "INR" %}
+        <td>{{ cgst|default:"0.00"|floatformat:2 }}</td>
+        <td>{{ sgst|default:"0.00"|floatformat:2 }}</td>
+      {% endif %}
+    </tr>
+  {% endif %}
+</tbody>
+</table>
+
+  <div class="invoice-action-group" style="margin-top:20px;">
+    <div style="width:100%; display:flex; justify-content: space-between;">
+      <div></div>
+      <div style="text-align:right;">
+        <p style="margin: 2px 0;">Subtotal: {{ invoice.subtotal|floatformat:2 }}</p>
+        {% if invoice.currency == "INR" %}
+        <p style="margin: 3px 0;">CGST 9%: {{ invoice.cgst_amount|floatformat:2 }}</p>
+        <p style="margin: 3px 0;">SGST 9%: {{ invoice.sgst_amount|floatformat:2 }}</p>
+        {% endif %}
+        <p style="margin: 3px 0;"><strong>Total: {{ invoice.total_amount|floatformat:2 }}</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:8px;">
+  <h4>Bank Details</h4>
+  <p style="margin: 2px 0;">Bank: {{ invoice.bank_name|default:"HDFC Bank" }}</p>
+  <p style="margin: 2px 0;">Name: {{ invoice.bank_account_name|default:"traccify.ai" }}</p>
+  <p style="margin: 2px 0;">A/C No: {{ invoice.bank_account_number|default:"50200094727751" }}</p>
+  <p style="margin: 2px 0;">IFSC: {{ invoice.bank_ifsc_code|default:"HDFC0007070" }}</p>
+  <p style="margin: 2px 0;">SWIFT: {{ invoice.bank_swift_code|default:"HDFCINBB" }}</p>
+  {% if invoice.bank_branch_address %}
+  <p style="margin: 2px 0;">Branch: {{ invoice.bank_branch_address }}</p>
+  {% endif %}
+</div>
+
+
+  <div style="margin-top:20px; text-align:center;">
+    <p style="margin: 2px 0;">Thank you for your business!</p>
+    <p style="margin: 2px 0;">{{ invoice.terms|default:"Thanks for your business." }}</p>
+    {% if invoice.signature %}
+      <img src="{{ invoice.signature.url }}" alt="Signature" style="max-height:80px; margin-top:10px;">
+    {% endif %}
+  </div>
+
+  <div class="page-footer" style="margin-top:20px;">
+    <p>This is a computer generated invoice by {{ invoice.bill_from_company|default:"Traccify" }}.</p>
+  </div>
 </div>
 {% endblock %}

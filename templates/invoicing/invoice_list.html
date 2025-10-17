@@ -392,6 +392,53 @@
     background: #0056b3;
 }
 
+.btn-save:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+/* File upload styles */
+.file-upload-zone {
+    border: 2px dashed #dee2e6;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    transition: border-color 0.3s;
+    background: #f8f9fa;
+}
+
+.file-upload-zone:hover {
+    border-color: #007bff;
+    background: #e3f2fd;
+}
+
+.file-upload-zone.dragover {
+    border-color: #007bff;
+    background: #e3f2fd;
+}
+
+.file-info {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.upload-progress {
+    width: 100%;
+    height: 4px;
+    background: #e9ecef;
+    border-radius: 2px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+}
+
+.upload-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #1dbfae, #1963b3);
+    border-radius: 2px;
+    transition: width 0.3s;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .invoice-modal-dialog {
@@ -439,119 +486,109 @@
 </style>
 
 <div class="card invoice-list-card mx-auto">
-    <div class="d-flex flex-wrap justify-content-between align-items-center px-4 py-4 border-bottom">
-	  <h2 class="fs-3 mb-0" style="color:#1963b3">
-		<i class="bi bi-receipt"></i> Invoices
-	  </h2>
+  <div class="d-flex flex-wrap justify-content-between align-items-center px-4 py-4 border-bottom">
+    <h2 class="fs-3 mb-0" style="color:#1963b3">
+      <i class="bi bi-receipt"></i> Invoices
+    </h2>
+    {% if active_tab == 'advertiser' %}
+      <button type="button" class="add-invoice-btn d-flex align-items-center gap-2" onclick="openInvoiceModal()">
+        <i class="bi bi-plus-lg"></i> Create Advertiser Invoice
+      </button>
+    {% else %}
+      <button type="button" class="add-invoice-btn d-flex align-items-center gap-2" onclick="openPublisherModal()">
+        <i class="bi bi-upload"></i> Upload Publisher Invoice
+      </button>
+    {% endif %}
+  </div>
 
-	  {% if active_tab == 'advertiser' %}
-		<button type="button" class="add-invoice-btn d-flex align-items-center gap-2" onclick="openInvoiceModal()">
-		  <i class="bi bi-plus-lg"></i> Create Advertiser Invoice
-		</button>
-	  {% else %}
-		<button type="button" class="add-invoice-btn d-flex align-items-center gap-2" onclick="openPublisherModal()">
-		  <i class="bi bi-upload"></i> Upload Publisher Invoice
-		</button>
-	  {% endif %}
-	</div>
-    
-    <div class="px-4 pt-3 pb-0">
-        <ul class="nav nav-tabs mb-3" id="invoiceTabs">
-            <li class="nav-item">
-                <a class="nav-link {% if active_tab == 'advertiser' %}active{% endif %}" href="?tab=advertiser{% if selected_status %}&status={{ selected_status }}{% endif %}">Advertiser Invoices</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if active_tab == 'publisher' %}active{% endif %}" href="?tab=publisher{% if selected_status %}&status={{ selected_status }}{% endif %}">Publisher Invoices</a>
-            </li>
-        </ul>
-        
-        <form method="get" class="row g-2 mb-3 align-items-center">
-            <input type="hidden" name="tab" value="{{ active_tab }}">
-            <div class="col-auto">
-                <select name="client" class="form-select" onchange="this.form.submit()">
-                    <option value="">All Clients</option>
-                    {% for client in clients %}
-                        <option value="{{ client.id }}" {% if selected_client == client.id|stringformat:'s' %}selected{% endif %}>{{ client.company_name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-auto">
-                <select name="month" class="form-select" onchange="this.form.submit()">
-                    <option value="">All Months</option>
-                    {% for value, name in months %}
-                        <option value="{{ value }}" {% if selected_month == value %}selected{% endif %}>{{ name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-auto">
-                <select name="status" class="form-select" onchange="this.form.submit()">
-                    <option value="">All Statuses</option>
-                    <option value="Paid" {% if selected_status == 'Paid' %}selected{% endif %}>Paid</option>
-                    <option value="Pending" {% if selected_status == 'Pending' %}selected{% endif %}>Unpaid</option>
-                    <option value="Overdue" {% if selected_status == 'Overdue' %}selected{% endif %}>Overdue</option>
-                </select>
-            </div>
-        </form>
-    </div>
-    
-    <div class="invoice-table-responsive px-2 px-md-4 py-3">
-        <table class="table table-hover animated-table align-middle mb-0">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Invoice#</th>
-					<th>Client</th>
-                    <th>Amount</th>
-					<th>Due Date</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for invoice in invoices %}
-                <tr>
-                    <td><span class="fw-bold text-primary">#{{ invoice.id }}</span></td>
-					<td>
-						<span class="fw-bold" style="color:#1963b3;">
-							{{ invoice.invoice_number }}
-						</span>
-						<div class="text-muted small">{{ invoice.created_at|date:'d-m-Y' }}</div>
-					</td>
-					
-                    <td>{% if active_tab == 'advertiser' %}{{ invoice.advertiser }}{% else %}{{ invoice.publisher }}{% endif %}</td>
-                    <td>{{ invoice.total_amount }}</td>
-					<td>{{ invoice.due_date }}</td>
-                    <td>
-                        <span class="invoice-status {% if invoice.status == 'Paid' %}paid{% elif invoice.status == 'Pending' %}pending{% elif invoice.status == 'Cancelled' %}cancelled{% elif invoice.status == 'Overdue' %}overdue{% endif %}">
-                            {{ invoice.status }}
-                        </span>
-                    </td>
-                    <td>
-						<!-- Edit button now uses Django namespaced URL -->
-						<button class="invoice-action-btn" title="Edit"
-								onclick="location.href='{% url 'invoicing:edit' invoice.id %}'">
-							<i class="bi bi-pencil-square"></i>
-						</button>
+  <div class="px-4 pt-3 pb-0">
+    <ul class="nav nav-tabs mb-3" id="invoiceTabs">
+      <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'advertiser' %}active{% endif %}" href="?tab=advertiser{% if selected_status %}&status={{ selected_status }}{% endif %}">Advertiser Invoices</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'publisher' %}active{% endif %}" href="?tab=publisher{% if selected_status %}&status={{ selected_status }}{% endif %}">Publisher Invoices</a>
+      </li>
+    </ul>
 
-						<!-- Delete button -->
-						<a href="{% url 'invoicing:delete' invoice.id %}" class="invoice-action-btn" title="Delete">
-							<i class="bi bi-trash"></i>
-						</a>
+    <form method="get" class="row g-2 mb-3 align-items-center">
+      <input type="hidden" name="tab" value="{{ active_tab }}">
+      <div class="col-auto">
+        <select name="client" class="form-select" onchange="this.form.submit()">
+          <option value="">All Clients</option>
+          {% for client in clients %}
+            <option value="{{ client.id }}" {% if selected_client == client.id|stringformat:'s' %}selected{% endif %}>{{ client.company_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <select name="month" class="form-select" onchange="this.form.submit()">
+          <option value="">All Months</option>
+          {% for value, name in months %}
+            <option value="{{ value }}" {% if selected_month == value %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <select name="status" class="form-select" onchange="this.form.submit()">
+          <option value="">All Statuses</option>
+          <option value="Paid" {% if selected_status == 'Paid' %}selected{% endif %}>Paid</option>
+          <option value="Pending" {% if selected_status == 'Pending' %}selected{% endif %}>Pending</option>
+          <option value="Overdue" {% if selected_status == 'Overdue' %}selected{% endif %}>Overdue</option>
+        </select>
+      </div>
+    </form>
+  </div>
 
-						<!-- PDF Download button -->
-						<a href="{% url 'invoicing:pdf' invoice.id %}" class="invoice-action-btn" title="Download PDF">
-							<i class="bi bi-file-earmark-pdf"></i>
-						</a>
-					</td>
-                </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="6" class="text-secondary">No invoices found.</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+  <div class="invoice-table-responsive px-2 px-md-4 py-3">
+    <table class="table table-hover animated-table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Invoice#</th>
+          <th>Client</th>
+          <th>Amount</th>
+          <th>Due Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for invoice in invoices %}
+        <tr>
+          <td><span class="fw-bold text-primary">#{{ invoice.id }}</span></td>
+          <td>
+            <span class="fw-bold" style="color:#1963b3;">{{ invoice.invoice_number }}</span>
+            <div class="text-muted small">{{ invoice.created_at|date:'d-m-Y' }}</div>
+          </td>
+          <td>{% if active_tab == 'advertiser' %}{{ invoice.advertiser }}{% else %}{{ invoice.publisher }}{% endif %}</td>
+          <td>{{ invoice.total_amount }}</td>
+          <td>{{ invoice.due_date }}</td>
+          <td>
+            <span class="invoice-status {% if invoice.status == 'Paid' %}paid{% elif invoice.status == 'Pending' %}pending{% elif invoice.status == 'Cancelled' %}cancelled{% elif invoice.status == 'Overdue' %}overdue{% endif %}">
+              {{ invoice.status }}
+            </span>
+          </td>
+          <td>
+            <button class="invoice-action-btn" title="Edit" onclick="location.href='{% url 'invoicing:edit' invoice.id %}'">
+              <i class="bi bi-pencil-square"></i>
+            </button>
+            <a href="{% url 'invoicing:delete' invoice.id %}" class="invoice-action-btn" title="Delete">
+              <i class="bi bi-trash"></i>
+            </a>
+            <a href="{% url 'invoicing:pdf' invoice.id %}" class="invoice-action-btn" title="Download PDF">
+              <i class="bi bi-file-earmark-pdf"></i>
+            </a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="7" class="text-secondary">No invoices found.</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <!-- Advertiser Invoice Modal -->
@@ -566,7 +603,7 @@
       </div>
 
       <div class="invoice-modal-body">
-        <form id="invoiceForm" method="post" action="{% url 'invoicing:add' %}" enctype="multipart/form-data">
+        <form id="invoiceForm" method="post" action="{% url 'invoicing:add' %}" enctype="multipart/form-data" data-list-url-adv="{% url 'invoicing:invoice_list' %}?tab=advertiser">
           {% csrf_token %}
           <input type="hidden" name="party_type" value="advertiser">
 
@@ -585,7 +622,6 @@ MSME: UDYAM-UP-17-0028662</textarea>
 
               <div class="col-md-6 form-group">
                 <label class="form-label">Bill To</label>
-                <!-- Add data-* attributes for client info so JS can auto-fill -->
                 <select name="advertiser" class="form-control form-select" id="advertiserSelect" required>
                   <option value="">Select Advertiser</option>
                   {% for client in clients %}
@@ -612,7 +648,7 @@ email@example.com"></textarea>
             <div class="row">
               <div class="col-md-3 form-group">
                 <label class="form-label">Invoice Number</label>
-                <input type="text" name="invoice_number" class="form-control" placeholder="INV-001" required>
+                <input type="text" name="invoice_number" class="form-control" placeholder="INV-001">
               </div>
               <div class="col-md-3 form-group">
                 <label class="form-label">Invoice Date</label>
@@ -653,7 +689,7 @@ email@example.com"></textarea>
             </div>
           </div>
 
-          <!-- Bank + Right column (currency/totals/status) -->
+          <!-- Bank + Right column -->
           <div class="form-section">
             <div class="row">
               <div class="col-md-6 form-group">
@@ -696,7 +732,7 @@ SWIFT CODE: HDFCINBB</textarea>
             </div>
           </div>
 
-          <!-- Terms below Bank (same section order as image) -->
+          <!-- Terms and Status -->
           <div class="form-section">
             <div class="row">
               <div class="col-md-6 form-group" style="margin-top: -4.90rem;">
@@ -705,31 +741,32 @@ SWIFT CODE: HDFCINBB</textarea>
               </div>
               <div class="col-md-6 form-group">
                 <label class="form-label">Status</label>
-                  <select name="status" class="form-control form-select">
-                    <option value="Pending" selected>Pending</option>
-                    <option value="Paid">Paid</option>
-                    <option value="Cancelled">Cancelled</option>
-                    <option value="Overdue">Overdue</option>
-                  </select>
+                <select name="status" class="form-control form-select">
+                  <option value="Pending" selected>Pending</option>
+                  <option value="Paid">Paid</option>
+                  <option value="Cancelled">Cancelled</option>
+                  <option value="Overdue">Overdue</option>
+                </select>
               </div>
             </div>
           </div>
-		  
-		  <!-- Terms and Signature (compact, signature on left) -->
-		  <div class="form-section">
-			  <div class="row g-3">
-				<div class="col-md-6 form-group" style="margin-top: -3.75rem;">
-				  <label class="form-label">Signature / Stamp (Optional)</label>
-				  <input type="file" name="signature" class="form-control" accept="image/*">
-				</div>
-			  </div>
-			</div>
 
-          <!-- Hidden calc -->
+          <!-- Signature -->
+          <div class="form-section">
+            <div class="row g-3">
+              <div class="col-md-6 form-group" style="margin-top: -3.75rem;">
+                <label class="form-label">Signature / Stamp (Optional)</label>
+                <input type="file" name="signature" class="form-control" accept="image/*">
+              </div>
+            </div>
+          </div>
+
+          <!-- Hidden calc fields -->
           <input type="hidden" name="subtotal" id="hiddenSubtotal" value="0">
-          <input type="hidden" name="tax" id="hiddenTax" value="0">
+          <input type="hidden" name="gst_amount" id="hiddenTax" value="0">
           <input type="hidden" name="amount" id="hiddenAmount" value="0">
-          <input type="hidden" name="drs" value="1">
+          <input type="hidden" name="total_amount" value="0">
+          <input type="hidden" name="drs" value="">
         </form>
       </div>
 
@@ -741,7 +778,7 @@ SWIFT CODE: HDFCINBB</textarea>
   </div>
 </div>
 
-<!-- Publisher Upload Modal (light theme, compact) -->
+<!-- Publisher Upload Modal -->
 <div class="invoice-modal" id="publisherModal">
   <div class="invoice-modal-dialog" style="max-width: 560px;">
     <div class="invoice-modal-content" style="border-radius: 12px;">
@@ -753,14 +790,20 @@ SWIFT CODE: HDFCINBB</textarea>
       </div>
 
       <div class="invoice-modal-body" style="padding: 1rem 1.25rem 1.25rem;">
-        <form id="publisherInvoiceForm" method="post" action="{% url 'invoicing:add' %}" enctype="multipart/form-data">
+        <form id="publisherInvoiceForm" method="post" action="{% url 'invoicing:add' %}" enctype="multipart/form-data" data-list-url-pub="{% url 'invoicing:invoice_list' %}?tab=publisher">
           {% csrf_token %}
           <input type="hidden" name="party_type" value="publisher">
 
           <div class="form-section" style="margin-bottom: .9rem;">
             <div class="form-group">
               <label class="form-label">Invoice PDF/Image</label>
-              <input type="file" name="pdf" class="form-control" accept="application/pdf,image/*" required>
+              <input type="file" name="pdf" class="form-control" accept="application/pdf,image/*,.jpg,.jpeg,.png,.gif">
+              <div class="file-info">
+                <small class="text-muted">Accepted formats: PDF, JPG, PNG, GIF (Max 10MB)</small>
+              </div>
+              <div class="upload-progress" style="display: none;">
+                <div class="upload-progress-bar" style="width: 0%"></div>
+              </div>
             </div>
           </div>
 
@@ -807,11 +850,18 @@ SWIFT CODE: HDFCINBB</textarea>
             </div>
           </div>
 
-          <!-- Hidden fields needed by your model -->
+          <!-- Hidden fields to satisfy model -->
           <input type="hidden" name="invoice_number" value="">
           <input type="hidden" name="currency" value="INR">
           <input type="hidden" name="drs" value="">
           <input type="hidden" name="advertiser" value="">
+          <input type="hidden" name="subtotal" value="0">
+          <input type="hidden" name="gst_amount" value="0">
+          <input type="hidden" name="total_amount" value="0">
+          <input type="hidden" name="bill_from_details" value="">
+          <input type="hidden" name="bill_to_details" value="">
+          <input type="hidden" name="bank_details" value="">
+          <input type="hidden" name="terms" value="">
         </form>
       </div>
 
@@ -824,166 +874,497 @@ SWIFT CODE: HDFCINBB</textarea>
 </div>
 
 <script>
-// Items state
+/* ======================================================
+   Shared State and Utilities
+====================================================== */
 let items = [];
 let itemCounter = 0;
 
+function getCookie(name) {
+    const match = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return match ? match.pop() : '';
+}
+
+/* ======================================================
+   Advertiser Invoice Modal
+====================================================== */
 function openInvoiceModal() {
-  document.getElementById('invoiceModal').classList.add('show');
-  document.body.style.overflow = 'hidden';
+    const modal = document.getElementById('invoiceModal');
+    if (!modal) return;
 
-  // Default dates
-  const today = new Date().toISOString().split('T')[0];
-  document.querySelector('input[name="date"]').value = today;
-  const due = new Date(); due.setDate(due.getDate() + 30);
-  document.querySelector('input[name="due_date"]').value = due.toISOString().split('T')[0];
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
 
-  // Start clean
-  items = []; itemCounter = 0; updateItemsTable(); updateTotals();
+    // Default dates
+    const today = new Date().toISOString().split('T')[0];
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 30);
+
+    const form = document.getElementById('invoiceForm');
+    if (form) {
+        const dateInput = form.querySelector('input[name="date"]');
+        const dueDateInput = form.querySelector('input[name="due_date"]');
+
+        if (dateInput) dateInput.value = today;
+        if (dueDateInput) dueDateInput.value = dueDate.toISOString().split('T')[0];
+
+        // Ensure party_type input exists
+        let pt = form.querySelector('input[name="party_type"]');
+        if (!pt) {
+            pt = document.createElement('input');
+            pt.type = 'hidden';
+            pt.name = 'party_type';
+            form.appendChild(pt);
+        }
+        pt.value = 'advertiser';
+    }
+
+    // Reset items
+    items = [];
+    itemCounter = 0;
+    updateItemsTable();
+    updateTotals();
 }
 
 function closeInvoiceModal() {
-  document.getElementById('invoiceModal').classList.remove('show');
-  document.body.style.overflow = '';
-  document.getElementById('invoiceForm').reset();
-  items = []; itemCounter = 0; updateItemsTable(); updateTotals();
+    const modal = document.getElementById('invoiceModal');
+    if (!modal) return;
+
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+
+    const form = document.getElementById('invoiceForm');
+    if (form) form.reset();
+
+    items = [];
+    itemCounter = 0;
+    updateItemsTable();
+    updateTotals();
 }
 
-
-
-// Add/remove items
+/* ======================================================
+   Item Helpers (Shared by Advertiser)
+====================================================== */
 function addItem() {
-  const desc = document.getElementById('itemDescription').value.trim();
-  const qty = parseInt(document.getElementById('itemQuantity').value) || 1;
-  const rate = parseFloat(document.getElementById('itemRate').value) || 0;
-  if (!desc) return alert('Please enter item description');
-  addItemToList(desc, qty, rate);
-  document.getElementById('itemDescription').value = '';
-  document.getElementById('itemQuantity').value = 1;
-  document.getElementById('itemRate').value = 0;
+    const desc = document.getElementById('itemDescription')?.value?.trim();
+    const qty = parseInt(document.getElementById('itemQuantity')?.value) || 1;
+    const rate = parseFloat(document.getElementById('itemRate')?.value) || 0;
+
+    if (!desc) return alert('Please enter item description');
+
+    addItemToList(desc, qty, rate);
+
+    document.getElementById('itemDescription').value = '';
+    document.getElementById('itemQuantity').value = 1;
+    document.getElementById('itemRate').value = 0;
 }
 
 function addItemToList(description, quantity, rate) {
-  const item = { id: ++itemCounter, description, quantity, rate, amount: quantity * rate };
-  items.push(item);
-  updateItemsTable(); updateTotals();
+    const item = {
+        id: ++itemCounter,
+        description,
+        quantity,
+        rate,
+        amount: quantity * rate,
+    };
+    items.push(item);
+    updateItemsTable();
+    updateTotals();
 }
 
 function removeItem(id) {
-  items = items.filter(i => i.id !== id);
-  updateItemsTable(); updateTotals();
+    items = items.filter(i => i.id !== id);
+    updateItemsTable();
+    updateTotals();
 }
 
 function updateItemsTable() {
-  const tbody = document.getElementById('itemsTableBody');
-  tbody.innerHTML = '';
-  items.forEach(i => {
-    tbody.insertAdjacentHTML('beforeend', `
-      <tr>
-        <td>${i.description}</td>
-        <td style="text-align:center;">${i.quantity}</td>
-        <td style="text-align:center;">${i.rate}</td>
-        <td style="text-align:right;">$${i.amount.toFixed(2)}</td>
-        <td style="text-align:center;">
-          <span class="item-remove" onclick="removeItem(${i.id})" title="Remove item">
-            <i class="bi bi-x-lg"></i>
-          </span>
-        </td>
-      </tr>
-    `);
-  });
+    const tbody = document.getElementById('itemsTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+    items.forEach(i => {
+        tbody.insertAdjacentHTML(
+            'beforeend',
+            `
+            <tr>
+                <td>${i.description}</td>
+                <td style="text-align:center;">${i.quantity}</td>
+                <td style="text-align:center;">${i.rate}</td>
+                <td style="text-align:right;">$${i.amount.toFixed(2)}</td>
+                <td style="text-align:center;">
+                    <span class="item-remove" onclick="removeItem(${i.id})" title="Remove item">
+                        <i class="bi bi-x-lg"></i>
+                    </span>
+                </td>
+            </tr>
+            `
+        );
+    });
 }
 
 function updateTotals() {
-  const subtotal = items.reduce((s, i) => s + i.amount, 0);
-  const taxRate = 0; // adjust if needed
-  const tax = subtotal * taxRate / 100;
-  const total = subtotal + tax;
+    const subtotal = items.reduce((sum, i) => sum + i.amount, 0);
+    const taxRate = 0;
+    const tax = subtotal * taxRate / 100;
+    const total = subtotal + tax;
 
-  const currency = document.getElementById('currencySelect').value;
-  const sym = { USD: '$', INR: '₹', EUR: '€' }[currency] || '$';
+    const currency = document.getElementById('currencySelect')?.value || 'USD';
+    const symbols = { USD: '$', INR: '₹', EUR: '€' };
+    const sym = symbols[currency] || '$';
 
-  document.getElementById('subtotalAmount').textContent = `${sym}${subtotal.toFixed(2)}`;
-  document.getElementById('taxAmount').textContent = `${sym}${tax.toFixed(2)}`;
-  document.getElementById('totalAmount').textContent = `${sym}${total.toFixed(2)}`;
+    const subtotalEl = document.getElementById('subtotalAmount');
+    const taxEl = document.getElementById('taxAmount');
+    const totalEl = document.getElementById('totalAmount');
 
-  document.getElementById('hiddenSubtotal').value = subtotal.toFixed(2);
-  document.getElementById('hiddenTax').value = tax.toFixed(2);
-  document.getElementById('hiddenAmount').value = total.toFixed(2);
+    if (subtotalEl) subtotalEl.textContent = `${sym}${subtotal.toFixed(2)}`;
+    if (taxEl) taxEl.textContent = `${sym}${tax.toFixed(2)}`;
+    if (totalEl) totalEl.textContent = `${sym}${total.toFixed(2)}`;
+
+    // Hidden fields
+    const hiddenSubtotal = document.getElementById('hiddenSubtotal');
+    const hiddenTax = document.getElementById('hiddenTax');
+    const hiddenAmount = document.getElementById('hiddenAmount');
+
+    if (hiddenSubtotal) hiddenSubtotal.value = subtotal.toFixed(2);
+    if (hiddenTax) hiddenTax.value = tax.toFixed(2);
+    if (hiddenAmount) hiddenAmount.value = total.toFixed(2);
 }
 
-// Auto-fill Bill To + Items from select option data-*
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('currencySelect').addEventListener('change', updateTotals);
-
-  const advSelect = document.getElementById('advertiserSelect');
-  advSelect.addEventListener('change', function() {
-    const opt = this.options[this.selectedIndex];
-    const company = opt.getAttribute('data-company') || '';
-    const contact = opt.getAttribute('data-contact') || '';
-    const email   = opt.getAttribute('data-email') || '';
-    document.getElementById('billToTextarea').value = [company, contact, email].filter(Boolean).join('\n');
-
-    // Auto-fill one default item for the selected advertiser
-    const defItem = opt.getAttribute('data-item') || 'Service';
-    const defQty  = parseInt(opt.getAttribute('data-qty') || '1');
-    const defRate = parseFloat(opt.getAttribute('data-rate') || '0');
-
-    // Reset items and add default
-    items = []; itemCounter = 0;
-    if (defItem) addItemToList(defItem, defQty, defRate);
-  });
-
-  // Close modal on backdrop click
-  document.getElementById('invoiceModal').addEventListener('click', e => {
-    if (e.target === e.currentTarget) closeInvoiceModal();
-  });
-
-  // Close on Esc
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && document.getElementById('invoiceModal').classList.contains('show')) {
-      closeInvoiceModal();
-    }
-  });
-});
-
+/* ======================================================
+   Publisher Invoice Modal
+====================================================== */
 function openPublisherModal() {
-  const modal = document.getElementById('publisherModal');
-  modal.classList.add('show');
-  document.body.style.overflow = 'hidden';
+    const modal = document.getElementById('publisherModal');
+    if (!modal) return;
 
-  // Defaults: today and +30 days
-  const today = new Date().toISOString().split('T')[0];
-  const due = new Date(); due.setDate(due.getDate() + 30);
-  const form = document.getElementById('publisherInvoiceForm');
-  form.querySelector('input[name="date"]').value = today;
-  form.querySelector('input[name="due_date"]').value = due.toISOString().split('T')[0];
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
 
-  // Generate a lightweight invoice number if blank
-  const inv = form.querySelector('input[name="invoice_number"]');
-  if (!inv.value) {
-    inv.value = 'PUB-' + Math.floor(100000 + Math.random()*900000);
-  }
+    const today = new Date().toISOString().split('T')[0];
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 30);
+
+    const form = document.getElementById('publisherInvoiceForm');
+    if (form) {
+        const dateInput = form.querySelector('input[name="date"]');
+        const dueInput = form.querySelector('input[name="due_date"]');
+
+        if (dateInput) dateInput.value = today;
+        if (dueInput) dueInput.value = dueDate.toISOString().split('T')[0];
+
+        let pt = form.querySelector('input[name="party_type"]');
+        if (!pt) {
+            pt = document.createElement('input');
+            pt.type = 'hidden';
+            pt.name = 'party_type';
+            form.appendChild(pt);
+        }
+        pt.value = 'publisher';
+
+        // Generate invoice number if blank
+        const inv = form.querySelector('input[name="invoice_number"]');
+        if (inv && !inv.value) {
+            inv.value = 'PUB-' + Math.floor(100000 + Math.random() * 900000);
+        }
+    }
+
+    // Reset upload progress
+    const progressBar = modal.querySelector('.upload-progress');
+    const progressFill = modal.querySelector('.upload-progress-bar');
+    if (progressBar && progressFill) {
+        progressBar.style.display = 'none';
+        progressFill.style.width = '0%';
+    }
 }
 
 function closePublisherModal() {
-  const modal = document.getElementById('publisherModal');
-  modal.classList.remove('show');
-  document.body.style.overflow = '';
-  document.getElementById('publisherInvoiceForm').reset();
+    const modal = document.getElementById('publisherModal');
+    if (!modal) return;
+
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+
+    const form = document.getElementById('publisherInvoiceForm');
+    if (form) form.reset();
+
+    const progressBar = modal.querySelector('.upload-progress');
+    const progressFill = modal.querySelector('.upload-progress-bar');
+    if (progressBar && progressFill) {
+        progressBar.style.display = 'none';
+        progressFill.style.width = '0%';
+    }
 }
 
-// Close publisher modal when clicking backdrop
-document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('publisherModal').addEventListener('click', function(e) {
-    if (e.target === this) closePublisherModal();
-  });
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && document.getElementById('publisherModal').classList.contains('show')) {
-      closePublisherModal();
+/* ======================================================
+   DOM Hooks and Form Submissions
+====================================================== */
+document.addEventListener('DOMContentLoaded', () => {
+
+    // Update totals on currency change
+    const currencySelect = document.getElementById('currencySelect');
+    if (currencySelect) currencySelect.addEventListener('change', updateTotals);
+
+    // Advertiser select auto-fill
+    const advSelect = document.getElementById('advertiserSelect');
+    if (advSelect) {
+        advSelect.addEventListener('change', function () {
+            const opt = this.options[this.selectedIndex];
+            const company = opt.getAttribute('data-company') || '';
+            const contact = opt.getAttribute('data-contact') || '';
+            const email = opt.getAttribute('data-email') || '';
+
+            const billTo = document.getElementById('billToTextarea');
+            if (billTo) billTo.value = [company, contact, email].filter(Boolean).join('\n');
+
+            // Default item for advertiser
+            const defItem = opt.getAttribute('data-item') || 'Service';
+            const defQty = parseInt(opt.getAttribute('data-qty') || '1');
+            const defRate = parseFloat(opt.getAttribute('data-rate') || '0');
+
+            items = [];
+            itemCounter = 0;
+            if (defItem) addItemToList(defItem, defQty, defRate);
+        });
     }
-  });
+
+    // Backdrop click closes modal
+    const invoiceModal = document.getElementById('invoiceModal');
+    if (invoiceModal) {
+        invoiceModal.addEventListener('click', e => {
+            if (e.target === e.currentTarget) closeInvoiceModal();
+        });
+    }
+
+    const publisherModal = document.getElementById('publisherModal');
+    if (publisherModal) {
+        publisherModal.addEventListener('click', e => {
+            if (e.target === e.currentTarget) closePublisherModal();
+        });
+    }
+
+    // Esc key closes open modals
+    document.addEventListener('keydown', e => {
+        const advOpen = document.getElementById('invoiceModal')?.classList.contains('show');
+        const pubOpen = document.getElementById('publisherModal')?.classList.contains('show');
+        if (e.key === 'Escape') {
+            if (advOpen) closeInvoiceModal();
+            if (pubOpen) closePublisherModal();
+        }
+    });
+
+    /* --------------------------------------
+       Advertiser Form Submit (AJAX)
+    -------------------------------------- */
+    const advForm = document.getElementById('invoiceForm');
+    if (advForm) {
+        if (!advForm.getAttribute('action')) {
+            advForm.setAttribute('action', advForm.dataset.createUrl || '');
+        }
+
+        advForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const advertiserId = advForm.querySelector('select[name="advertiser"]')?.value;
+            if (!advertiserId || advertiserId === 'Select Advertiser') {
+                alert('Please select an advertiser');
+                return;
+            }
+
+            updateTotals();
+            const formData = new FormData(advForm);
+            formData.set('party_type', 'advertiser');
+
+            const submitBtn = advForm.querySelector('.btn-save');
+            const originalText = submitBtn?.textContent || 'Save Invoice';
+            if (submitBtn) {
+                submitBtn.textContent = 'Saving...';
+                submitBtn.disabled = true;
+            }
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', advForm.action);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+            const csrftoken = getCookie('csrftoken');
+            if (csrftoken) xhr.setRequestHeader('X-CSRFToken', csrftoken);
+
+            xhr.onload = () => {
+                try {
+                    if (xhr.status === 200) {
+                        const resp = JSON.parse(xhr.responseText);
+                        if (resp.success && resp.redirect_url) {
+                            closeInvoiceModal();
+                            window.location.href = resp.redirect_url;
+                            return;
+                        }
+                        let msg = resp.message || 'Please fix the errors.';
+                        if (resp.errors) {
+                            msg += '\n\n' + Object.values(resp.errors).flat().join('\n');
+                        }
+                        alert(msg);
+                    } else {
+                        alert('Save failed. HTTP ' + xhr.status + ' ' + xhr.statusText);
+                    }
+                } catch {
+                    closeInvoiceModal();
+                    window.location.href = advForm.dataset.listUrlAdv || '';
+                } finally {
+                    if (submitBtn) {
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                    }
+                }
+            };
+
+            xhr.onerror = () => {
+                alert('Network error. Please try again.');
+                if (submitBtn) {
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+            };
+
+            xhr.send(formData);
+        });
+    }
+
+    /* --------------------------------------
+       Publisher Form Submit (AJAX + Upload)
+    -------------------------------------- */
+    const publisherForm = document.getElementById('publisherInvoiceForm');
+    if (publisherForm) {
+        const fileInput = publisherForm.querySelector('input[name="pdf"]');
+        const progressBar = publisherForm.querySelector('.upload-progress');
+        const progressFill = publisherForm.querySelector('.upload-progress-bar');
+
+        if (fileInput) {
+            fileInput.addEventListener('change', function () {
+                const file = this.files?.[0];
+                if (!file) return;
+
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('File size must be less than 10MB');
+                    this.value = '';
+                    return;
+                }
+
+                const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif'];
+                const validType = allowedTypes.includes(file.type);
+                if (!validType) {
+                    alert('Please select a valid PDF or image file');
+                    this.value = '';
+                    return;
+                }
+
+                const fileInfo = this.parentElement?.querySelector('.file-info small');
+                if (fileInfo) {
+                    fileInfo.textContent = `Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                    fileInfo.style.color = '#28a745';
+                }
+            });
+        }
+
+        publisherForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const publisherId = this.querySelector('select[name="publisher"]')?.value;
+            const amount = parseFloat(this.querySelector('input[name="amount"]')?.value || '0');
+            const file = this.querySelector('input[name="pdf"]')?.files?.[0];
+
+            if (!publisherId) return alert('Please select a publisher');
+            if (!amount || amount <= 0) return alert('Please enter a valid amount');
+
+            const formData = new FormData(this);
+            formData.set('party_type', 'publisher');
+            formData.set('publisher', publisherId);
+            formData.set('subtotal', amount.toFixed(2));
+            formData.set('gst_amount', '0');
+            formData.set('total_amount', amount.toFixed(2));
+            formData.set('amount', amount.toFixed(2));
+
+            if (!formData.get('terms')) {
+                formData.set('terms', 'Thanks for your business.');
+            }
+
+            const inv = this.querySelector('input[name="invoice_number"]');
+            if (inv && !inv.value) {
+                const newInv = 'PUB-' + Math.floor(100000 + Math.random() * 900000);
+                inv.value = newInv;
+                formData.set('invoice_number', newInv);
+            }
+
+            const submitBtn = this.querySelector('.btn-save');
+            const originalText = submitBtn?.textContent || 'Save Invoice';
+            if (submitBtn) {
+                submitBtn.textContent = 'Uploading...';
+                submitBtn.disabled = true;
+            }
+
+            if (progressBar && progressFill) {
+                progressBar.style.display = 'block';
+                progressFill.style.width = '0%';
+            }
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', this.action);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+            const csrftoken = getCookie('csrftoken');
+            if (csrftoken) xhr.setRequestHeader('X-CSRFToken', csrftoken);
+
+            if (xhr.upload && progressFill && submitBtn) {
+                xhr.upload.addEventListener('progress', ev => {
+                    if (ev.lengthComputable) {
+                        const pc = (ev.loaded / ev.total) * 100;
+                        progressFill.style.width = pc + '%';
+                        submitBtn.textContent = `Uploading... ${Math.round(pc)}%`;
+                    }
+                });
+            }
+
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    try {
+                        const resp = JSON.parse(xhr.responseText);
+                        if (resp.success && resp.redirect_url) {
+                            alert(resp.message || 'Invoice uploaded successfully!');
+                            closePublisherModal();
+                            window.location.href = resp.redirect_url;
+                            return;
+                        }
+                        let msg = resp.message || 'Please check your input and try again.';
+                        if (resp.errors) {
+                            msg += '\n\nDetails:\n' + Object.values(resp.errors).flat().join('\n');
+                        }
+                        alert(msg);
+                    } catch {
+                        closePublisherModal();
+                        window.location.href = publisherForm.dataset.listUrlPub || '';
+                    }
+                } else {
+                    alert('Upload failed. Server returned: ' + xhr.status + ' ' + xhr.statusText);
+                }
+            };
+
+            xhr.onerror = () => alert('Network error. Please try again.');
+
+            xhr.onloadend = () => {
+                if (submitBtn) {
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+                if (progressBar && progressFill) {
+                    setTimeout(() => {
+                        progressBar.style.display = 'none';
+                        progressFill.style.width = '0%';
+                    }, 1000);
+                }
+            };
+
+            xhr.send(formData);
+        });
+    }
 });
 </script>
-
 {% endblock %}

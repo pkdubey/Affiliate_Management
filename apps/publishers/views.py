@@ -71,9 +71,9 @@ def publisher_wishlist_ajax(request, publisher_id):
         # Get wishlist queryset with ordering
         wishlist_qs = Wishlist.objects.filter(publisher_id=publisher_id).order_by('-id')
         
-        # Pagination - 5 items per page
+        # Pagination - 10 items per page
         page_str = request.GET.get('page', '1')
-        paginator = Paginator(wishlist_qs, 5)
+        paginator = Paginator(wishlist_qs, 10)
         
         # Validate and convert page number
         try:

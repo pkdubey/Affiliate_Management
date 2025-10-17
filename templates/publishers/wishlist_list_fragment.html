@@ -20,12 +20,12 @@
     </tbody>
   </table>
 
-  <!-- Pagination controls -->
   {% if page_obj.paginator.num_pages > 1 %}
   <nav class="d-flex justify-content-between align-items-center px-3 py-2 border-top">
     {% if page_obj.has_previous %}
-      <button class="btn btn-sm btn-outline-primary wishlist-page-btn" 
-              data-page="{{ page_obj.previous_page_number }}">
+      <button class="btn btn-sm btn-outline-primary wishlist-page-btn"
+              data-page="{{ page_obj.previous_page_number }}"
+              data-q="{{ q|default:'' }}">
         ‹ Previous
       </button>
     {% else %}
@@ -33,15 +33,16 @@
         ‹ Previous
       </button>
     {% endif %}
-    
+
     <span class="small text-muted">
       Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
       ({{ page_obj.paginator.count }} total items)
     </span>
-    
+
     {% if page_obj.has_next %}
-      <button class="btn btn-sm btn-outline-primary wishlist-page-btn" 
-              data-page="{{ page_obj.next_page_number }}">
+      <button class="btn btn-sm btn-outline-primary wishlist-page-btn"
+              data-page="{{ page_obj.next_page_number }}"
+              data-q="{{ q|default:'' }}">
         Next ›
       </button>
     {% else %}
@@ -54,3 +55,4 @@
 {% else %}
   <div class="text-center text-muted py-4">No wishlist items for this publisher.</div>
 {% endif %}
+

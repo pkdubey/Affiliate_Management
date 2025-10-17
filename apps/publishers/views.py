@@ -16,6 +16,7 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from .models import Publisher, Wishlist
 from .forms import PublisherForm
+from django.db.models import Q
 
 logger = logging.getLogger(__name__)
 
@@ -68,13 +69,23 @@ def impersonated_dashboard(request, publisher_id):
 
 def publisher_wishlist_ajax(request, publisher_id):
     try:
-        # Get wishlist queryset with ordering
+        # read query parameter (support both 'q' and 'search')
+        q = request.GET.get('q') or request.GET.get('search') or ''
+
+        # base queryset
         wishlist_qs = Wishlist.objects.filter(publisher_id=publisher_id).order_by('-id')
-        
+
+        # apply filter if q provided (adjust fields as needed)
+        if q:
+            wishlist_qs = wishlist_qs.filter(
+                Q(desired_campaign__icontains=q) |
+                Q(geo__icontains=q)
+            )
+
         # Pagination - 10 items per page
         page_str = request.GET.get('page', '1')
         paginator = Paginator(wishlist_qs, 10)
-        
+
         # Validate and convert page number
         try:
             page = int(page_str)
@@ -84,25 +95,26 @@ def publisher_wishlist_ajax(request, publisher_id):
                 page = paginator.num_pages
         except (ValueError, TypeError):
             page = 1
-        
+
         try:
             wishlist_items = paginator.page(page)
         except PageNotAnInteger:
             wishlist_items = paginator.page(1)
         except EmptyPage:
             wishlist_items = paginator.page(paginator.num_pages if paginator.num_pages > 0 else 1)
-        
+
         # Render template with pagination context
         html = render_to_string('publishers/wishlist_list_fragment.html', {
             'wishlist_items': wishlist_items,
             'page_obj': wishlist_items,
-            'paginator': paginator
+            'paginator': paginator,
+            'q': q,  # pass q so fragment can include it in pagination controls
         })
-        
+
         return JsonResponse({'html': html})
     except Exception as e:
         return JsonResponse({'html': f'<div style="color:red">Django error: {str(e)}</div>'}, status=500)
-
+        
 class PublisherListView(ListView):
     model = Publisher
     template_name = 'publishers/publisher_list.html'

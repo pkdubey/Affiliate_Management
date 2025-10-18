@@ -775,32 +775,58 @@ Branch: Ward No 12, Gr Flr, Muslim Chowdhirian, Dhampur</textarea>
               </div>
 
               <div class="col-md-6">
-                <div class="row">
-                  <div class="col-12 form-group">
-                    <label class="form-label">Currency</label>
-                    <select name="currency" class="form-control form-select" id="currencySelect">
-                      <option value="USD" selected>USD</option>
-                      <option value="INR">INR</option>
-                      <option value="EUR">EUR</option>
-                    </select>
-                  </div>
-                </div>
+  <div class="row">
+    <div class="col-12 form-group">
+      <label class="form-label invoice-label">Currency</label>
+      <select name="currency" class="form-control form-select" id="currencySelect">
+        <option value="USD" selected>USD</option>
+        <option value="INR">INR</option>
+        <option value="EUR">EUR</option>
+      </select>
+    </div>
+    
+    <!-- GST Checkbox - Only visible for INR -->
+    <div class="col-12 form-group mt-3" id="gstCheckboxContainer" style="display: none;">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="applyGstCheckbox" name="apply_gst" value="1">
+        <label class="form-check-label invoice-label" for="applyGstCheckbox">
+          Apply 18% GST (CGST 9% + SGST 9%)
+        </label>
+      </div>
+    </div>
+  </div>
 
-                <div class="totals-section">
-                  <div class="total-row">
-                    <span>Subtotal</span>
-                    <span id="subtotalAmount">$0.00</span>
-                  </div>
-                  <div class="total-row">
-                    <span>Tax (0%)</span>
-                    <span id="taxAmount">$0.00</span>
-                  </div>
-                  <div class="total-row final">
-                    <span>Total</span>
-                    <span id="totalAmount">$0.00</span>
-                  </div>
-                </div>
-              </div>
+  <div class="totals-section mt-4">
+    <div class="total-row">
+      <span>Subtotal</span>
+      <span id="subtotalAmount">$0.00</span>
+    </div>
+    
+    <!-- CGST Row - Only visible when GST is applied -->
+    <div class="total-row" id="cgstRow" style="display: none;">
+      <span>CGST (9%)</span>
+      <span id="cgstAmount">₹0.00</span>
+    </div>
+    
+    <!-- SGST Row - Only visible when GST is applied -->
+    <div class="total-row" id="sgstRow" style="display: none;">
+      <span>SGST (9%)</span>
+      <span id="sgstAmount">₹0.00</span>
+    </div>
+    
+    <!-- Tax Row - For non-INR currencies -->
+    <div class="total-row" id="taxRow">
+      <span>Tax (<span id="taxPercentDisplay">0</span>%)</span>
+      <span id="taxAmount">$0.00</span>
+    </div>
+    
+    <div class="total-row final">
+      <span>Total</span>
+      <span id="totalAmount">$0.00</span>
+    </div>
+  </div>
+</div>
+
             </div>
           </div>
 
@@ -971,11 +997,10 @@ function openInvoiceModal() {
     modal.classList.add('show');
     document.body.style.overflow = 'hidden';
 
-    // FIX: Add [0] at the end
-    const today = new Date().toISOString().split('T')[0];  // ✅ FIXED
+    const today = new Date().toISOString().split('T')[0];
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 30);
-    const dueDateStr = dueDate.toISOString().split('T')[0];  // ✅ FIXED
+    const dueDateStr = dueDate.toISOString().split('T')[0];
 
     const form = document.getElementById('invoiceForm');
     if (form) {
@@ -999,6 +1024,7 @@ function openInvoiceModal() {
     itemCounter = 0;
     updateItemsTable();
     updateTotals();
+    handleCurrencyChange(); // Initialize GST visibility
 }
 
 function closeInvoiceModal() {
@@ -1014,6 +1040,37 @@ function closeInvoiceModal() {
     items = [];
     itemCounter = 0;
     updateItemsTable();
+    updateTotals();
+}
+
+/* ======================================================
+   GST Handling Functions (NEW)
+====================================================== */
+function handleCurrencyChange() {
+    const currencySelect = document.getElementById('currencySelect');
+    const gstCheckboxContainer = document.getElementById('gstCheckboxContainer');
+    const applyGstCheckbox = document.getElementById('applyGstCheckbox');
+    const cgstRow = document.getElementById('cgstRow');
+    const sgstRow = document.getElementById('sgstRow');
+    const taxRow = document.getElementById('taxRow');
+
+    if (!currencySelect) return;
+
+    const selectedCurrency = currencySelect.value;
+
+    if (selectedCurrency === 'INR') {
+        // Show GST checkbox for INR
+        if (gstCheckboxContainer) gstCheckboxContainer.style.display = 'block';
+        if (taxRow) taxRow.style.display = 'none';
+    } else {
+        // Hide GST checkbox for other currencies
+        if (gstCheckboxContainer) gstCheckboxContainer.style.display = 'none';
+        if (cgstRow) cgstRow.style.display = 'none';
+        if (sgstRow) sgstRow.style.display = 'none';
+        if (taxRow) taxRow.style.display = 'flex';
+        if (applyGstCheckbox) applyGstCheckbox.checked = false;
+    }
+
     updateTotals();
 }
 
@@ -1057,6 +1114,10 @@ function updateItemsTable() {
     const tbody = document.getElementById('itemsTableBody');
     if (!tbody) return;
 
+    const currency = document.getElementById('currencySelect')?.value || 'USD';
+    const symbols = { USD: '$', INR: '₹', EUR: '€' };
+    const sym = symbols[currency] || '$';
+
     tbody.innerHTML = '';
     items.forEach(i => {
         tbody.insertAdjacentHTML(
@@ -1065,8 +1126,8 @@ function updateItemsTable() {
             <tr>
                 <td>${i.description}</td>
                 <td style="text-align:center;">${i.quantity}</td>
-                <td style="text-align:center;">${i.rate}</td>
-                <td style="text-align:right;">$${i.amount.toFixed(2)}</td>
+                <td style="text-align:center;">${sym}${i.rate.toFixed(2)}</td>
+                <td style="text-align:right;">${sym}${i.amount.toFixed(2)}</td>
                 <td style="text-align:center;">
                     <span class="item-remove" onclick="removeItem(${i.id})" title="Remove item">
                         <i class="bi bi-x-lg"></i>
@@ -1080,29 +1141,70 @@ function updateItemsTable() {
 
 function updateTotals() {
     const subtotal = items.reduce((sum, i) => sum + i.amount, 0);
-    const taxRate = 0;
-    const tax = subtotal * taxRate / 100;
-    const total = subtotal + tax;
-
     const currency = document.getElementById('currencySelect')?.value || 'USD';
     const symbols = { USD: '$', INR: '₹', EUR: '€' };
     const sym = symbols[currency] || '$';
 
+    // GST Elements
+    const applyGstCheckbox = document.getElementById('applyGstCheckbox');
+    const cgstRow = document.getElementById('cgstRow');
+    const sgstRow = document.getElementById('sgstRow');
+    const taxRow = document.getElementById('taxRow');
+
+    let cgst = 0;
+    let sgst = 0;
+    let tax = 0;
+    let total = subtotal;
+
+    // Calculate GST for INR if checkbox is checked
+    if (currency === 'INR' && applyGstCheckbox && applyGstCheckbox.checked) {
+        cgst = subtotal * 0.09; // 9% CGST
+        sgst = subtotal * 0.09; // 9% SGST
+        total = subtotal + cgst + sgst;
+
+        // Show GST rows
+        if (cgstRow) {
+            cgstRow.style.display = 'flex';
+            const cgstAmount = cgstRow.querySelector('#cgstAmount');
+            if (cgstAmount) cgstAmount.textContent = `${sym}${cgst.toFixed(2)}`;
+        }
+        if (sgstRow) {
+            sgstRow.style.display = 'flex';
+            const sgstAmount = sgstRow.querySelector('#sgstAmount');
+            if (sgstAmount) sgstAmount.textContent = `${sym}${sgst.toFixed(2)}`;
+        }
+    } else if (currency === 'INR' && (!applyGstCheckbox || !applyGstCheckbox.checked)) {
+        // Hide GST rows when checkbox not checked
+        if (cgstRow) cgstRow.style.display = 'none';
+        if (sgstRow) sgstRow.style.display = 'none';
+    } else {
+        // For non-INR currencies, use tax rate (default 0%)
+        const taxRate = 0;
+        tax = subtotal * taxRate / 100;
+        total = subtotal + tax;
+
+        if (taxRow) {
+            const taxPercentDisplay = taxRow.querySelector('#taxPercentDisplay');
+            const taxAmount = taxRow.querySelector('#taxAmount');
+            if (taxPercentDisplay) taxPercentDisplay.textContent = taxRate;
+            if (taxAmount) taxAmount.textContent = `${sym}${tax.toFixed(2)}`;
+        }
+    }
+
+    // Update display elements
     const subtotalEl = document.getElementById('subtotalAmount');
-    const taxEl = document.getElementById('taxAmount');
     const totalEl = document.getElementById('totalAmount');
 
     if (subtotalEl) subtotalEl.textContent = `${sym}${subtotal.toFixed(2)}`;
-    if (taxEl) taxEl.textContent = `${sym}${tax.toFixed(2)}`;
     if (totalEl) totalEl.textContent = `${sym}${total.toFixed(2)}`;
 
-    // Hidden fields
+    // Update hidden form fields
     const hiddenSubtotal = document.getElementById('hiddenSubtotal');
     const hiddenTax = document.getElementById('hiddenTax');
     const hiddenAmount = document.getElementById('hiddenAmount');
 
     if (hiddenSubtotal) hiddenSubtotal.value = subtotal.toFixed(2);
-    if (hiddenTax) hiddenTax.value = tax.toFixed(2);
+    if (hiddenTax) hiddenTax.value = (cgst + sgst + tax).toFixed(2); // Total tax/GST
     if (hiddenAmount) hiddenAmount.value = total.toFixed(2);
 }
 
@@ -1119,11 +1221,10 @@ function openPublisherModal() {
     modal.classList.add('show');
     document.body.style.overflow = 'hidden';
 
-    // FIX: Add [0] at the end
-    const today = new Date().toISOString().split('T')[0];  // ✅ FIXED
+    const today = new Date().toISOString().split('T')[0];
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 30);
-    const dueDateStr = dueDate.toISOString().split('T')[0];  // ✅ FIXED
+    const dueDateStr = dueDate.toISOString().split('T')[0];
 
     const form = document.getElementById('publisherInvoiceForm');
     if (form) {
@@ -1179,9 +1280,17 @@ function closePublisherModal() {
 ====================================================== */
 document.addEventListener('DOMContentLoaded', () => {
 
-    // Update totals on currency change
+    // Update totals on currency change (NEW: includes GST handling)
     const currencySelect = document.getElementById('currencySelect');
-    if (currencySelect) currencySelect.addEventListener('change', updateTotals);
+    if (currencySelect) {
+        currencySelect.addEventListener('change', handleCurrencyChange);
+    }
+
+    // GST checkbox change handler (NEW)
+    const applyGstCheckbox = document.getElementById('applyGstCheckbox');
+    if (applyGstCheckbox) {
+        applyGstCheckbox.addEventListener('change', updateTotals);
+    }
 
     // Advertiser select auto-fill
     const advSelect = document.getElementById('advertiserSelect');
@@ -1253,6 +1362,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData(advForm);
             formData.set('party_type', 'advertiser');
 
+            // Add GST checkbox value (NEW)
+            const applyGstCheckbox = document.getElementById('applyGstCheckbox');
+            if (applyGstCheckbox && applyGstCheckbox.checked) {
+                formData.set('apply_gst', '1');
+            } else {
+                formData.set('apply_gst', '0');
+            }
+
             const submitBtn = advForm.querySelector('.btn-save');
             const originalText = submitBtn?.textContent || 'Save Invoice';
             if (submitBtn) {
@@ -1317,38 +1434,38 @@ document.addEventListener('DOMContentLoaded', () => {
         const progressFill = publisherForm.querySelector('.upload-progress-bar');
 
         if (fileInput) {
-			fileInput.addEventListener('change', function () {
-				const file = this.files?.[0];  // ✅ FIXED - Added [0]
-				if (!file) return;
+            fileInput.addEventListener('change', function () {
+                const file = this.files?.[0];
+                if (!file) return;
 
-				if (file.size > 10 * 1024 * 1024) {
-					alert('File size must be less than 10MB');
-					this.value = '';
-					return;
-				}
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('File size must be less than 10MB');
+                    this.value = '';
+                    return;
+                }
 
-				const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif'];
-				const validType = allowedTypes.includes(file.type);
-				if (!validType) {
-					alert('Please select a valid PDF or image file');
-					this.value = '';
-					return;
-				}
+                const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif'];
+                const validType = allowedTypes.includes(file.type);
+                if (!validType) {
+                    alert('Please select a valid PDF or image file');
+                    this.value = '';
+                    return;
+                }
 
-				const fileInfo = this.parentElement?.querySelector('.file-info small');
-				if (fileInfo) {
-					fileInfo.textContent = `Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
-					fileInfo.style.color = '#28a745';
-				}
-			});
-		}
+                const fileInfo = this.parentElement?.querySelector('.file-info small');
+                if (fileInfo) {
+                    fileInfo.textContent = `Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                    fileInfo.style.color = '#28a745';
+                }
+            });
+        }
 
         publisherForm.addEventListener('submit', function (e) {
             e.preventDefault();
 
             const publisherId = this.querySelector('select[name="publisher"]')?.value;
-			const amount = parseFloat(this.querySelector('input[name="amount"]')?.value || '0');
-			const file = this.querySelector('input[name="pdf"]')?.files?.[0];  // ✅ FIXED - Added [0]
+            const amount = parseFloat(this.querySelector('input[name="amount"]')?.value || '0');
+            const file = this.querySelector('input[name="pdf"]')?.files?.[0];
 
             if (!publisherId) return alert('Please select a publisher');
             if (!amount || amount <= 0) return alert('Please enter a valid amount');

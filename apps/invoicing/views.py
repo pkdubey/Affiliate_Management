@@ -215,15 +215,53 @@ class InvoiceCreateView(CreateView):
                     except (DailyRevenueSheet.DoesNotExist, ValueError):
                         form.instance.drs = None
 
-            # Compute GST & totals for advertisers
+            # ============================================
+            # UPDATED GST LOGIC WITH CHECKBOX SUPPORT
+            # ============================================
             if party_type == 'advertiser':
                 amt = form.cleaned_data.get('amount') or Decimal('0')
-                if form.cleaned_data.get('currency') == 'INR':
+                currency = form.cleaned_data.get('currency')
+                
+                # Check if GST checkbox is checked (only for INR)
+                apply_gst = self.request.POST.get('apply_gst') == '1'
+                
+                logger.info(f"Invoice GST Calculation - Amount: {amt}, Currency: {currency}, Apply GST: {apply_gst}")
+                
+                if currency == 'INR' and apply_gst:
+                    # Calculate 18% GST (9% CGST + 9% SGST)
                     gst = (amt * Decimal('0.18')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                    cgst = (amt * Decimal('0.09')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                    sgst = (amt * Decimal('0.09')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                    
+                    form.instance.gst_amount = gst
+                    
+                    # Store CGST and SGST separately if model has these fields
+                    if hasattr(form.instance, 'cgst_amount'):
+                        form.instance.cgst_amount = cgst
+                    if hasattr(form.instance, 'sgst_amount'):
+                        form.instance.sgst_amount = sgst
+                    if hasattr(form.instance, 'apply_gst'):
+                        form.instance.apply_gst = True
+                    
+                    logger.info(f"GST Applied - CGST: {cgst}, SGST: {sgst}, Total GST: {gst}")
                 else:
+                    # No GST for non-INR or when checkbox is unchecked
                     gst = Decimal('0.00')
-                form.instance.gst_amount = gst
+                    form.instance.gst_amount = gst
+                    
+                    if hasattr(form.instance, 'cgst_amount'):
+                        form.instance.cgst_amount = Decimal('0.00')
+                    if hasattr(form.instance, 'sgst_amount'):
+                        form.instance.sgst_amount = Decimal('0.00')
+                    if hasattr(form.instance, 'apply_gst'):
+                        form.instance.apply_gst = False
+                    
+                    logger.info(f"No GST Applied - Currency: {currency}, Checkbox: {apply_gst}")
+                
+                # Calculate total amount
                 form.instance.total_amount = (amt + gst).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                
+                logger.info(f"Final Total: {form.instance.total_amount}")
 
             # Save the instance
             self.object = form.save()
@@ -233,7 +271,14 @@ class InvoiceCreateView(CreateView):
                 return JsonResponse({
                     'success': True,
                     'redirect_url': self.get_success_url(),
-                    'message': f'Invoice {form.instance.invoice_number} created successfully!'
+                    'message': f'Invoice {form.instance.invoice_number} created successfully!',
+                    'invoice_data': {
+                        'invoice_number': form.instance.invoice_number,
+                        'amount': str(form.instance.amount),
+                        'gst_amount': str(form.instance.gst_amount),
+                        'total_amount': str(form.instance.total_amount),
+                        'currency': form.instance.currency
+                    }
                 })
 
             messages.success(self.request, f'Invoice {form.instance.invoice_number} created successfully!')
@@ -268,7 +313,6 @@ class InvoiceCreateView(CreateView):
         party_type = self.request.POST.get('party_type', 'advertiser')
         tab = 'publisher' if party_type == 'publisher' else 'advertiser'
         return reverse('invoicing:invoice_list') + f'?tab={tab}'
-
 
 class InvoiceUpdateView(UpdateView):
     model = Invoice

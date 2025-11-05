@@ -55,6 +55,18 @@ def advertiser_offers_ajax(request, advertiser_id):
     except Exception as e:
         return JsonResponse({'html': f'<div style="color:red">Django error: {str(e)}</div>'}, status=500)
 
+def get_advertiser_offer_count(request, advertiser_id):
+    """
+    Fetch the current offer count for an advertiser
+    """
+    try:
+        advertiser = get_object_or_404(Advertiser, id=advertiser_id)
+        offer_count = advertiser.offers.count()
+        return JsonResponse({'count': offer_count})
+    except Exception as e:
+        logger.error(f"Error fetching offer count: {e}")
+        return JsonResponse({'count': 0, 'error': str(e)}, status=500)
+
 class AdvertiserListView(ListView):
     model = Advertiser
     template_name = 'advertisers/advertiser_list.html'

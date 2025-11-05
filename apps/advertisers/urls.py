@@ -11,6 +11,7 @@ urlpatterns = [
     path('', views.AdvertiserListView.as_view(), name='advertiser_list'),  
     path('add/', views.AdvertiserCreateView.as_view(), name='add'),
     path('<int:advertiser_id>/offers/', views.advertiser_offers_ajax, name='advertiser_offers_ajax'),
+    path('<int:advertiser_id>/offer-count/', views.get_advertiser_offer_count, name='get_offer_count'),
     path('<int:pk>/edit/', views.AdvertiserUpdateView.as_view(), name='edit'),
     path('<int:pk>/delete/', views.AdvertiserDeleteView.as_view(), name='delete'),
     path('<int:pk>/', views.AdvertiserDetailView.as_view(), name='detail'),

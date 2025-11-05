@@ -114,7 +114,19 @@ def publisher_wishlist_ajax(request, publisher_id):
         return JsonResponse({'html': html})
     except Exception as e:
         return JsonResponse({'html': f'<div style="color:red">Django error: {str(e)}</div>'}, status=500)
-        
+
+def get_publisher_wishlist_count(request, publisher_id):
+    """
+    Fetch the current wishlist count for a publisher
+    """
+    try:
+        publisher = get_object_or_404(Publisher, id=publisher_id)
+        wishlist_count = publisher.wishlists.count()
+        return JsonResponse({'count': wishlist_count})
+    except Exception as e:
+        logger.error(f"Error fetching wishlist count: {e}")
+        return JsonResponse({'count': 0, 'error': str(e)}, status=500)
+
 class PublisherListView(ListView):
     model = Publisher
     template_name = 'publishers/publisher_list.html'

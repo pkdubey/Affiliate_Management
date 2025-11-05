@@ -8,7 +8,7 @@ from .views import OffersMatcherResultsView
 app_name = 'offers'
 
 urlpatterns = [
-    path('matcher/', OffersMatcherView.as_view(), name='offers_matcher'),
+    path('matcher/', OffersMatcherView.as_view(), name='matcher'),
     path('results/', OffersMatcherResultsView.as_view(), name='matcher_results'),
     path('add/', OfferCreateView.as_view(), name='add'),
     path('<int:pk>/edit/', OfferUpdateView.as_view(), name='edit'),

@@ -167,14 +167,19 @@ class OffersMatcherResultsView(TemplateView):
 
 class OffersMatcherView(TemplateView):
     """
-    Unified view for offers matching with partial search capability.
+    Unified view for offers matching with exact match capability.
     - GET: Display empty matcher page with today's match history
     - POST: Handle AJAX search requests and return JSON with HTML results
     
     Search Features:
-    - Case-insensitive partial matching for offer names
-    - Support for multiple geo codes (comma-separated)
-    - Automatic normalization of search terms
+    - Case-insensitive EXACT matching for offer names
+    - Case-insensitive EXACT matching for geo codes
+    - Dynamic matching (works for all data, not static)
+    - Behavior:
+      * Offer name only → Match offer name exactly with ANY wishlist
+      * Geo only → Match geo exactly across all publishers/offers
+      * Both → Match offer name + geo exactly with matching wishlists
+    - Prevents duplicate display of same match data
     """
     template_name = 'offers/offers_matcher.html'
 
@@ -195,44 +200,71 @@ class OffersMatcherView(TemplateView):
         return response
 
     def _build_match_results_html(self, matches):
-        """Build HTML for match results with simplified columns"""
+        """Build HTML for match results with simplified columns - NO DUPLICATES"""
         html_parts = []
 
         if matches:
-            html_parts.append(
-                '<h5 class="fw-bold mb-3 text-success"><i class="bi bi-check-circle"></i> Matches Found</h5>'
-            )
-            html_parts.append(
-                '<div class="table-responsive mb-3"><table class="table table-striped table-bordered align-middle">'
-            )
-            html_parts.append(
-                '<thead class="table-light"><tr>'
-                '<th>Publisher</th><th>Offer</th><th>Advertiser</th><th>Geo</th>'
-                '</tr></thead><tbody>'
-            )
-
+            # Additional deduplication based on display values
+            seen_display = set()
+            unique_matches = []
+            
             for pair in matches:
                 try:
                     publisher_name = pair['wishlist'].publisher.company_name if pair['wishlist'].publisher else '-'
                     offer_name = pair['offer'].campaign_name or '-'
                     advertiser_name = pair['offer'].advertiser.company_name if pair['offer'].advertiser else '-'
                     geo = pair['wishlist'].geo or '-'
+                    
+                    # Create a unique key based on actual display values
+                    display_key = (
+                        publisher_name.strip().lower(),
+                        offer_name.strip().lower(),
+                        advertiser_name.strip().lower(),
+                        geo.strip().lower()
+                    )
+                    
+                    if display_key not in seen_display:
+                        seen_display.add(display_key)
+                        unique_matches.append({
+                            'publisher': publisher_name,
+                            'offer': offer_name,
+                            'advertiser': advertiser_name,
+                            'geo': geo,
+                            'pair': pair
+                        })
+                except Exception as e:
+                    logger.error(f"Error processing match row: {e}")
+                    continue
+            
+            if unique_matches:
+                html_parts.append(
+                    '<h5 class="fw-bold mb-3 text-success"><i class="bi bi-check-circle"></i> Exact Matches Found</h5>'
+                )
+                html_parts.append(
+                    '<div class="table-responsive mb-3"><table class="table table-striped table-bordered align-middle">'
+                )
+                html_parts.append(
+                    '<thead class="table-light"><tr>'
+                    '<th>Publisher</th><th>Offer</th><th>Advertiser</th><th>Geo</th>'
+                    '</tr></thead><tbody>'
+                )
 
+                for match in unique_matches:
                     html_parts.append(
                         f'<tr>'
-                        f'<td><strong>{publisher_name}</strong></td>'
-                        f'<td>{offer_name}</td>'
-                        f'<td>{advertiser_name}</td>'
-                        f'<td><span class="badge bg-info">{geo}</span></td>'
+                        f'<td><strong>{match["publisher"]}</strong></td>'
+                        f'<td>{match["offer"]}</td>'
+                        f'<td>{match["advertiser"]}</td>'
+                        f'<td><span class="badge bg-info">{match["geo"]}</span></td>'
                         f'</tr>'
                     )
-                except Exception as e:
-                    logger.error(f"Error building match row: {e}")
-                    continue
 
-            html_parts.append('</tbody></table></div>')
-            html_parts.append(f'<div class="alert alert-success"><strong>{len(matches)} match(es) found</strong></div>')
-
+                html_parts.append('</tbody></table></div>')
+                html_parts.append(f'<div class="alert alert-success"><strong>{len(unique_matches)} exact match(es) found</strong></div>')
+            else:
+                html_parts.append(
+                    '<div class="alert alert-info"><i class="bi bi-info-circle"></i> No exact matches found.</div>'
+                )
         else:
             html_parts.append(
                 '<div class="alert alert-info"><i class="bi bi-info-circle"></i> No matches found for your search criteria.</div>'
@@ -240,98 +272,208 @@ class OffersMatcherView(TemplateView):
 
         return ''.join(html_parts)
 
-    def _perform_manual_match(self, match_type, offer_name_q, geo_q):
+    def _perform_manual_match(self, offer_name_q, geo_q):
         """
         Perform manual matching based on search criteria.
-        Supports:
-        - PARTIAL matching for offer names (case-insensitive)
-        - Case-insensitive geo matching
-        - Both offer name and geo can be searched independently or together
+        - EXACT matching only (case-insensitive)
+        - Dynamic matching for all data (no static publisher filters)
+        - No duplicate (offer, wishlist) pairs in response.
+        
+        Search Logic:
+        1. If ONLY offer_name is provided:
+        → Find ALL offers with exact matching name
+        → Match with wishlists that:
+            a) Have ANY matching geo with the offer
+            b) Are from a publisher whose company name matches the offer's advertiser company name
+        2. If ONLY geo is provided:
+        → Find ALL wishlists with exact matching geo
+        → Match with ALL offers that have exact matching geo
+        3. If BOTH are provided:
+        → Find offers with exact matching name AND exact geo
+        → Match with wishlists that have exact matching geo AND matching offer name
         """
-        def norm(s: str) -> str:
-            """Normalize string: lowercase, strip whitespace"""
+        def norm(s):
             return (s or '').strip().lower()
-
-        def norm_geo(s: str) -> str:
-            """Normalize geo: uppercase, strip whitespace"""
+        
+        def norm_geo(s):
             return (s or '').strip().upper()
 
         offer_name_norm = norm(offer_name_q)
         geo_norm = norm_geo(geo_q)
 
         matches = []
-        seen_pairs = set()  # Prevent duplicate matches
+        seen_pairs = set()  # Prevent duplicate ID pairs
+
+        logger.info(f"🔍 Starting search - Offer (norm): '{offer_name_norm}', Geo (norm): '{geo_norm}'")
 
         try:
-            offers = Offer.objects.filter(is_active=True)
-            wishlists = Wishlist.objects.all()
+            # Use select_related to optimize database queries
+            offers = Offer.objects.filter(is_active=True).select_related('advertiser')
+            wishlists = Wishlist.objects.all().select_related('publisher')
+            
+            logger.info(f"📊 Total offers: {offers.count()}, Total wishlists: {wishlists.count()}")
+            
+            def geo_set(val):
+                """Given a geo string, return a set of uppercase geo codes."""
+                return {g.strip().upper() for g in (val or '').split(',') if g.strip()}
 
-            def offer_geo_set(offer) -> set:
-                """Extract and normalize geo codes from offer"""
-                raw = getattr(offer, 'geo', '') or ''
-                return {p.strip().upper() for p in raw.split(',') if p.strip()}
+            def has_geo_match(search_geo, target_geos):
+                """Check if search geo exists in target geo set"""
+                return search_geo in target_geos if target_geos else False
 
-            def wl_geo_set(wl) -> set:
-                """Extract and normalize geo codes from wishlist"""
-                raw = getattr(wl, 'geo', '') or ''
-                return {p.strip().upper() for p in raw.split(',') if p.strip()}
-
-            # Iterate through all wishlist-offer combinations
-            for wl in wishlists:
-                cmp_wl_name = norm(getattr(wl, 'desired_campaign', ''))
-                cmp_wl_geo_set = wl_geo_set(wl)
-
+            # CASE 1: ONLY offer_name is provided (no geo)
+            if offer_name_norm and not geo_norm:
+                logger.info("🎯 Search Mode: OFFER NAME ONLY")
+                
+                # Find all offers with exact matching name
+                matching_offers = []
                 for off in offers:
-                    cmp_off_name = norm(getattr(off, 'campaign_name', ''))
-                    cmp_off_geo_set = offer_geo_set(off)
-
-                    # Create a unique pair identifier
-                    pair_id = (off.id, wl.id)
-                    if pair_id in seen_pairs:
+                    off_name = norm(getattr(off, 'campaign_name', ''))
+                    if off_name == offer_name_norm:
+                        matching_offers.append(off)
+                        logger.info(f"✅ Found matching offer: '{off_name}' from advertiser: '{off.advertiser.company_name if off.advertiser else 'N/A'}'")
+                
+                if not matching_offers:
+                    logger.info("❌ No offers found with matching name")
+                    return []
+                
+                # For each matching offer, match with wishlists that:
+                # 1. Have ANY geo overlap with the offer
+                # 2. Are from a publisher whose company name matches the offer's advertiser company name
+                for off in matching_offers:
+                    off_geos = geo_set(getattr(off, 'geo', ''))
+                    offer_advertiser_name = off.advertiser.company_name if off.advertiser else None
+                    
+                    if not offer_advertiser_name:
+                        logger.warning(f"⚠️ Offer '{off.campaign_name}' has no advertiser, skipping")
                         continue
-
-                    if match_type == 'exact':
-                        # Both offer name and geo must match
-                        # Offer name: partial match (contains)
-                        # Geo: must exist in both offer and wishlist
-                        if (offer_name_norm and 
-                            offer_name_norm in cmp_off_name and 
-                            geo_norm and
-                            geo_norm in cmp_off_geo_set and 
-                            geo_norm in cmp_wl_geo_set):
-                            
+                    
+                    logger.info(f"🔍 Looking for wishlists from publisher matching advertiser: '{offer_advertiser_name}'")
+                    
+                    for wl in wishlists:
+                        # Check if wishlist has a publisher
+                        if not wl.publisher:
+                            continue
+                        
+                        wl_geos = geo_set(getattr(wl, 'geo', ''))
+                        publisher_name = wl.publisher.company_name
+                        
+                        # Check BOTH conditions:
+                        # 1. Geo overlap
+                        # 2. Publisher company name matches advertiser company name
+                        geo_overlap = off_geos and wl_geos and off_geos.intersection(wl_geos)
+                        company_match = publisher_name and offer_advertiser_name and publisher_name.strip().lower() == offer_advertiser_name.strip().lower()
+                        
+                        if geo_overlap and company_match:
+                            pair_id = (off.id, wl.id)
+                            if pair_id not in seen_pairs:
+                                matches.append({'wishlist': wl, 'offer': off})
+                                seen_pairs.add(pair_id)
+                                MatchHistory.objects.get_or_create(offer=off, wishlist=wl)
+                                logger.info(f"  ✅ Matched with wishlist from publisher: '{publisher_name}' (Advertiser: '{offer_advertiser_name}')")
+                        elif company_match and not geo_overlap:
+                            logger.info(f"  ⚠️ Publisher '{publisher_name}' matches advertiser but no geo overlap")
+                        elif geo_overlap and not company_match:
+                            logger.info(f"  ⚠️ Geo overlap but publisher '{publisher_name}' doesn't match advertiser '{offer_advertiser_name}'")
+                
+                # If no matches found with the company name constraint, show a message
+                if not matches:
+                    logger.info("ℹ️ No matches found where publisher company matches advertiser company")
+            
+            # CASE 2: ONLY geo is provided (no offer_name)
+            elif geo_norm and not offer_name_norm:
+                logger.info(f"🌍 Search Mode: GEO ONLY (searching for: {geo_norm})")
+                
+                # Find all wishlists with matching geo
+                matching_wishlists = []
+                for wl in wishlists:
+                    wl_geos = geo_set(getattr(wl, 'geo', ''))
+                    if has_geo_match(geo_norm, wl_geos):
+                        matching_wishlists.append(wl)
+                        pub_name = wl.publisher.company_name if wl.publisher else 'N/A'
+                        logger.info(f"✅ Found matching geo '{geo_norm}' in wishlist from publisher: {pub_name}")
+                
+                if not matching_wishlists:
+                    logger.info("❌ No wishlists found with matching geo")
+                    return []
+                
+                # Find all offers with matching geo
+                matching_offers = []
+                for off in offers:
+                    off_geos = geo_set(getattr(off, 'geo', ''))
+                    if has_geo_match(geo_norm, off_geos):
+                        matching_offers.append(off)
+                        logger.info(f"✅ Found matching geo '{geo_norm}' in offer: {off.campaign_name}")
+                
+                logger.info(f"📊 Found {len(matching_offers)} offers with geo '{geo_norm}'")
+                
+                # Create matches between ALL wishlists and offers that have the matching geo
+                for wl in matching_wishlists:
+                    for off in matching_offers:
+                        pair_id = (off.id, wl.id)
+                        if pair_id not in seen_pairs:
                             matches.append({'wishlist': wl, 'offer': off})
                             seen_pairs.add(pair_id)
                             MatchHistory.objects.get_or_create(offer=off, wishlist=wl)
-                            logger.info(f"Exact match found: {off.campaign_name} (geo: {geo_norm}) <-> {wl.desired_campaign}")
-
-                    elif match_type == 'geo':
-                        # Match only on geo
-                        # Both offer and wishlist must have the searched geo
-                        if (geo_norm and
-                            geo_norm in cmp_off_geo_set and 
-                            geo_norm in cmp_wl_geo_set):
-                            
-                            matches.append({'wishlist': wl, 'offer': off})
-                            seen_pairs.add(pair_id)
-                            MatchHistory.objects.get_or_create(offer=off, wishlist=wl)
-                            logger.info(f"Geo match found: {off.campaign_name} (geo: {geo_norm}) <-> {wl.desired_campaign}")
-
-                    elif match_type == 'kpi':
-                        # PARTIAL/SUBSTRING MATCH on offer name (case-insensitive)
-                        # This allows searching "Uber" and finding "Uber India", "uber USA", "UBER Canada", etc.
-                        if offer_name_norm and offer_name_norm in cmp_off_name:
-                            
-                            matches.append({'wishlist': wl, 'offer': off})
-                            seen_pairs.add(pair_id)
-                            MatchHistory.objects.get_or_create(offer=off, wishlist=wl)
-                            logger.info(f"Partial match found: '{offer_name_q}' IN {off.campaign_name}")
-
+                            logger.info(f"  ➜ Matched offer '{off.campaign_name}' with wishlist from publisher '{wl.publisher.company_name if wl.publisher else 'N/A'}'")
+            
+            # CASE 3: BOTH offer_name and geo are provided
+            elif offer_name_norm and geo_norm:
+                logger.info(f"🎯 Search Mode: BOTH OFFER NAME AND GEO (offer: '{offer_name_norm}', geo: '{geo_norm}')")
+                
+                # Find offers with exact name AND geo match
+                matching_offers = []
+                for off in offers:
+                    off_name = norm(getattr(off, 'campaign_name', ''))
+                    off_geos = geo_set(getattr(off, 'geo', ''))
+                    
+                    if off_name == offer_name_norm and has_geo_match(geo_norm, off_geos):
+                        matching_offers.append(off)
+                        logger.info(f"✅ Found matching offer: '{off_name}' with geo '{geo_norm}' from advertiser: '{off.advertiser.company_name if off.advertiser else 'N/A'}'")
+                
+                if not matching_offers:
+                    logger.info("❌ No offers found with matching name and geo")
+                    return []
+                
+                # Find wishlists with matching geo AND matching offer name
+                matching_wishlists = []
+                for wl in wishlists:
+                    wl_name = norm(getattr(wl, 'desired_campaign', ''))
+                    wl_geos = geo_set(getattr(wl, 'geo', ''))
+                    
+                    # Check if wishlist has the matching geo AND offer name
+                    if has_geo_match(geo_norm, wl_geos) and wl_name == offer_name_norm:
+                        matching_wishlists.append(wl)
+                        pub_name = wl.publisher.company_name if wl.publisher else 'N/A'
+                        logger.info(f"✅ Found matching wishlist: '{wl_name}' with geo '{geo_norm}' from publisher: {pub_name}")
+                
+                logger.info(f"📊 Found {len(matching_wishlists)} wishlists with both name and geo match")
+                
+                # Create matches between matching offers and matching wishlists
+                # Also check if publisher company matches advertiser company
+                for off in matching_offers:
+                    offer_advertiser_name = off.advertiser.company_name if off.advertiser else None
+                    
+                    for wl in matching_wishlists:
+                        if not wl.publisher:
+                            continue
+                        
+                        publisher_name = wl.publisher.company_name
+                        company_match = publisher_name and offer_advertiser_name and publisher_name.strip().lower() == offer_advertiser_name.strip().lower()
+                        
+                        if company_match:
+                            pair_id = (off.id, wl.id)
+                            if pair_id not in seen_pairs:
+                                matches.append({'wishlist': wl, 'offer': off})
+                                seen_pairs.add(pair_id)
+                                MatchHistory.objects.get_or_create(offer=off, wishlist=wl)
+                                logger.info(f"  ✅ Matched with wishlist from publisher: '{publisher_name}' (Advertiser: '{offer_advertiser_name}')")
+                        
         except Exception as e:
-            logger.error(f"Error during manual match: {e}", exc_info=True)
+            logger.error(f"❌ Error during manual match: {e}", exc_info=True)
             raise
 
-        logger.info(f"Manual match completed: {len(matches)} matches found (Type: {match_type})")
+        logger.info(f"✅ Manual match completed: {len(matches)} exact matches found")
         return matches
 
     def get(self, request, *args, **kwargs):
@@ -354,11 +496,10 @@ class OffersMatcherView(TemplateView):
     def post(self, request, *args, **kwargs):
         """Handle AJAX POST requests - Return JSON with match results"""
         try:
-            match_type = (request.POST.get('match_type') or '').strip().lower()
             offer_name_q = (request.POST.get('offer_name') or '').strip()
             geo_q = (request.POST.get('geo') or '').strip()
 
-            logger.info(f"Search Request - Type: {match_type}, Offer: '{offer_name_q}', Geo: '{geo_q}'")
+            logger.info(f"📨 Search Request - Offer: '{offer_name_q}', Geo: '{geo_q}'")
 
             # Validate that at least one field is filled
             if not offer_name_q and not geo_q:
@@ -368,9 +509,9 @@ class OffersMatcherView(TemplateView):
                 }, status=400)
 
             # Perform matching
-            matches = self._perform_manual_match(match_type, offer_name_q, geo_q)
+            matches = self._perform_manual_match(offer_name_q, geo_q)
 
-            logger.info(f"Search Result - Found {len(matches)} matches")
+            logger.info(f"📊 Search Result - Found {len(matches)} exact matches")
 
             # Build HTML response
             html = self._build_match_results_html(matches)
@@ -378,13 +519,14 @@ class OffersMatcherView(TemplateView):
             return JsonResponse({'html': html, 'status': 'success'})
 
         except Exception as e:
-            logger.exception(f"Error in POST request: {e}")
+            logger.exception(f"❌ Error in POST request: {e}")
             error_msg = f"Server error: {str(e)}"
             return JsonResponse({
                 'html': f'<div class="alert alert-danger"><strong>Error:</strong> {error_msg}</div>',
                 'status': 'error',
                 'error': str(e)
-            }, status=500)            
+            }, status=500)
+                
 class OfferListView(ListView):
     """List all offers"""
     model = Offer

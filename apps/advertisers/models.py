@@ -1,7 +1,6 @@
 from django.db import models
 
 class Advertiser(models.Model):
-    name = models.CharField(max_length=255, blank=True, null=True)
     company_name = models.CharField(max_length=255)
     contact_person = models.CharField(max_length=255, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)

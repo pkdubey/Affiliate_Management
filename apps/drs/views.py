@@ -1,5 +1,4 @@
 from django.shortcuts import render
-
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
@@ -7,6 +6,7 @@ from .models import DailyRevenueSheet
 from .forms import DailyRevenueSheetForm
 from django.http import JsonResponse
 from apps.invoicing.models import CurrencyRate
+from django.db.models import Q
 
 class DailyRevenueSheetListView(ListView):
     model = DailyRevenueSheet
@@ -18,12 +18,31 @@ class DailyRevenueSheetCreateView(CreateView):
     form_class = DailyRevenueSheetForm
     template_name = 'drs/drs_form.html'
     success_url = reverse_lazy('drs:drs_list')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Get unique account managers from existing DRS entries
+        account_managers = DailyRevenueSheet.objects.exclude(
+            Q(account_manager__isnull=True) | Q(account_manager='')
+        ).values_list('account_manager', flat=True).distinct().order_by('account_manager')
+        context['account_managers'] = list(account_managers)
+        return context
+
 
 class DailyRevenueSheetUpdateView(UpdateView):
     model = DailyRevenueSheet
     form_class = DailyRevenueSheetForm
     template_name = 'drs/drs_form.html'
     success_url = reverse_lazy('drs:drs_list')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Get unique account managers from existing DRS entries
+        account_managers = DailyRevenueSheet.objects.exclude(
+            Q(account_manager__isnull=True) | Q(account_manager='')
+        ).values_list('account_manager', flat=True).distinct().order_by('account_manager')
+        context['account_managers'] = list(account_managers)
+        return context
 
 class DailyRevenueSheetDeleteView(DeleteView):
     model = DailyRevenueSheet

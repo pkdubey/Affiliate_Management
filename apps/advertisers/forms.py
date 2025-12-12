@@ -4,9 +4,8 @@ from .models import Advertiser
 class AdvertiserForm(forms.ModelForm):
     class Meta:
         model = Advertiser
-        fields = ['name', 'company_name', 'contact_person', 'email', 'teams_id', 'telegram_id', 'is_active']
+        fields = ['company_name', 'contact_person', 'email', 'teams_id', 'telegram_id', 'is_active']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
             'company_name': forms.TextInput(attrs={'class': 'form-control'}),
             'contact_person': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),

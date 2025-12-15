@@ -34,7 +34,7 @@ def start_impersonate(request, publisher_id):
     publisher = get_object_or_404(Publisher, pk=publisher_id)
     request.session['impersonate_publisher_id'] = publisher.id
     request.session.modified = True
-    messages.info(request, f'Now viewing as publisher: {publisher.name}')
+    messages.info(request, f'Now viewing as publisher: {publisher.company_name}')
     return redirect(reverse('publishers:impersonated_dashboard', args=[publisher.id]))
 
 @login_required
@@ -153,6 +153,38 @@ class PublisherDeleteView(DeleteView):
     model = Publisher
     template_name = 'publishers/publisher_confirm_delete.html'
     success_url = reverse_lazy('publishers:publisher_list')
+    
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        
+        # Check if it's an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            try:
+                company_name = self.object.company_name
+                self.object.delete()
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Publisher "{company_name}" deleted successfully.'
+                })
+            except Exception as e:
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Error deleting publisher: {str(e)}'
+                }, status=500)
+        
+        # For non-AJAX requests, use the default behavior
+        return super().post(request, *args, **kwargs)
+    
+    # Allow GET requests to show confirmation page for non-JS users
+    def get(self, request, *args, **kwargs):
+        # Check if it's an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            self.object = self.get_object()
+            return JsonResponse({
+                'html': f'Are you sure you want to delete {self.object.company_name}?'
+            })
+        
+        return super().get(request, *args, **kwargs)
 
 class PublisherDetailView(DetailView):
     model = Publisher

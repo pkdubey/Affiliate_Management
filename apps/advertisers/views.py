@@ -12,6 +12,9 @@ from django.contrib import messages
 from django.db import transaction
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from openpyxl import load_workbook
+from django.views.decorators.http import require_http_methods
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 import csv
 import io
 import logging
@@ -91,6 +94,38 @@ class AdvertiserDeleteView(DeleteView):
     model = Advertiser
     template_name = 'advertisers/advertiser_confirm_delete.html'
     success_url = reverse_lazy('advertisers:advertiser_list')
+    
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        
+        # Check if it's an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            try:
+                company_name = self.object.company_name
+                self.object.delete()
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Advertiser "{company_name}" deleted successfully.'
+                })
+            except Exception as e:
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Error deleting advertiser: {str(e)}'
+                }, status=500)
+        
+        # For non-AJAX requests, use the default behavior
+        return super().post(request, *args, **kwargs)
+    
+    # Allow GET requests to show confirmation page for non-JS users
+    def get(self, request, *args, **kwargs):
+        # Check if it's an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            self.object = self.get_object()
+            return JsonResponse({
+                'html': f'Are you sure you want to delete {self.object.company_name}?'
+            })
+        
+        return super().get(request, *args, **kwargs)
 
 class AdvertiserDetailView(DetailView):
     model = Advertiser

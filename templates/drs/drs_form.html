@@ -1,5 +1,8 @@
-{% extends 'base.html' %}
-{% block content %}
+{% comment %} 
+REMOVE THIS LINE: {% extends 'base.html' %} {% block content %}
+We're removing the base template extension because this will be loaded inside a modal
+{% endcomment %}
+
 <link
   href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
   rel="stylesheet"
@@ -18,47 +21,9 @@
     --card-shadow: 0 10px 25px rgba(25, 99, 179, 0.08);
   }
 
-  body {
-    background-color: var(--light-bg);
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  }
-
-  .drs-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-
-  /* Header matching the image */
-  .page-header {
-    text-align: center;
-    margin-bottom: 40px;
-    padding-top: 20px;
-  }
-
-  .page-header h1 {
-    color: #2c3e50;
-    font-weight: 700;
-    font-size: 2.2rem;
-    margin-bottom: 8px;
-  }
-
-  .page-header .subtitle {
-    color: #7f8c8d;
-    font-size: 1.2rem;
-    font-weight: 400;
-    margin-bottom: 5px;
-  }
-
-  .page-header .subtitle-2 {
-    color: var(--primary-blue);
-    font-size: 1.4rem;
-    font-weight: 600;
-    margin-bottom: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
+  /* Remove body styling since it's in modal */
+  .modal-body {
+    padding: 0 !important;
   }
 
   .drs-card {
@@ -67,7 +32,7 @@
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
     border: 1px solid var(--border-color);
     overflow: hidden;
-    margin-bottom: 30px;
+    margin-bottom: 0;
   }
 
   .card-section {
@@ -102,11 +67,53 @@
     gap: 20px;
   }
 
-  .form-group {
-    margin-bottom: 20px;
+  /* NEW: Side-by-side layout for Advertiser and Publisher */
+  .side-by-side-sections {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    padding: 25px 30px;
+    border-bottom: 1px solid #f1f1f1;
   }
 
-  .form-group label {
+  .side-by-side-sections:last-child {
+    border-bottom: none;
+  }
+
+  .section-column {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .section-column h3 {
+    color: var(--primary-blue);
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .section-column h3 i {
+    color: var(--primary-blue);
+    font-size: 1.1rem;
+  }
+
+  .column-form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    flex: 1;
+  }
+
+  .column-form-group {
+    margin-bottom: 0;
+  }
+
+  .column-form-group label {
     display: block;
     font-weight: 600;
     color: #2c3e50;
@@ -139,67 +146,19 @@
     outline: none;
   }
 
-  /* Revels section specific - matching image */
-  .revels-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-    margin-top: 10px;
-  }
-
-  .revels-item {
-    text-align: center;
-    padding: 25px 20px;
-    background: #f8fafc;
-    border-radius: 10px;
-    border: 1.5px solid #e1e8ed;
-    transition: all 0.3s;
-  }
-
-  .revels-item:hover {
-    background: #f0f7ff;
-    border-color: var(--primary-blue);
-  }
-
-  .revels-item h4 {
-    color: #2c3e50;
-    font-size: 0.9rem;
-    margin-bottom: 15px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 600;
-  }
-
-  .revels-value {
+  /* Separator line between columns */
+  .column-separator {
     position: relative;
-    display: inline-block;
   }
 
-  .revels-value::before {
-    content: "$";
+  .column-separator::before {
+    content: "";
     position: absolute;
-    left: -20px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 1.5rem;
-    color: var(--primary-blue);
-    font-weight: 600;
-  }
-
-  .revels-value input {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--primary-blue);
-    border: none;
-    background: transparent;
-    text-align: center;
-    width: 100%;
-    max-width: 180px;
-    padding-left: 20px;
-  }
-
-  .revels-value input:focus {
-    outline: none;
+    left: -15px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, var(--primary-teal), transparent);
   }
 
   /* Button styles - matching image */
@@ -251,49 +210,6 @@
     box-shadow: 0 4px 12px rgba(25, 99, 179, 0.2);
   }
 
-  /* Status styling */
-  .status-container {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .status-selector {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .status-option {
-    flex: 1;
-    min-width: 120px;
-    padding: 12px 15px;
-    border: 1.5px solid #ddd;
-    border-radius: 8px;
-    background: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.3s;
-    font-weight: 500;
-    color: #555;
-    text-align: center;
-  }
-
-  .status-option:hover {
-    border-color: var(--primary-blue);
-    color: var(--primary-blue);
-    background: #f0f7ff;
-  }
-
-  .status-option.active {
-    border-color: var(--primary-blue);
-    background: var(--primary-blue);
-    color: white;
-  }
-
   /* Error styles */
   .error-section {
     background: #fff5f5;
@@ -316,18 +232,25 @@
     font-size: 0.9rem;
   }
 
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .drs-container {
-      padding: 15px;
+  /* Responsive adjustments for modal */
+  @media (max-width: 992px) {
+    .side-by-side-sections {
+      grid-template-columns: 1fr;
+      gap: 40px;
     }
     
+    .column-separator::before {
+      display: none;
+    }
+  }
+
+  @media (max-width: 768px) {
     .form-grid {
       grid-template-columns: 1fr;
     }
 
-    .revels-grid {
-      grid-template-columns: 1fr;
+    .side-by-side-sections {
+      padding: 20px;
     }
 
     .button-group {
@@ -338,26 +261,6 @@
     .btn {
       width: 100%;
       justify-content: center;
-    }
-
-    .status-selector {
-      flex-direction: column;
-    }
-
-    .status-option {
-      min-width: 100%;
-    }
-    
-    .page-header h1 {
-      font-size: 1.8rem;
-    }
-    
-    .page-header .subtitle {
-      font-size: 1rem;
-    }
-    
-    .page-header .subtitle-2 {
-      font-size: 1.2rem;
     }
   }
 
@@ -403,114 +306,115 @@
   input[type="date"]::-webkit-calendar-picker-indicator:hover {
     opacity: 1;
   }
+
+  /* Scrollbar styling for modal */
+  .modal-body::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  .modal-body::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+  }
+
+  .modal-body::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
 </style>
 
-<div class="drs-container">
-  <form method="post" autocomplete="off" id="drsForm">
-    {% csrf_token %}
+<form method="post" autocomplete="off" id="drsForm">
+  {% csrf_token %}
 
-    <div class="drs-card">
-      <!-- Account Manager & Campaign Info -->
-      <div class="card-section">
-        <h3><i class="bi bi-person-badge"></i> Add DRS Entry</h3>
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="account_manager">Account Manager</label>
-            <select name="account_manager" id="id_account_manager" class="form-select">
-              <option value="">Select Manager</option>
-              {% for manager in account_managers %}
-                <option value="{{ manager }}" 
-                  {% if form.account_manager.value == manager %}selected{% endif %}>
-                  {{ manager }}
-                </option>
-              {% empty %}
-                <option value="" disabled>No managers found. Add some DRS entries first.</option>
-              {% endfor %}
-            </select>
-            {% if not account_managers %}
-            <small class="text-muted mt-2 d-block">
-              <i class="bi bi-info-circle"></i> No account managers found. Create a DRS entry first to populate this list.
-            </small>
-            {% endif %}
-          </div>
-		  <div class="form-group">
-			<label for="status">Status</label>
-			    <select name="status" id="id_status" class="form-select">
-					<option value="active" {% if form.status.value == 'active' or not form.status.value %}selected{% endif %}>Active</option>
-					<option value="paused" {% if form.status.value == 'paused' %}selected{% endif %}>Paused</option>
-					<option value="completed" {% if form.status.value == 'completed' %}selected{% endif %}>Completed</option>
-				</select>
-		  </div>
-          <div class="form-group">
-            <label for="{{ form.start_date.id_for_label }}">Start Date</label>
-            {{ form.start_date }}
-          </div> 
-		  <div class="form-group">
-				<label for="{{ form.end_date.id_for_label }}">
-					End Date (optional)
-				</label>
-				{{ form.end_date }}
-			</div>
+  <div class="drs-card">
+    <!-- Account Manager & Campaign Info -->
+    <div class="card-section">
+      <h3><i class="bi bi-person-badge"></i> 
+        {% if form.instance.pk %}Edit DRS Entry{% else %}Add DRS Entry{% endif %}
+      </h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="account_manager">Account Manager</label>
+          <select name="account_manager" id="id_account_manager" class="form-select">
+            <option value="">Select Manager</option>
+            {% for manager in account_managers %}
+              <option value="{{ manager }}" 
+                {% if form.account_manager.value == manager %}selected{% endif %}>
+                {{ manager }}
+              </option>
+            {% empty %}
+              <option value="" disabled>No managers found. Add some DRS entries first.</option>
+            {% endfor %}
+          </select>
+          {% if not account_managers %}
+          <small class="text-muted mt-2 d-block">
+            <i class="bi bi-info-circle"></i> No account managers found. Create a DRS entry first to populate this list.
+          </small>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select name="status" id="id_status" class="form-select">
+            <option value="active" {% if form.status.value == 'active' or not form.status.value %}selected{% endif %}>Active</option>
+            <option value="paused" {% if form.status.value == 'paused' %}selected{% endif %}>Paused</option>
+            <option value="completed" {% if form.status.value == 'completed' %}selected{% endif %}>Completed</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="{{ form.start_date.id_for_label }}">Start Date</label>
+          {{ form.start_date }}
+        </div> 
+        <div class="form-group">
+          <label for="{{ form.end_date.id_for_label }}">
+            End Date (optional)
+          </label>
+          {{ form.end_date }}
         </div>
       </div>
+    </div>
 
-      <!-- Status Section - Updated to dropdown -->
-	<div class="card-section">
-		
-		<div class="form-grid">
-			<div class="form-group">
-				<label for="{{ form.campaign_name.id_for_label }}">
-				  Campaign Name
-				</label>
-				{{ form.campaign_name }}
-            </div>			
-		</div>
-	</div>
-
-      <!-- Revels Section - Updated to match image -->
-      <div class="card-section">
-        <h3><i class="bi bi-cash-coin"></i> Revels</h3>
-        <div class="revels-grid">
-          <div class="revels-item">
-            <h4>Advertiser Revenue</h4>
-            <div class="revels-value">
-              {{ form.advertiser_revenue }}
-            </div>
-          </div>
-          <div class="revels-item">
-            <h4>Publisher Revenue</h4>
-            <div class="revels-value">
-              {{ form.publisher_revenue }}
-            </div>
-          </div>
-        </div>
+    <!-- Campaign Name -->
+    <div class="card-section">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="{{ form.campaign_name.id_for_label }}">
+            Campaign Name
+          </label>
+          {{ form.campaign_name }}
+        </div>			
       </div>
+    </div>
 
-      <!-- Advertiser Section -->
-      <div class="card-section">
+    <!-- Advertiser & Publisher Side-by-Side Sections -->
+    <div class="side-by-side-sections">
+      <!-- Advertiser Column (Left) -->
+      <div class="section-column">
         <h3><i class="bi bi-building"></i> Advertiser</h3>
-        <div class="form-grid">
-          <div class="form-group">
+        <div class="column-form-grid">
+          <div class="column-form-group">
             <label for="{{ form.advertiser.id_for_label }}">
               Select Advertiser
             </label>
             {{ form.advertiser }}
           </div>
-          <div class="form-group">
+          <div class="column-form-group">
             <label for="{{ form.geo.id_for_label }}">GEO</label>
             {{ form.geo }}
           </div>
-          <div class="form-group">
+          <div class="column-form-group">
             <label for="{{ form.mmp.id_for_label }}">MMP</label>
             {{ form.mmp }}
           </div>
-          <div class="form-group">
+          <div class="column-form-group">
             <label for="{{ form.campaign_revenue.id_for_label }}">
               Campaign Revenue ($)
             </label>
             {{ form.campaign_revenue }}
           </div>
-          <div class="form-group">
+          <div class="column-form-group">
             <label for="{{ form.advertiser_conversions.id_for_label }}">
               Conversions
             </label>
@@ -519,33 +423,33 @@
         </div>
       </div>
 
-      <!-- Publisher Section -->
-      <div class="card-section">
+      <!-- Publisher Column (Right) -->
+      <div class="section-column column-separator">
         <h3><i class="bi bi-people"></i> Publisher</h3>
-        <div class="form-grid">
-          <div class="form-group">
+        <div class="column-form-grid">
+          <div class="column-form-group">
             <label for="{{ form.publisher.id_for_label }}">
               Select Publisher
             </label>
             {{ form.publisher }}
           </div>
-          <div class="form-group">
+          <div class="column-form-group">
             <label for="{{ form.pid.id_for_label }}">PID</label>
             {{ form.pid }}
           </div>
-          <div class="form-group">
+          <div class="column-form-group">
             <label for="{{ form.payable_event_name.id_for_label }}">
               Payable Event Name
             </label>
             {{ form.payable_event_name }}
           </div>
-          <div class="form-group">
+          <div class="column-form-group">
             <label for="{{ form.publisher_payout.id_for_label }}">
               Campaign Payout ($)
             </label>
             {{ form.publisher_payout }}
           </div>
-          <div class="form-group">
+          <div class="column-form-group">
             <label for="{{ form.publisher_conversions.id_for_label }}">
               Conversions Postbacks
             </label>
@@ -553,109 +457,82 @@
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Form Errors Display -->
-      {% if form.errors %}
-      <div class="card-section error-section">
-        <h3><i class="bi bi-exclamation-triangle"></i> Form Errors</h3>
-        <div class="error-list">
-          {% for field in form %}
-            {% for error in field.errors %}
-            <div class="error-item">
-              <i class="bi bi-x-circle"></i>
-              <strong>{{ field.label }}:</strong> {{ error }}
-            </div>
-            {% endfor %}
-          {% endfor %}
-          {% for error in form.non_field_errors %}
+    <!-- Form Errors Display -->
+    {% if form.errors %}
+    <div class="card-section error-section">
+      <h3><i class="bi bi-exclamation-triangle"></i> Form Errors</h3>
+      <div class="error-list">
+        {% for field in form %}
+          {% for error in field.errors %}
           <div class="error-item">
-            <i class="bi bi-exclamation-circle"></i>
-            {{ error }}
+            <i class="bi bi-x-circle"></i>
+            <strong>{{ field.label }}:</strong> {{ error }}
           </div>
           {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+        <div class="error-item">
+          <i class="bi bi-exclamation-circle"></i>
+          {{ error }}
         </div>
+        {% endfor %}
       </div>
-      {% endif %}
     </div>
+    {% endif %}
+  </div>
 
-    <!-- Action Buttons -->
-    <div class="button-group">
-      <a href="{% url 'drs:drs_list' %}" class="btn btn-cancel">
-        Cancel
-      </a>
-      <button type="submit" class="btn btn-save">
-        <i class="bi bi-check-circle"></i> Save
-      </button>
-    </div>
-  </form>
-</div>
+  <!-- Action Buttons -->
+  <div class="button-group">
+    <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">
+      Cancel
+    </button>
+    <button type="submit" class="btn btn-save">
+      <i class="bi bi-check-circle"></i> {% if form.instance.pk %}Update{% else %}Save{% endif %}
+    </button>
+  </div>
+</form>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Status selector functionality
-    const statusOptions = document.querySelectorAll('.status-option');
-    const statusInput = document.getElementById('id_status');
-    
-    statusOptions.forEach(option => {
-      option.addEventListener('click', function() {
-        const value = this.dataset.value;
-        
-        // Update active class
-        statusOptions.forEach(opt => opt.classList.remove('active'));
-        this.classList.add('active');
-        
-        // Update hidden input
-        statusInput.value = value;
-        
-        // Show/hide end date based on status
-        const endDateField = document.querySelector('[id$="end_date"]');
-        if (value === 'completed' && endDateField) {
-          endDateField.parentElement.style.display = 'block';
-        } else if (endDateField) {
-          endDateField.parentElement.style.display = 'block';
+  // This script will be initialized by the parent page when form loads
+  function initializeDrsForm() {
+    // Initialize date fields with current date if empty
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    dateInputs.forEach(input => {
+      if (!input.value) {
+        const today = new Date().toISOString().split('T')[0];
+        input.value = today;
+      }
+    });
+
+    // Currency formatting
+    const currencyInputs = document.querySelectorAll('input[type="number"][step="0.01"]');
+    currencyInputs.forEach(input => {
+      input.addEventListener('blur', function() {
+        const value = parseFloat(this.value);
+        if (!isNaN(value)) {
+          this.value = value.toFixed(2);
         }
       });
     });
 
-    // Currency formatting for revels inputs
-    const currencyInputs = document.querySelectorAll('input[type="number"][step="0.01"]');
-    currencyInputs.forEach(input => {
-      input.addEventListener('blur', formatCurrency);
-      input.addEventListener('focus', clearFormatting);
-      formatCurrency.call(input);
-    });
-
-    function formatCurrency() {
-      const value = parseFloat(this.value);
-      if (!isNaN(value)) {
-        this.value = value.toFixed(2);
-        this.classList.add('formatted');
-      }
-    }
-
-    function clearFormatting() {
-      if (this.classList.contains('formatted')) {
-        this.value = parseFloat(this.value).toString();
-        this.classList.remove('formatted');
-      }
-    }
-
-    // Real-time profit/loss calculation
-    const advertiserRevenueInput = document.querySelector('[id$="advertiser_revenue"]');
-    const publisherRevenueInput = document.querySelector('[id$="publisher_revenue"]');
-
-    function calculateProfitLoss() {
-      const advertiserRevenue = parseFloat(advertiserRevenueInput.value) || 0;
-      const publisherRevenue = parseFloat(publisherRevenueInput.value) || 0;
-      const profitLoss = advertiserRevenue - publisherRevenue;
+    // Show/hide end date based on status
+    const statusSelect = document.getElementById('id_status');
+    const endDateField = document.querySelector('[id$="end_date"]');
+    
+    if (statusSelect && endDateField) {
+      const updateEndDateVisibility = () => {
+        const status = statusSelect.value;
+        if (status === 'completed') {
+          endDateField.parentElement.style.display = 'block';
+        } else {
+          endDateField.parentElement.style.display = 'block';
+        }
+      };
       
-      // You can display this somewhere if needed
-      console.log('Profit/Loss:', profitLoss);
-    }
-
-    if (advertiserRevenueInput && publisherRevenueInput) {
-      advertiserRevenueInput.addEventListener('input', calculateProfitLoss);
-      publisherRevenueInput.addEventListener('input', calculateProfitLoss);
+      statusSelect.addEventListener('change', updateEndDateVisibility);
+      updateEndDateVisibility(); // Initial check
     }
 
     // Form validation
@@ -685,7 +562,7 @@
         }
       } else {
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> {% if form.instance.pk %}Updating...{% else %}Saving...{% endif %}';
       }
     });
 
@@ -696,17 +573,19 @@
       });
     });
 
-    // Initialize date fields with current date if empty
-    const dateInputs = document.querySelectorAll('input[type="date"]');
-    dateInputs.forEach(input => {
-      if (!input.value) {
-        const today = new Date().toISOString().split('T')[0];
-        input.value = today;
-      }
-    });
+    // Focus on first input field
+    const firstInput = form.querySelector('input, select, textarea');
+    if (firstInput) {
+      setTimeout(() => {
+        firstInput.focus();
+      }, 100);
+    }
+  }
 
-    // Remove the static JavaScript population since we're using dynamic data from Django
-    // The dropdown is now populated from the Django context (account_managers)
-  });
+  // Initialize when DOM is loaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeDrsForm);
+  } else {
+    initializeDrsForm();
+  }
 </script>
-{% endblock %}

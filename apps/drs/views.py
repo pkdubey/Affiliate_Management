@@ -4,14 +4,20 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from .models import DailyRevenueSheet
 from .forms import DailyRevenueSheetForm
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from apps.invoicing.models import CurrencyRate
 from django.db.models import Q
+from django.template.loader import render_to_string
+from django.views.generic import TemplateView  # Add this import
 
 class DailyRevenueSheetListView(ListView):
     model = DailyRevenueSheet
     template_name = 'drs/drs_list.html'
     context_object_name = 'drs_list'
+
+    # Add this to order by updated_at in descending order (newest first)
+    # def get_queryset(self):
+    #     return DailyRevenueSheet.objects.all().order_by('-updated_at')
 
 class DailyRevenueSheetCreateView(CreateView):
     model = DailyRevenueSheet
@@ -25,9 +31,41 @@ class DailyRevenueSheetCreateView(CreateView):
         account_managers = DailyRevenueSheet.objects.exclude(
             Q(account_manager__isnull=True) | Q(account_manager='')
         ).values_list('account_manager', flat=True).distinct().order_by('account_manager')
-        context['account_managers'] = list(account_managers)
+        context['account_managers'] = list(account_managers)  # FIXED: Changed 'menagers' to 'managers'
         return context
-
+    
+    def form_valid(self, form):
+        # Save the form
+        self.object = form.save()
+        
+        # Check if it's an AJAX request
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'redirect': reverse_lazy('drs:drs_list')
+            })
+        
+        return super().form_valid(form)
+    
+    def form_invalid(self, form):
+        # Check if it's an AJAX request
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            context = self.get_context_data(form=form)
+            html = render_to_string(self.template_name, context, request=self.request)
+            return HttpResponse(html)
+        
+        return super().form_invalid(form)
+    
+    def get(self, request, *args, **kwargs):
+        # Check if it's an AJAX request (for modal loading)
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            self.object = None
+            form = self.get_form()
+            context = self.get_context_data(form=form)
+            html = render_to_string(self.template_name, context, request=request)
+            return HttpResponse(html)
+        
+        return super().get(request, *args, **kwargs)
 
 class DailyRevenueSheetUpdateView(UpdateView):
     model = DailyRevenueSheet
@@ -41,8 +79,41 @@ class DailyRevenueSheetUpdateView(UpdateView):
         account_managers = DailyRevenueSheet.objects.exclude(
             Q(account_manager__isnull=True) | Q(account_manager='')
         ).values_list('account_manager', flat=True).distinct().order_by('account_manager')
-        context['account_managers'] = list(account_managers)
+        context['account_managers'] = list(account_managers)  # FIXED: Changed 'menagers' to 'managers'
         return context
+    
+    def get(self, request, *args, **kwargs):
+        # Check if it's an AJAX request (for modal loading)
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            self.object = self.get_object()
+            form = self.get_form()
+            context = self.get_context_data(form=form)
+            html = render_to_string(self.template_name, context, request=request)
+            return HttpResponse(html)
+        
+        return super().get(request, *args, **kwargs)
+    
+    def form_valid(self, form):
+        # Save the form
+        self.object = form.save()
+        
+        # Check if it's an AJAX request
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'redirect': reverse_lazy('drs:drs_list')
+            })
+        
+        return super().form_valid(form)
+    
+    def form_invalid(self, form):
+        # Check if it's an AJAX request
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            context = self.get_context_data(form=form)
+            html = render_to_string(self.template_name, context, request=self.request)
+            return HttpResponse(html)
+        
+        return super().form_invalid(form)
 
 class DailyRevenueSheetDeleteView(DeleteView):
     model = DailyRevenueSheet
@@ -53,7 +124,6 @@ class DailyRevenueSheetDetailView(DetailView):
     model = DailyRevenueSheet
     template_name = 'drs/drs_detail.html'
     context_object_name = 'drs'
-from django.views.generic import TemplateView
 
 class DRSExportView(TemplateView):
     template_name = 'drs/drs_export.html'
@@ -80,7 +150,7 @@ class DRSExportView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['drs_list'] = DailyRevenueSheet.objects.order_by('-updated_at')  # <= Add this line!
+        context['drs_list'] = DailyRevenueSheet.objects.order_by('-updated_at')
         return context
     
 def drs_currency_amount_api(request):
@@ -103,5 +173,3 @@ def drs_currency_amount_api(request):
         except DailyRevenueSheet.DoesNotExist:
             pass
     return JsonResponse({'amount': f'{amount:.2f}'})
-
-# Create your views here.

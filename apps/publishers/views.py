@@ -143,11 +143,30 @@ class PublisherCreateView(CreateView):
     template_name = 'publishers/publisher_form.html'
     success_url = reverse_lazy('publishers:publisher_list')
 
+    def form_invalid(self, form):
+        """Handle form validation errors for AJAX requests"""
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            }, status=400)
+        return super().form_invalid(form)
+
+
 class PublisherUpdateView(UpdateView):
     model = Publisher
     form_class = PublisherForm
     template_name = 'publishers/publisher_form.html'
     success_url = reverse_lazy('publishers:publisher_list')
+
+    def form_invalid(self, form):
+        """Handle form validation errors for AJAX requests"""
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            }, status=400)
+        return super().form_invalid(form)
 
 class PublisherDeleteView(DeleteView):
     model = Publisher

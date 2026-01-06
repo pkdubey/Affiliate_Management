@@ -62,6 +62,33 @@
     text-decoration: underline;
     color: #1963b3;
 }
+
+/* Validation Overview Card Styles */
+.validation-overview-card {
+    border-radius: 1.2rem;
+    background: rgba(255,255,255,0.95);
+    box-shadow: 0 6px 20px rgba(29,191,174,0.1);
+    border: 1.5px solid rgba(29,191,174,0.15);
+    animation: fadeCardUp .7s cubic-bezier(.71,.14,.62,.98) .1s backwards;
+}
+.validation-overview-card .card-header {
+    background: linear-gradient(90deg, #1dbfae 0%, #1963b3 100%);
+    color: white;
+    border-radius: 1.2rem 1.2rem 0 0;
+    padding: 1rem 1.5rem;
+    border: none;
+}
+.validation-overview-card .bg-light {
+    background: rgba(248, 249, 250, 0.9) !important;
+    border: 1px solid rgba(222, 226, 230, 0.5);
+    border-radius: 0.8rem;
+    transition: all 0.3s ease;
+}
+.validation-overview-card .bg-light:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #1dbfae;
+}
 </style>
 
 <div class="container-fluid">
@@ -108,6 +135,59 @@
 					</div>
 				</div>
 			</div>
+
+			<!-- ========================== -->
+			<!-- VALIDATION OVERVIEW SECTION -->
+			<!-- ========================== -->
+			<div class="row mt-4">
+				<div class="col-12">
+					<div class="card validation-overview-card shadow">
+						<div class="card-header">
+							<h5 class="mb-0">
+								<i class="bi bi-clipboard-check me-2"></i> Validation Overview
+							</h5>
+						</div>
+						<div class="card-body">
+							<div class="row">
+								<div class="col-md-4">
+									<div class="card bg-light">
+										<div class="card-body text-center">
+											<h6 class="text-muted">Pending Validation</h6>
+											<h3 class="text-warning">{{ pending_validation_count|default:0 }}</h3>
+											<a href="{% url 'validation:validation_tab' %}" class="btn btn-sm btn-warning mt-2">
+												Validate Now
+											</a>
+										</div>
+									</div>
+								</div>
+								<div class="col-md-4">
+									<div class="card bg-light">
+										<div class="card-body text-center">
+											<h6 class="text-muted">Submitted Reports</h6>
+											<h3 class="text-primary">{{ submitted_reports_count|default:0 }}</h3>
+											<a href="{% url 'validation:my_validation' %}" class="btn btn-sm btn-primary mt-2">
+												View Reports
+											</a>
+										</div>
+									</div>
+								</div>
+								<div class="col-md-4">
+									<div class="card bg-light">
+										<div class="card-body text-center">
+											<h6 class="text-muted">Pending Invoices</h6>
+											<h3 class="text-info">{{ pending_invoices_count|default:0 }}</h3>
+											<a href="{% url 'invoicing:invoice_list' %}" class="btn btn-sm btn-info mt-2">
+												View Invoices
+											</a>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- END VALIDATION OVERVIEW SECTION -->
 
 			<div class="row mt-4">
 				<!-- Weekly & Monthly Revenue Card -->

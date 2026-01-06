@@ -1,7 +1,7 @@
 
 from django.urls import path
 from .views import (
-    DailyRevenueSheetListView, DailyRevenueSheetCreateView, DailyRevenueSheetUpdateView, DailyRevenueSheetDeleteView, DailyRevenueSheetDetailView, DRSExportView, drs_currency_amount_api
+    DailyRevenueSheetListView, DailyRevenueSheetCreateView, DailyRevenueSheetUpdateView, DailyRevenueSheetDeleteView, DailyRevenueSheetDetailView, DRSExportView, drs_currency_amount_api, DRSForValidationView
 )
 
 app_name = 'drs'
@@ -14,4 +14,5 @@ urlpatterns = [
     path('<int:pk>/', DailyRevenueSheetDetailView.as_view(), name='detail'),
     path('export/', DRSExportView.as_view(), name='drs_export'),
     path('api/get_amount/', drs_currency_amount_api, name='drs_get_amount'),
+    path('for-validation/', DRSForValidationView.as_view(), name='for_validation'),
 ]

@@ -78,8 +78,9 @@ def publisher_dashboard(request):
     print("User: {}".format(request.user.username))
     print("Role: {}".format(request.user.role))
     
-    # Import DRS model
+    # Import models
     from apps.drs.models import DailyRevenueSheet
+    from apps.validation.models import Validation
     
     user = request.user
     total_income = 0
@@ -136,21 +137,50 @@ def publisher_dashboard(request):
     
     # Calculate daily, weekly, monthly revenue
     try:
-        # Today's revenue
-        today_revenue = DailyRevenueSheet.objects.filter(
-            date=today
-        ).aggregate(total=Sum('campaign_revenue'))['total'] or 0
-        
-        # This week's revenue
-        week_revenue = DailyRevenueSheet.objects.filter(
-            date__gte=start_of_week
-        ).aggregate(total=Sum('campaign_revenue'))['total'] or 0
-        
-        # This month's revenue
-        month_revenue = DailyRevenueSheet.objects.filter(
-            date__gte=start_of_month
-        ).aggregate(total=Sum('campaign_revenue'))['total'] or 0
-        
+        # Today's revenue - assuming DRS has a date field
+        # If not, use created_at or start_date
+        if hasattr(DailyRevenueSheet, 'date'):
+            today_revenue = DailyRevenueSheet.objects.filter(
+                date=today
+            ).aggregate(total=Sum('campaign_revenue'))['total'] or 0
+            
+            week_revenue = DailyRevenueSheet.objects.filter(
+                date__gte=start_of_week
+            ).aggregate(total=Sum('campaign_revenue'))['total'] or 0
+            
+            month_revenue = DailyRevenueSheet.objects.filter(
+                date__gte=start_of_month
+            ).aggregate(total=Sum('campaign_revenue'))['total'] or 0
+            
+        elif hasattr(DailyRevenueSheet, 'start_date'):
+            today_revenue = DailyRevenueSheet.objects.filter(
+                start_date=today
+            ).aggregate(total=Sum('campaign_revenue'))['total'] or 0
+            
+            week_revenue = DailyRevenueSheet.objects.filter(
+                start_date__gte=start_of_week
+            ).aggregate(total=Sum('campaign_revenue'))['total'] or 0
+            
+            month_revenue = DailyRevenueSheet.objects.filter(
+                start_date__gte=start_of_month
+            ).aggregate(total=Sum('campaign_revenue'))['total'] or 0
+            
+        elif hasattr(DailyRevenueSheet, 'created_at'):
+            today_revenue = DailyRevenueSheet.objects.filter(
+                created_at__date=today
+            ).aggregate(total=Sum('campaign_revenue'))['total'] or 0
+            
+            week_revenue = DailyRevenueSheet.objects.filter(
+                created_at__date__gte=start_of_week
+            ).aggregate(total=Sum('campaign_revenue'))['total'] or 0
+            
+            month_revenue = DailyRevenueSheet.objects.filter(
+                created_at__date__gte=start_of_month
+            ).aggregate(total=Sum('campaign_revenue'))['total'] or 0
+            
+        else:
+            today_revenue = week_revenue = month_revenue = 0
+            
     except Exception as e:
         print(f"Error calculating period revenue: {e}")
         today_revenue = week_revenue = month_revenue = 0
@@ -160,19 +190,73 @@ def publisher_dashboard(request):
     week_revenue = float(week_revenue)
     month_revenue = float(month_revenue)
     
+    # ====================================================
+    # VALIDATION OVERVIEW CALCULATIONS
+    # ====================================================
+    try:
+        # Get publisher object
+        if hasattr(user, 'publisher'):
+            publisher = user.publisher
+            
+            # 1. Pending validation count (DRS with status paused or completed)
+            pending_validation_count = DailyRevenueSheet.objects.filter(
+                publisher=publisher,
+                status__in=['paused', 'completed']
+            ).count()
+            
+            # 2. Submitted validations count (validations created by this publisher)
+            submitted_reports_count = Validation.objects.filter(
+                publisher=publisher
+            ).count()
+            
+            # 3. Pending invoices count
+            pending_invoices_count = Invoice.objects.filter(
+                publisher=publisher,
+                status__in=['Pending', 'Overdue']
+            ).count()
+            
+        else:
+            # User doesn't have a publisher object
+            pending_validation_count = 0
+            submitted_reports_count = 0
+            pending_invoices_count = 0
+            
+    except Exception as e:
+        print(f"Error calculating validation overview: {e}")
+        pending_validation_count = 0
+        submitted_reports_count = 0
+        pending_invoices_count = 0
+    
     # Generate chart data for last 7 days
     daily_stats = []
     for i in range(7):
         day = today - timedelta(days=i)
         try:
-            day_revenue = DailyRevenueSheet.objects.filter(
-                date=day
-            ).aggregate(total=Sum('campaign_revenue'))['total'] or 0
-            
-            day_profit = DailyRevenueSheet.objects.filter(
-                date=day
-            ).aggregate(total=Sum('profit'))['total'] or 0
-            
+            # Determine which date field to use
+            if hasattr(DailyRevenueSheet, 'date'):
+                day_filter = {'date': day}
+            elif hasattr(DailyRevenueSheet, 'start_date'):
+                day_filter = {'start_date': day}
+            elif hasattr(DailyRevenueSheet, 'created_at'):
+                day_filter = {'created_at__date': day}
+            else:
+                day_revenue = day_profit = 0
+                
+            if 'day_filter' in locals():
+                # Filter by publisher if user has one
+                if hasattr(user, 'publisher'):
+                    day_filter['publisher'] = user.publisher
+                
+                day_revenue = DailyRevenueSheet.objects.filter(
+                    **day_filter
+                ).aggregate(total=Sum('campaign_revenue'))['total'] or 0
+                
+                day_profit = DailyRevenueSheet.objects.filter(
+                    **day_filter
+                ).aggregate(total=Sum('profit'))['total'] or 0
+            else:
+                day_revenue = day_profit = 0
+                
         except Exception as e:
             print(f"Error calculating day {day} revenue: {e}")
             day_revenue = day_profit = 0
@@ -197,6 +281,11 @@ def publisher_dashboard(request):
         'chart_labels': json.dumps(labels),
         'chart_revenues': json.dumps(revenues),
         'chart_profits': json.dumps(profits),
+        
+        # Validation overview context
+        'pending_validation_count': pending_validation_count,
+        'submitted_reports_count': submitted_reports_count,
+        'pending_invoices_count': pending_invoices_count,
     }
 
     return render(request, 'dashboard/publisher_dashboard.html', context)

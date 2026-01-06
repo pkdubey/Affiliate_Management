@@ -321,6 +321,15 @@ class InvoiceUpdateView(UpdateView):
     success_url = reverse_lazy('invoicing:invoice_list')
 
     def form_valid(self, form):
+        old_status = self.object.status
+        new_status = form.cleaned_data.get('status', 'Pending')
+        
+        # If status changed to Paid, update related DRS
+        if old_status != 'Paid' and new_status == 'Paid':
+            if self.object.drs:
+                self.object.drs.status = 'paid'
+                self.object.drs.save()
+        
         messages.success(self.request, f'Invoice {form.instance.invoice_number} updated successfully!')
         return super().form_valid(form)
 

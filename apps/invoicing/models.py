@@ -1,6 +1,6 @@
 from django.db import models
 from decimal import Decimal, ROUND_HALF_UP
-from datetime import date, timedelta
+from datetime import date, timedelta, timezone
 
 def default_due_date():
     return date.today() + timedelta(days=30)
@@ -23,7 +23,13 @@ class Invoice(models.Model):
 
     publisher = models.ForeignKey('publishers.Publisher', on_delete=models.CASCADE, blank=True, null=True)
     advertiser = models.ForeignKey('advertisers.Advertiser', on_delete=models.CASCADE, blank=True, null=True)
-    drs = models.ForeignKey('drs.DailyRevenueSheet', on_delete=models.CASCADE, blank=True, null=True)
+    drs = models.ForeignKey(
+        'drs.DailyRevenueSheet', 
+        on_delete=models.CASCADE, 
+        blank=True, 
+        null=True,
+        related_name='invoice_drs'  # Add this line
+    )
 
     bill_from_details = models.TextField(blank=True, null=True)
     bill_to_details = models.TextField(blank=True, null=True)
@@ -37,6 +43,7 @@ class Invoice(models.Model):
     gst_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0, blank=True, null=True)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0, blank=True, null=True)
     pdf = models.FileField(upload_to='invoices/pdf/', blank=True, null=True)
+    validation = models.ForeignKey('validation.Validation', null=True, blank=True, on_delete=models.SET_NULL, related_name='validation_invoices')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -158,6 +165,17 @@ class Invoice(models.Model):
         elif self.party_type == 'advertiser' and self.advertiser:
             return str(self.advertiser)
         return self.bill_to_company_new or "Client"
+    
+    def link_validation(self, validation):
+        """Link this invoice to a validation"""
+        self.validation = validation
+        self.save()
+        # Update validation status
+        if validation:
+            validation.status = 'Invoiced'
+            validation.invoice = self
+            validation.invoiced_at = timezone.now()
+            validation.save()
 
     def __str__(self):
         return f"Invoice #{self.invoice_number} - {self.get_party_type_display()}"

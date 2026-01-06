@@ -9,12 +9,13 @@ class DailyRevenueSheetAdmin(admin.ModelAdmin):
         'revenue', 'payout', 'profit', 'account_manager', 'pid', 'updated_at', 'status'
     )
     list_filter = ('advertiser', 'publisher', 'account_manager', 'status', 'start_date', 'end_date')
-    search_fields = ('campaign_name', 'pid', 'payable_event_name', 'account_manager__username', 'geo')
+    search_fields = ('campaign_name', 'pid', 'payable_event_name', 'account_manager', 'geo')
     list_editable = ('status',)
     
-    # Custom display methods if needed
+    # REMOVE or fix this method - account_manager is a CharField, not ForeignKey
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related('advertiser', 'publisher', 'account_manager')
+        # Only select related on actual ForeignKey fields
+        return super().get_queryset(request).select_related('advertiser', 'publisher')
     
     fieldsets = (
         ('Campaign Information', {

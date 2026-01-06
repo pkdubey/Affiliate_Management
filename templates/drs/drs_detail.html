@@ -1,17 +1,233 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>DRS: {{ drs.campaign_name }}</h1>
-<ul>
-  <li>ID: {{ drs.id }}</li>
-  <li>Advertiser: {{ drs.advertiser }}</li>
-  <li>Affiliate: {{ drs.affiliate }}</li>
-  <li>Start Date: {{ drs.start_date }}</li>
-  <li>End Date: {{ drs.end_date }}</li>
-  <li>Revenue: {{ drs.revenue }}</li>
-  <li>Payout: {{ drs.payout }}</li>
-  <li>Profit: {{ drs.profit }}</li>
-</ul>
-<a href="{% url 'drs:edit' drs.id %}">Edit</a> |
-<a href="{% url 'drs:delete' drs.id %}">Delete</a> |
-<a href="{% url 'drs:list' %}">Back to list</a>
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">
+                <i class="bi bi-file-earmark-text me-2"></i>DRS Details: {{ drs.campaign_name }}
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4 class="text-primary">Basic Information</h4>
+                    <table class="table table-bordered">
+                        <tr>
+                            <th style="width: 40%">ID:</th>
+                            <td>{{ drs.id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Campaign Name:</th>
+                            <td>{{ drs.campaign_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                <span class="badge bg-{% if drs.status == 'active' %}success{% elif drs.status == 'paused' %}warning{% elif drs.status == 'completed' %}info{% else %}secondary{% endif %}">
+                                    {{ drs.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Account Manager:</th>
+                            <td>{{ drs.account_manager|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Start Date:</th>
+                            <td>{{ drs.start_date }}</td>
+                        </tr>
+                        <tr>
+                            <th>End Date:</th>
+                            <td>{{ drs.end_date|default:"-" }}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="col-md-6">
+                    <h4 class="text-primary">Advertiser & Publisher</h4>
+                    <table class="table table-bordered">
+                        <tr>
+                            <th style="width: 40%">Advertiser:</th>
+                            <td>{{ drs.advertiser }}</td>
+                        </tr>
+                        <tr>
+                            <th>Publisher:</th>
+                            <td>{{ drs.publisher }}</td>
+                        </tr>
+                        <tr>
+                            <th>GEO:</th>
+                            <td>{{ drs.geo|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <th>MMP:</th>
+                            <td>{{ drs.mmp|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <th>PID:</th>
+                            <td>{{ drs.pid|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <th>AF/PRT:</th>
+                            <td>{{ drs.af_prt|default:"-" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h4 class="text-primary">Conversions</h4>
+                    <table class="table table-bordered">
+                        <tr>
+                            <th style="width: 40%">Advertiser Conversions:</th>
+                            <td>{{ drs.advertiser_conversions }}</td>
+                        </tr>
+                        <tr>
+                            <th>Publisher Conversions:</th>
+                            <td>{{ drs.publisher_conversions }}</td>
+                        </tr>
+                        <tr>
+                            <th>Conversions Postbacks:</th>
+                            <td>{{ drs.conversions_postbacks }}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="col-md-6">
+                    <h4 class="text-primary">Rates</h4>
+                    <table class="table table-bordered">
+                        <tr>
+                            <th style="width: 40%">Campaign Revenue Rate:</th>
+                            <td>${{ drs.campaign_revenue|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <th>Publisher Payout Rate:</th>
+                            <td>${{ drs.publisher_payout|floatformat:2 }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <h4 class="text-primary">Financial Summary</h4>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card text-center bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">Revenue</h5>
+                                    <h3 class="text-primary">${{ drs.revenue|floatformat:2|default:"0.00" }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">Payout</h5>
+                                    <h3 class="text-info">${{ drs.payout|floatformat:2|default:"0.00" }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">Profit</h5>
+                                    <h3 class="{% if drs.profit > 0 %}text-success{% elif drs.profit < 0 %}text-danger{% else %}text-secondary{% endif %}">
+                                        ${{ drs.profit|floatformat:2|default:"0.00" }}
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">Margin %</h5>
+                                    <h3 class="{% if drs.profit > 0 %}text-success{% elif drs.profit < 0 %}text-danger{% else %}text-secondary{% endif %}">
+                                        {% if drs.revenue > 0 %}
+                                            {% widthratio drs.profit drs.revenue 100 %}%
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <h4 class="text-primary">Timestamps</h4>
+                    <table class="table table-bordered">
+                        <tr>
+                            <th style="width: 40%">Created At:</th>
+                            <td>{{ drs.created_at|date:"Y-m-d H:i:s" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Updated At:</th>
+                            <td>{{ drs.updated_at|date:"Y-m-d H:i:s" }}</td>
+                        </tr>
+                        {% if drs.validated_at %}
+                        <tr>
+                            <th>Validated At:</th>
+                            <td>{{ drs.validated_at|date:"Y-m-d H:i:s" }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if drs.invoiced_at %}
+                        <tr>
+                            <th>Invoiced At:</th>
+                            <td>{{ drs.invoiced_at|date:"Y-m-d H:i:s" }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if drs.paid_at %}
+                        <tr>
+                            <th>Paid At:</th>
+                            <td>{{ drs.paid_at|date:"Y-m-d H:i:s" }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{% url 'drs:edit' drs.id %}" class="btn btn-primary">
+                    <i class="bi bi-pencil me-1"></i> Edit DRS
+                </a>
+                <a href="{% url 'drs:delete' drs.id %}" class="btn btn-danger">
+                    <i class="bi bi-trash me-1"></i> Delete DRS
+                </a>
+                <a href="{% url 'drs:drs_list' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Back to List
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.table-bordered th,
+.table-bordered td {
+    border: 1px solid #dee2e6;
+}
+
+.badge {
+    font-size: 0.9em;
+    padding: 5px 10px;
+}
+</style>
 {% endblock %}

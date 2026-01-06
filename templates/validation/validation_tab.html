@@ -1,0 +1,446 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">My Validation</h1>
+                    <p class="text-muted mb-0">Review our performance numbers and upload invoices.</p>
+                </div>
+                <div class="text-end">
+                    <p class="text-muted mb-0">Generated: {% now "d/m/Y" %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Validations by Month -->
+    {% regroup my_validations by month as month_list %}
+    
+    {% if month_list %}
+    <div class="row">
+        {% for month in month_list %}
+        <div class="col-lg-6 col-xl-4 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-light py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold">Period: {{ month.grouper }}</h6>
+                        <span class="text-muted small">
+                            <!-- FIXED: Proper dictionary access -->
+                            Generated: 
+                            {% for key, value in monthly_totals.items %}
+                                {% if key == month.grouper %}
+                                    ${{ value.generated_amount|default:0|floatformat:0 }}
+                                {% endif %}
+                            {% endfor %}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Table for campaigns in this month -->
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr class="table-light">
+                                    <th class="ps-3" style="width: 50%;">Campaign</th>
+                                    <th class="text-center" style="width: 25%;">Conversions</th>
+                                    <th class="text-end pe-3" style="width: 25%;">Payout</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for validation in month.list %}
+                                <tr>
+                                    <td class="ps-3">
+                                        <div class="d-flex align-items-center">
+                                            <div>
+                                                <strong class="d-block">{{ validation.drs.campaign_name|truncatechars:20 }}</strong>
+                                                <small class="text-muted">PID: {{ validation.drs.pid|default:"N/A" }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="fw-semibold">{{ validation.conversions|default:"0" }}</span>
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <div class="d-flex flex-column align-items-end">
+                                            <span class="fw-bold text-primary">${{ validation.approve_payout|floatformat:2|default:"0.00" }}</span>
+                                            <div class="mt-1">
+                                                <!-- This logic should work - button disappears when invoice exists -->
+                                                {% if validation.status == 'Approved' and not validation.invoice %}
+                                                <button class="btn btn-sm btn-outline-primary py-0 px-2" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#uploadInvoiceModal{{ validation.id }}"
+                                                        title="Upload Invoice">
+                                                    <i class="bi bi-upload me-1"></i> Upload
+                                                </button>
+                                                {% elif validation.invoice %}
+                                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                                                    Uploaded
+                                                </span>
+                                                {% else %}
+                                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">
+                                                    {{ validation.status }}
+                                                </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                
+                                <!-- Total row - FIXED: Proper dictionary access -->
+                                <tr class="table-light">
+                                    <td class="ps-3 fw-bold">Total Payout:</td>
+                                    <td class="text-center"></td>
+                                    <td class="text-end pe-3 fw-bold">
+                                        {% for key, value in monthly_totals.items %}
+                                            {% if key == month.grouper %}
+                                                ${{ value.total_payout|default:0|floatformat:2 }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                                
+                                <!-- Investors/Investor row -->
+                                <tr class="table-light">
+                                    <td colspan="3" class="text-center py-2 fw-semibold">
+                                        Investors/Investor
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-top-0 pt-3">
+                    <div class="d-flex justify-content-end">
+                        <button class="btn btn-sm btn-outline-secondary me-2">
+                            <i class="bi bi-download me-1"></i> Export
+                        </button>
+                        <a href="{% url 'validation:validation_list' %}?month={{ month.grouper }}" 
+                           class="btn btn-sm btn-primary">
+                            <i class="bi bi-eye me-1"></i> View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Summary Statistics -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Summary Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <div class="p-3 bg-primary bg-opacity-10 rounded">
+                                <h6 class="text-muted mb-2">Total Campaigns</h6>
+                                <h3 class="text-primary">{{ my_validations.count }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="p-3 bg-success bg-opacity-10 rounded">
+                                <h6 class="text-muted mb-2">Total Conversions</h6>
+                                <h3 class="text-success">{{ total_conversions|default:"0" }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="p-3 bg-warning bg-opacity-10 rounded">
+                                <h6 class="text-muted mb-2">Total Payout</h6>
+                                <h3 class="text-warning">${{ total_payout|floatformat:2|default:"0.00" }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="p-3 bg-info bg-opacity-10 rounded">
+                                <h6 class="text-muted mb-2">Uploaded Invoices</h6>
+                                <h3 class="text-info">{{ uploaded_invoices|default:"0" }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% else %}
+    <!-- Empty State -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-clipboard-check text-muted" style="font-size: 4rem;"></i>
+                    </div>
+                    <h4 class="text-muted mb-3">No Validation Reports Found</h4>
+                    <p class="text-muted mb-4">
+                        You haven't saved any validation reports yet. <br>
+                        Go to the Validation List page to save reports from your DRS.
+                    </p>
+                    <a href="{% url 'validation:validation_list' %}" class="btn btn-primary">
+                        <i class="bi bi-arrow-left me-1"></i> Go to Validation List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- MODALS - Place all modals here at the bottom, outside any tables -->
+{% for month in month_list %}
+    {% for validation in month.list %}
+    <!-- Upload Invoice Modal for this validation -->
+    <div class="modal fade" id="uploadInvoiceModal{{ validation.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form method="post" action="{% url 'validation:upload_invoice' validation.id %}" 
+                      enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title">Upload Invoice</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Upload invoice for <strong>{{ validation.drs.campaign_name }}</strong></p>
+                        <div class="mb-3">
+                            <label class="form-label">Invoice File *</label>
+                            <input type="file" class="form-control" name="invoice_file" required 
+                                   accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                            <div class="form-text">Accepted formats: PDF, JPG, PNG, DOC</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Invoice Number (Optional)</label>
+                            <input type="text" class="form-control" name="invoice_number" 
+                                   placeholder="Enter invoice number if available">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload me-1"></i> Upload Invoice
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% endfor %}
+
+<!-- Success Message Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check URL for success parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    if (urlParams.has('invoice_uploaded') && urlParams.get('invoice_uploaded') === 'true') {
+        showAlert('Invoice uploaded successfully!', 'success');
+        
+        // Refresh page after 2 seconds to show updated state
+        setTimeout(() => {
+            window.location.href = window.location.pathname; // Refresh without query params
+        }, 2000);
+    }
+    
+    if (urlParams.has('validation_saved') && urlParams.get('validation_saved') === 'true') {
+        showAlert('Validation report saved successfully!', 'success');
+    }
+    
+    // Handle form submissions
+    document.querySelectorAll('[id^="uploadInvoiceModal"] form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Uploading...';
+            submitBtn.disabled = true;
+            
+            // Form will submit normally, button state will be reset on page reload
+        });
+    });
+    
+    // Fix modal z-index issues
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('show.bs.modal', function() {
+            // Ensure modal backdrop appears properly
+            document.body.classList.add('modal-open');
+        });
+        
+        modal.addEventListener('hidden.bs.modal', function() {
+            // Clean up when modal is closed
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => backdrop.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+        });
+    });
+});
+
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.top = '20px';
+    alertDiv.style.right = '20px';
+    alertDiv.style.zIndex = '1060'; // Higher than modal z-index (1050)
+    alertDiv.style.minWidth = '300px';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Auto dismiss after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+</script>
+
+<style>
+.card {
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,.125);
+    padding: 1rem 1.25rem;
+}
+
+.table th {
+    font-weight: 600;
+    color: #6c757d;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background-color: #f8f9fa !important;
+}
+
+.table td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.table tr:last-child td {
+    border-bottom: none;
+}
+
+.table tr.table-light td {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.badge {
+    padding: 0.35em 0.65em;
+    font-size: 0.75em;
+    font-weight: 500;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Modal fixes */
+.modal {
+    z-index: 1050;
+}
+
+.modal-backdrop {
+    z-index: 1040;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Fix for modal positioning */
+.modal-open {
+    overflow: hidden;
+    padding-right: 0 !important;
+}
+
+/* Make the table rows more compact on mobile */
+@media (max-width: 768px) {
+    .table td, .table th {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .card-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.8rem;
+    }
+    
+    /* Responsive modal on mobile */
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+}
+
+/* Custom hover effects for table rows */
+.table tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* Style for the upload button */
+.btn-outline-primary {
+    border-width: 1px;
+    font-weight: 500;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0d6efd;
+    color: white;
+}
+
+/* Style for uploaded invoice badge */
+.bg-success.bg-opacity-10 {
+    background-color: rgba(25, 135, 84, 0.1) !important;
+    color: #198754 !important;
+}
+
+/* Style for status badge */
+.bg-warning.bg-opacity-10 {
+    background-color: rgba(255, 193, 7, 0.1) !important;
+    color: #ffc107 !important;
+}
+
+/* Prevent modal flickering */
+.modal.fade .modal-dialog {
+    transition: transform 0.3s ease-out;
+    transform: translate(0, -50px);
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+}
+
+/* Fix for modal backdrop */
+.modal-backdrop.fade {
+    opacity: 0;
+}
+
+.modal-backdrop.show {
+    opacity: 0.5;
+}
+</style>
+{% endblock %}

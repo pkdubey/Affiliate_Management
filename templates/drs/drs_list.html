@@ -168,6 +168,28 @@
         padding: 1rem 1.5rem;
     }
 }
+/* Dropdown fixes */
+.dropdown-menu {
+    z-index: 1050 !important;
+}
+
+.drs-table tbody tr td[data-label="Actions"] .dropdown-menu {
+    position: absolute !important;
+    will-change: transform;
+    top: 100% !important;
+    left: auto !important;
+    right: 0 !important;
+    transform: translate3d(0px, 34px, 0px) !important;
+}
+
+/* Prevent row click on action elements */
+.drs-table tbody tr td[data-label="Actions"] {
+    pointer-events: auto !important;
+}
+
+.drs-table tbody tr td[data-label="Actions"] * {
+    pointer-events: auto !important;
+}
 </style>
 
 <!-- DRS Form Modal -->
@@ -269,15 +291,34 @@
                         </span>
                     </td>
                     <td data-label="Actions" style="min-width:110px; white-space: nowrap;">
-                        <div class="d-flex align-items-center gap-2 justify-content-center">
-                            <a href="{% url 'drs:edit' drs.id %}" class="btn btn-sm btn-outline-success edit-drs-link" title="Edit DRS">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <a href="{% url 'drs:delete' drs.id %}" class="btn btn-sm btn-outline-danger" title="Delete DRS">
-                                <i class="bi bi-trash"></i>
-                            </a>
-                        </div>
-                    </td>
+						<div class="d-flex align-items-center gap-2 justify-content-center">
+							<a href="{% url 'drs:edit' drs.id %}" class="btn btn-sm btn-outline-success edit-drs-link" title="Edit DRS">
+								<i class="bi bi-pencil"></i>
+							</a>
+							<a href="{% url 'drs:delete' drs.id %}" class="btn btn-sm btn-outline-danger" title="Delete DRS">
+								<i class="bi bi-trash"></i>
+							</a>
+							<!-- Three-dot menu for Update History -->
+							<div class="dropdown">
+								<button class="btn btn-sm btn-outline-info dropdown-toggle" type="button" id="historyMenu{{ drs.id }}" data-bs-toggle="dropdown" aria-expanded="false" title="Update History">
+									<i class="bi bi-three-dots-vertical"></i>
+								</button>
+								<ul class="dropdown-menu" aria-labelledby="historyMenu{{ drs.id }}">
+									<li><h6 class="dropdown-header">Update History</h6></li>
+									<li><a class="dropdown-item" href="#">
+										<small><strong>Created:</strong> {{ drs.created_at|date:"Y-m-d H:i" }}</small>
+									</a></li>
+									<li><a class="dropdown-item" href="#">
+										<small><strong>Last Updated:</strong> {{ drs.updated_at|date:"Y-m-d H:i" }}</small>
+									</a></li>
+									<li><hr class="dropdown-divider"></li>
+									<li><a class="dropdown-item" href="{% url 'drs:detail' drs.id %}">
+										<i class="bi bi-eye me-1"></i> View Details
+									</a></li>
+								</ul>
+							</div>
+						</div>
+					</td>
                 </tr>
                 {% empty %}
                 <tr>
@@ -365,6 +406,20 @@ function loadFormIntoModal(url, isEdit = false) {
             console.log('Form loaded successfully');
             $('#drsFormModalBody').html(data);
             
+            // Debug: Check if MMP field exists in the loaded form
+            setTimeout(() => {
+                const mmpField = document.getElementById('id_mmp');
+                console.log('MMP field after form load:', mmpField);
+                if (mmpField) {
+                    console.log('MMP value:', mmpField.value);
+                    console.log('MMP options:', mmpField.options.length);
+                    
+                    // Force the dropdown to show
+                    mmpField.style.display = 'block';
+                    mmpField.classList.add('form-select');
+                }
+            }, 200);
+            
             // Initialize form functionality
             initializeForm();
             
@@ -390,20 +445,38 @@ function loadFormIntoModal(url, isEdit = false) {
 function initializeForm() {
     console.log('Initializing form...');
     
-    // Set default date to today for start_date
-    const startDateInput = document.getElementById('id_start_date');
-    if (startDateInput && !startDateInput.value) {
-        const today = new Date().toISOString().split('T')[0];
-        startDateInput.value = today;
-    }
-    
-    // Currency formatting
-    $('input[type="number"][step="0.01"]').on('blur', function() {
-        const value = parseFloat($(this).val());
-        if (!isNaN(value)) {
-            $(this).val(value.toFixed(2));
+    // Check if the form initialization function exists
+    if (typeof initializeDrsForm === 'function') {
+        console.log('initializeDrsForm function exists, calling it...');
+        // Add a small delay to ensure DOM is fully loaded
+        setTimeout(initializeDrsForm, 100);
+    } else {
+        console.warn('initializeDrsForm function NOT FOUND');
+        // Fallback initialization
+        const startDateInput = document.getElementById('id_start_date');
+        if (startDateInput && !startDateInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            startDateInput.value = today;
         }
-    });
+        
+        // Currency formatting
+        $('input[type="number"][step="0.01"]').on('blur', function() {
+            const value = parseFloat($(this).val());
+            if (!isNaN(value)) {
+                $(this).val(value.toFixed(2));
+            }
+        });
+        
+        // Try to manually initialize MMP
+        const mmpField = document.getElementById('id_mmp');
+        if (mmpField) {
+            console.log('Manually found MMP field:', mmpField.value);
+            // Force dropdown to show options
+            mmpField.style.display = 'block';
+            mmpField.removeAttribute('readonly');
+            mmpField.removeAttribute('disabled');
+        }
+    }
     
     // Handle form submission
     $('#drsForm').off('submit').on('submit', function(e) {
@@ -466,7 +539,7 @@ function initializeForm() {
     });
 }
 
-// Event handlers
+// SINGLE $(document).ready() function - remove the duplicate one below
 $(document).ready(function() {
     console.log('Document ready - setting up event handlers');
     
@@ -497,20 +570,101 @@ $(document).ready(function() {
         console.log('Edit DRS link clicked');
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation(); // Important: stop all event propagation
         const url = $(this).attr('href');
         
         // Ensure modal exists and is properly initialized
         const modalElement = document.getElementById('drsFormModal');
-        if (modalElement && drsModal) {
+        if (modalElement) {
+            if (!drsModal) {
+                drsModal = new bootstrap.Modal(modalElement);
+            }
             loadFormIntoModal(url, true);
         }
+        return false;
     });
     
-    // Prevent default behavior for edit links
-    $('.edit-drs-link').css('cursor', 'pointer');
+    // Delete link click handler - prevent row click interference
+    $(document).on('click', '.btn-outline-danger', function(e) {
+        console.log('Delete button clicked');
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        // Allow navigation to delete page
+    });
     
-    // REMOVED: Test button for debugging (causing conflicts)
-    // REMOVED: Direct event listener (causing conflicts)
+    // In your JavaScript, update the dropdown handlers:
+
+// Three-dot dropdown click handler - prevent row click interference
+$(document).on('click', '.dropdown-toggle', function(e) {
+    console.log('Dropdown toggle clicked');
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    
+    // Manually toggle the dropdown since we prevented default
+    const dropdownMenu = $(this).next('.dropdown-menu');
+    $('.dropdown-menu').not(dropdownMenu).removeClass('show');
+    dropdownMenu.toggleClass('show');
+    
+    // Update aria-expanded
+    const isExpanded = $(this).attr('aria-expanded') === 'true';
+    $(this).attr('aria-expanded', !isExpanded);
+});
+
+// Dropdown item click handler
+$(document).on('click', '.dropdown-item', function(e) {
+    console.log('Dropdown item clicked');
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    
+    // Handle view details link
+    const href = $(this).attr('href');
+    if (href) {
+        if (href.includes('detail')) {
+            e.preventDefault();
+            window.location.href = href;
+        }
+        // For other links, allow default behavior
+    }
+    
+    // Close all dropdowns
+    $('.dropdown-menu').removeClass('show');
+    $('.dropdown-toggle').attr('aria-expanded', 'false');
+});
+
+// Close dropdowns when clicking outside
+$(document).on('click', function(e) {
+    if (!$(e.target).closest('.dropdown').length) {
+        $('.dropdown-menu').removeClass('show');
+        $('.dropdown-toggle').attr('aria-expanded', 'false');
+    }
+});
+    
+    // Table row click handler - only for non-action areas
+    $(document).on('click', '.drs-table tbody tr', function(e) {
+        // Check if click was on any action element
+        const $target = $(e.target);
+        const isActionElement = 
+            $target.closest('td[data-label="Actions"]').length > 0 ||
+            $target.closest('.btn').length > 0 ||
+            $target.closest('.dropdown').length > 0 ||
+            $target.closest('.dropdown-toggle').length > 0 ||
+            $target.closest('.dropdown-menu').length > 0 ||
+            $target.closest('.dropdown-item').length > 0 ||
+            $target.closest('a[href*="delete"]').length > 0 ||
+            $target.closest('a[href*="edit"]').length > 0;
+        
+        if (isActionElement) {
+            console.log('Click on action element, skipping row click');
+            return;
+        }
+        
+        // Navigate to detail page
+        const detailUrl = $(this).find('a[href*="detail"]').attr('href');
+        if (detailUrl) {
+            window.location.href = detailUrl;
+        }
+    });
     
     console.log('Event handlers setup complete');
 });

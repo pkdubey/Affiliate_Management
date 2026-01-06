@@ -2,6 +2,48 @@
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
 <style>
+/* Summary Cards */
+.summary-section {
+    margin-bottom: 2.5rem;
+}
+.summary-card {
+    border-radius: 1.2rem;
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 6px 20px #1dbfae0f, 0 2px 12px #1963b31a;
+    border: 1px solid rgba(29,191,174,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.summary-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px #1dbfae1a, 0 4px 16px #1963b325;
+}
+.summary-card .card-header {
+    background: linear-gradient(88deg, #1dbfae15 0, #1963b315 100%);
+    border-radius: 1.2rem 1.2rem 0 0 !important;
+    border: none;
+    padding: 1.2rem 1.5rem;
+}
+.summary-card .card-body {
+    padding: 1.8rem 1.5rem;
+}
+.summary-value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin: 0.5rem 0;
+}
+.summary-label {
+    font-size: 0.95rem;
+    color: #666;
+    font-weight: 500;
+}
+.summary-icon {
+    font-size: 2.5rem;
+    opacity: 0.9;
+    margin-bottom: 1rem;
+}
+
+/* Validation Tables */
 .validation-table-card {
     border-radius: 1.5rem;
     background: rgba(255,255,255,0.75);
@@ -11,6 +53,7 @@
     animation: fadeInTable 0.85s cubic-bezier(.31,.81,.45,1.23);
     margin-top: 2rem;
     margin-bottom: 2rem;
+    overflow: hidden;
 }
 @keyframes fadeInTable {
     from {opacity:0; transform: translateY(22px);}
@@ -21,9 +64,9 @@
     align-items: center;
     justify-content: space-between;
     padding: 1.3em 2em 1.1em 2em;
-    border-radius: 1.25rem 1.25rem 0 0;
     background: linear-gradient(88deg, #1dbfae15 0, #1963b315 100%);
     box-shadow: 0 2px 10px #1dbfae11;
+    border-bottom: 1px solid rgba(29,191,174,0.1);
 }
 .validation-header h2 {
     margin-bottom: 0;
@@ -108,15 +151,90 @@
 .status-badge.pending { background: #f9efd8; color: #e67e22;}
 .status-badge.approved { background: #e8f9e2; color: #27ae60;}
 .status-badge.rejected { background: #fae0e5; color: #e11e4e;}
+
+/* Tab Navigation */
+.validation-tabs {
+    margin-bottom: 2rem;
+}
+.nav-tabs .nav-link {
+    border: none;
+    padding: 0.8rem 1.5rem;
+    font-weight: 600;
+    color: #666;
+    border-radius: 0.8rem 0.8rem 0 0;
+    transition: all 0.3s ease;
+}
+.nav-tabs .nav-link.active {
+    background: linear-gradient(90deg, #1dbfae15 0, #1963b315 100%);
+    color: #1963b3;
+    border-bottom: 3px solid #1dbfae;
+}
+.nav-tabs .nav-link:hover:not(.active) {
+    background: rgba(29,191,174,0.05);
+    color: #1963b3;
+}
+.tab-badge {
+    background: rgba(29,191,174,0.2);
+    color: #1963b3;
+    border-radius: 20px;
+    padding: 0.2rem 0.8rem;
+    font-size: 0.8rem;
+    margin-left: 0.5rem;
+}
+
+/* Empty States */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+.empty-state-icon {
+    font-size: 4rem;
+    opacity: 0.3;
+    margin-bottom: 1.5rem;
+}
+.empty-state-title {
+    font-size: 1.5rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+.empty-state-text {
+    color: #999;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-    .validation-header { flex-direction: column; gap: 1em; padding:1em;}
-    .validation-table th, .validation-table td { padding: 0.6em 0.35em; }
-    .validation-table-card { padding: 1.1rem 0.5rem;}
+    .validation-header { 
+        flex-direction: column; 
+        gap: 1em; 
+        padding: 1em;
+        text-align: center;
+    }
+    .validation-header h2 {
+        margin-bottom: 0.5rem;
+    }
+    .validation-table th, 
+    .validation-table td { 
+        padding: 0.6em 0.35em; 
+        font-size: 0.9rem;
+    }
+    .validation-table-card { 
+        padding: 0;
+    }
+    .summary-card {
+        margin-bottom: 1rem;
+    }
+    .summary-value {
+        font-size: 1.8rem;
+    }
 }
 .validation-header form {
     min-width: 0;
 }
-.validation-header select, .validation-header button, .validation-header a.btn {
+.validation-header select, 
+.validation-header button, 
+.validation-header a.btn {
     min-width: 100px;
     max-width: 220px;
     font-size: 1em;
@@ -141,7 +259,9 @@
         justify-content: flex-start!important;
         margin: 0 0 .5em 0;
     }
-    .validation-header select, .validation-header button, .validation-header a.btn {
+    .validation-header select, 
+    .validation-header button, 
+    .validation-header a.btn {
         width: 100%!important;
         min-width: 0;
         max-width: 100%!important;
@@ -151,93 +271,924 @@
         width: 100%!important;
     }
 }
+
+/* Tab Content Animation */
+.tab-content {
+    animation: fadeIn 0.5s ease;
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Invoice Badge */
+.invoice-badge {
+    border-radius: 8px;
+    padding: 0.2rem 0.8rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Paused Campaigns Specific Styles */
+.paused-campaigns-header {
+    background: linear-gradient(90deg, #1dbfae15 0, #1963b315 100%);
+    border-radius: 1rem 1rem 0 0;
+    padding: 1.5rem 2rem;
+    border-bottom: 2px solid rgba(29, 191, 174, 0.2);
+}
+
+.paused-summary-box {
+    background: linear-gradient(135deg, #f8f9fa 0, #e9ecef 100%);
+    border-radius: 0.8rem;
+    padding: 1rem 1.5rem;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.paused-summary-label {
+    font-size: 0.85rem;
+    color: #666;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.paused-summary-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1963b3;
+}
+
+.paused-notation-table {
+    width: 100%;
+    background: white;
+    border-radius: 0.8rem;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.paused-notation-table thead tr {
+    background: linear-gradient(90deg, #e3f2fd 0, #bbdefb 100%);
+}
+
+.paused-notation-table th {
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    color: #1963b3;
+    text-align: left;
+    border: none;
+}
+
+.paused-notation-table td {
+    padding: 0.8rem 1.5rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.paused-notation-table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.error-sponsor-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1.5rem;
+}
+
+.error-sponsor-table th {
+    background: linear-gradient(90deg, #1dbfae 0, #1963b3 100%);
+    color: white;
+    padding: 1rem 1rem;
+    font-weight: 600;
+    text-align: left;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.error-sponsor-table td {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.error-sponsor-table tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.error-sponsor-table tr:hover {
+    background-color: #e3f2fd;
+}
+
+.amount-badge {
+    background: linear-gradient(90deg, #e8f5e9 0, #c8e6c9 100%);
+    color: #2e7d32;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.conversion-badge {
+    background: linear-gradient(90deg, #fff3e0 0, #ffe0b2 100%);
+    color: #ef6c00;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.pid-badge {
+    background: linear-gradient(90deg, #f3e5f5 0, #e1bee7 100%);
+    color: #7b1fa2;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.duration-text {
+    font-size: 0.85rem;
+    color: #666;
+    font-family: monospace;
+}
+
+.payout-rate {
+    font-weight: 700;
+    color: #1dbfae;
+    font-size: 1.1rem;
+}
+
+.section-title {
+    color: #1963b3;
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #1dbfae;
+}
+
+.info-note {
+    background: linear-gradient(90deg, #e8f5e9 0, #f1f8e9 100%);
+    border-left: 4px solid #4caf50;
+    padding: 1rem;
+    border-radius: 0 0.5rem 0.5rem 0;
+    margin-top: 1.5rem;
+}
+
+.info-note h6 {
+    color: #2e7d32;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.info-note p {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0;
+}
+
+/* Paused Only Section */
+.paused-only-section {
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+}
+
+.paused-only-card {
+    border-radius: 1.2rem;
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 6px 20px rgba(157, 77, 77, 0.1), 0 2px 12px rgba(157, 77, 77, 0.08);
+    border: 1px solid rgba(157, 77, 77, 0.1);
+}
+
+.paused-only-header {
+    background: linear-gradient(88deg, rgba(157, 77, 77, 0.15) 0, rgba(196, 63, 63, 0.15) 100%);
+    border-radius: 1.2rem 1.2rem 0 0 !important;
+    border: none;
+    padding: 1.2rem 1.5rem;
+}
+
+.paused-only-header h5 {
+    color: #9d4d4d;
+    margin-bottom: 0;
+}
+
+.paused-only-body {
+    padding: 1.8rem 1.5rem;
+}
+
+.paused-only-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #c43f3f;
+    margin: 0.5rem 0;
+}
+
+.paused-only-label {
+    font-size: 0.95rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.paused-only-icon {
+    font-size: 2.5rem;
+    color: #c43f3f;
+    opacity: 0.9;
+    margin-bottom: 1rem;
+}
+
+.paused-only-subtitle {
+    font-size: 1rem;
+    color: #9d4d4d;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Loading overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #1dbfae;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.drs-validation-row {
+    background-color: #fff9e6 !important;
+    border-left: 4px solid #ffc107 !important;
+}
+
+.drs-validation-row:hover {
+    background-color: #fff3cd !important;
+}
+
+.drs-type-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+.drs-type-validation {
+    background: linear-gradient(90deg, #e8f5e9 0, #c8e6c9 100%);
+    color: #2e7d32;
+}
+
+.drs-type-drs {
+    background: linear-gradient(90deg, #fff3e0 0, #ffe0b2 100%);
+    color: #ef6c00;
+}
+
+.create-validation-btn {
+    background: linear-gradient(90deg, #1dbfae 60%, #1963b3) !important;
+    color: #fff !important;
+    font-weight: 600;
+    padding: 0.3em 1em;
+    border-radius: 20px;
+    font-size: 0.85em;
+    text-decoration: none;
+    display: inline-block;
+    transition: transform 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.create-validation-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(29, 191, 174, 0.3);
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Update summary card colors for DRS */
+.drs-summary-icon {
+    color: #ffc107;
+}
+
+.drs-summary-value {
+    color: #ff9800;
+}
+
+/* Status badge for DRS */
+.status-paused { 
+    background: linear-gradient(90deg, #fff3e0 0, #ffe0b2 100%);
+    color: #ef6c00;
+    border: 1px solid #ffb74d;
+}
+
+.status-completed { 
+    background: linear-gradient(90deg, #e3f2fd 0, #bbdefb 100%);
+    color: #1565c0;
+    border: 1px solid #64b5f6;
+}
+/* Save Report Button States */
+.create-validation-btn {
+    background: linear-gradient(90deg, #1dbfae 60%, #1963b3) !important;
+    color: #fff !important;
+    font-weight: 600;
+    padding: 0.3em 1em;
+    border-radius: 20px;
+    font-size: 0.85em;
+    text-decoration: none;
+    display: inline-block;
+    transition: transform 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.create-validation-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(29, 191, 174, 0.3);
+    color: #fff;
+    text-decoration: none;
+}
+
+.create-validation-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Saved Badge */
+.saved-badge {
+    display: inline-block;
+    padding: 0.3em 1em;
+    border-radius: 20px;
+    background: #198754;
+    color: white;
+    font-weight: 600;
+    font-size: 0.85em;
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="validation-table-card shadow p-0">
-  <div class="validation-header flex-wrap d-flex align-items-center justify-content-between gap-2 gap-md-3">
-    <h2 class="mb-0" style="color:#1963b3;min-width:170px;flex-shrink:0;">
-      <i class="bi bi-clipboard-check me-2"></i> Validation List
-    </h2>
-    <form method="get" class="d-flex flex-wrap align-items-center gap-2 flex-grow-1 my-2 my-md-0 justify-content-center justify-content-md-start" style="min-width:0;">
-      <select name="publisher" class="form-select" style="min-width:150px;max-width:220px;">
-        <option value="">All Publishers</option>
-        {% for pub in publishers %}
-          <option value="{{ pub.id }}" {% if selected_publisher|default:'' == pub.id|stringformat:"s" %}selected{% endif %}>{{ pub.company_name }}</option>
-        {% endfor %}
-      </select>
-      <select name="month" class="form-select" style="min-width:120px;max-width:160px;">
-        <option value="">All Months</option>
-        {% for m in months %}
-          <option value="{{ m }}" {% if selected_month == m %}selected{% endif %}>{{ m }}</option>
-        {% endfor %}
-      </select>
-      <button type="submit" class="btn btn-outline-primary flex-shrink-0">Filter</button>
-      <a href="{% url 'validation:validation_export' %}?export=csv{% if selected_publisher %}&publisher={{ selected_publisher }}{% endif %}{% if selected_month %}&month={{ selected_month }}{% endif %}"
-        class="btn btn-outline-success flex-shrink-0">
-        <i class="bi bi-cloud-arrow-down"></i> Export
-      </a>
-    </form>
-    <a href="{% url 'validation:add' %}" class="add-btn animate__animated animate__fadeIn animate__delay-1s mt-2 mt-md-0 ms-0 ms-md-2">
-      <i class="bi bi-plus-circle me-2"></i>Add</a>
-  </div>
-
-  <div class="table-responsive">
-    <table class="validation-table align-middle mb-0">
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Campaign Name</th>
-      <th>Publisher</th>
-      <th>PID</th>
-      <th>Conversions</th>
-      <th>Payout</th>
-      <th>Approve Payout</th>
-      <th>Status</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for v in validations %}
-    <tr>
-      <td>{{ v.id }}</td>
-      <td>{{ v.drs.campaign_name }}</td>
-      <td>{{ v.publisher.company_name }}</td>
-      <td>{{ v.drs.pid }}</td>
-      <td>{{ v.conversions }}</td>
-      <td>{{ v.payout }}</td>
-      <td>{{ v.approve_payout }}</td>
-      <td>
-        <span class="status-badge 
-          {% if v.status == 'Pending' %}pending{% elif v.status == 'Approved' %}approved{% elif v.status == 'Rejected' %}rejected{% endif %}">
-          {{ v.status|title }}
-        </span>
-      </td>
-      <td style="white-space:nowrap;">
-        <div class="d-flex align-items-center gap-1 justify-content-center flex-nowrap">
-          <a href="{% url 'validation:detail' v.id %}" class="action-btn" title="View More">
-            <i class="bi bi-eye"></i>
-          </a>
-          <a href="{% url 'validation:edit' v.id %}" class="action-btn" title="Edit">
-            <i class="bi bi-pencil-square"></i>
-          </a>
-          <a href="{% url 'validation:delete' v.id %}" class="action-btn" title="Delete">
-            <i class="bi bi-trash"></i>
-          </a>
+<div class="container-fluid py-4">
+    
+    <!-- Summary Section - Updated for DRS requiring validation -->
+    <div class="row summary-section">
+        <div class="col-12">
+            <div class="card summary-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clipboard-data me-2"></i> Validation Dashboard
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <div class="text-center">
+                                <div class="summary-icon text-primary">
+                                    <i class="bi bi-files"></i>
+                                </div>
+                                <div class="summary-value text-primary">
+                                    {{ summary.total_drs|default:"0" }}
+                                </div>
+                                <div class="summary-label">
+                                    DRS Requiring Validation
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <div class="text-center">
+                                <div class="summary-icon text-success">
+                                    <i class="bi bi-check-circle"></i>
+                                </div>
+                                <div class="summary-value text-success">
+                                    {{ summary.total_conversions|default:"0" }}
+                                </div>
+                                <div class="summary-label">
+                                    Total Conversions
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <div class="text-center">
+                                <div class="summary-icon text-warning">
+                                    <i class="bi bi-cash-stack"></i>
+                                </div>
+                                <div class="summary-value text-warning">
+                                    ${{ summary.total_payout|floatformat:2|default:"0.00" }}
+                                </div>
+                                <div class="summary-label">
+                                    Total Payout
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="summary-icon {% if summary.total_margin > 0 %}text-success{% else %}text-danger{% endif %}">
+                                    <i class="bi bi-graph-up"></i>
+                                </div>
+                                <div class="summary-value {% if summary.total_margin > 0 %}text-success{% else %}text-danger{% endif %}">
+                                    ${{ summary.total_margin|floatformat:2|default:"0.00" }}
+                                </div>
+                                <div class="summary-label">
+                                    Total Margin
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </td>
-    </tr>
-  {% empty %}
-    <tr>
-      <td colspan="9" class="text-muted py-4 text-center">
-        <i class="bi bi-emoji-frown me-2"></i> No validations found.
-      </td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
+    </div>
 
-  </div>
+    <!-- Combined Table for Validations and DRS -->
+    <div class="row">
+        <div class="col-12">
+            <div class="validation-table-card shadow p-0">
+                <div class="validation-header flex-wrap d-flex align-items-center justify-content-between gap-2 gap-md-3">
+                    <h4 class="mb-0" style="color:#1963b3;min-width:170px;flex-shrink:0;">
+                        Validations & DRS Requiring Validation
+                    </h4>
+                    <form method="get" class="d-flex flex-wrap align-items-center gap-2 flex-grow-1 my-2 my-md-0 justify-content-center justify-content-md-start" style="min-width:0;" id="filterForm">
+                        <select name="type" class="form-select" style="min-width:120px;max-width:160px;" id="typeFilter">
+                            <option value="">All Types</option>
+                            <option value="validation" {% if request.GET.type == 'validation' %}selected{% endif %}>Validations</option>
+                            <option value="drs" {% if request.GET.type == 'drs' %}selected{% endif %}>DRS Only</option>
+                        </select>
+                        <select name="publisher" class="form-select" style="min-width:150px;max-width:220px;" id="publisherFilter">
+                            <option value="">All Publishers</option>
+                            {% for pub in publishers %}
+                                <option value="{{ pub.id }}" {% if selected_publisher|default:'' == pub.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ pub.company_name|truncatechars:20 }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <select name="month" class="form-select" style="min-width:120px;max-width:160px;" id="monthFilter">
+                            <option value="">All Months</option>
+                            {% for m in months %}
+                                <option value="{{ m }}" {% if selected_month == m %}selected{% endif %}>{{ m }}</option>
+                            {% endfor %}
+                        </select>
+                        <select name="status" class="form-select" style="min-width:120px;max-width:160px;" id="statusFilter">
+                            <option value="">All Status</option>
+                            <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="approved" {% if request.GET.status == 'approved' %}selected{% endif %}>Approved</option>
+                            <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                            <option value="paused" {% if request.GET.status == 'paused' %}selected{% endif %}>Paused</option>
+                            <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+                        </select>
+                        <button type="button" class="btn btn-outline-primary flex-shrink-0" id="ajaxFilterBtn">Filter</button>
+                        <a href="{% url 'validation:validation_export' %}?export=csv{% if selected_publisher %}&publisher={{ selected_publisher }}{% endif %}{% if selected_month %}&month={{ selected_month }}{% endif %}"
+                           class="btn btn-outline-success flex-shrink-0">
+                            <i class="bi bi-cloud-arrow-down"></i> Export
+                        </a>
+                    </form>
+                </div>
+
+                <div class="table-responsive" id="combinedTableContainer">
+					{% if validations or drs_for_validation %}
+					<table class="validation-table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Type</th>
+                                <th>Campaign Name</th>
+                                <th>Publisher</th>
+                                <th>PID</th>
+                                <th>Conversions</th>
+                                <th>Payout</th>
+                                <th>Approve Payout</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="combinedTableBody">
+                            <!-- Existing Validations -->
+                            {% for v in validations %}
+                            <tr>
+                                <td>{{ v.id }}</td>
+                                <td>
+                                    <span class="drs-type-badge drs-type-validation">
+                                        Validation
+                                    </span>
+                                </td>
+                                <td>{{ v.drs.campaign_name|truncatechars:30 }}</td>
+                                <td>{{ v.publisher.company_name|truncatechars:20 }}</td>
+                                <td>{{ v.drs.pid }}</td>
+                                <td>{{ v.conversions }}</td>
+                                <td>${{ v.payout|floatformat:2 }}</td>
+                                <td>${{ v.approve_payout|floatformat:2 }}</td>
+                                <td>
+                                    <span class="status-badge 
+                                        {% if v.status == 'pending' %}pending
+                                        {% elif v.status == 'approved' %}approved
+                                        {% else %}rejected{% endif %}">
+                                        {{ v.get_status_display }}
+                                    </span>
+                                </td>
+                                <td style="white-space:nowrap;">
+                                    <div class="d-flex align-items-center gap-1 justify-content-center flex-nowrap">
+                                        <a href="{% url 'validation:detail' v.id %}" 
+                                           class="action-btn" title="View More">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{% url 'validation:edit' v.id %}" 
+                                           class="action-btn" title="Edit">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        {% if v.can_be_approved %}
+                                        <a href="{% url 'validation:edit' v.id %}?action=approve" 
+                                           class="action-btn text-success" title="Approve"
+                                           onclick="return confirm('Approve this validation?')">
+                                            <i class="bi bi-check-circle"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            
+                            <!-- DRS Requiring Validation -->
+							{% for drs in drs_for_validation %}
+							<tr class="drs-validation-row" data-drs-id="{{ drs.id }}">
+								<td>{{ drs.id }}</td>
+                                <td>
+                                    <span class="drs-type-badge drs-type-drs">
+                                        DRS
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'drs:detail' drs.id %}" style="color: #1963b3;">
+                                        {{ drs.campaign_name|truncatechars:30 }}
+                                    </a>
+                                </td>
+                                <td>{{ drs.publisher.company_name|truncatechars:20 }}</td>
+                                <td>{{ drs.pid|default:"-" }}</td>
+                                <td>{{ drs.publisher_conversions }}</td>
+                                <td>${{ drs.payout|floatformat:2|default:"0.00" }}</td>
+                                <td>${{ drs.payout|floatformat:2|default:"0.00" }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ drs.status }}">
+                                        {{ drs.get_status_display }}
+                                    </span>
+                                </td>
+                                <td style="white-space:nowrap;">
+									<div class="d-flex align-items-center gap-1 justify-content-center flex-nowrap">
+										<a href="{% url 'drs:detail' drs.id %}" 
+										   class="action-btn" title="View DRS Details">
+											<i class="bi bi-eye"></i>
+										</a>
+										{% if not drs.is_validated %}
+										<button onclick="saveValidationReport({{ drs.id }})" 
+												class="create-validation-btn" 
+												title="Save Report"
+												id="save-btn-{{ drs.id }}">
+											<i class="bi bi-check-circle me-1"></i> Save Report
+										</button>
+										{% else %}
+										<span class="badge bg-success" style="padding: 0.3em 1em;">
+											<i class="bi bi-check-circle me-1"></i> Saved
+										</span>
+										{% endif %}
+									</div>
+								</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon text-secondary">
+                            <i class="bi bi-emoji-frown"></i>
+                        </div>
+                        <h4 class="empty-state-title">No Records Found</h4>
+                        <p class="empty-state-text">
+                            No validations or DRS requiring validation found.
+                        </p>
+                        <a href="{% url 'drs:drs_list' %}" class="btn btn-primary mt-3">
+                            <i class="bi bi-arrow-left me-2"></i> View All DRS
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get all filter elements
+    const typeFilter = document.getElementById('typeFilter');
+    const publisherFilter = document.getElementById('publisherFilter');
+    const monthFilter = document.getElementById('monthFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const combinedTableContainer = document.getElementById('combinedTableContainer');
+    const summarySection = document.querySelector('.summary-section');
+    
+    // Create a loading overlay if it doesn't exist
+    let loadingOverlay = document.getElementById('loadingOverlay');
+    if (!loadingOverlay) {
+        loadingOverlay = document.createElement('div');
+        loadingOverlay.id = 'loadingOverlay';
+        loadingOverlay.className = 'loading-overlay';
+        loadingOverlay.innerHTML = '<div class="loading-spinner"></div>';
+        document.body.appendChild(loadingOverlay);
+    }
+    
+    // Function to show loading overlay
+    function showLoading() {
+        loadingOverlay.style.display = 'flex';
+    }
+    
+    // Function to hide loading overlay
+    function hideLoading() {
+        loadingOverlay.style.display = 'none';
+    }
+    
+    // Function to update URL without reloading
+    function updateURL(params) {
+        const newURL = window.location.pathname + '?' + params.toString();
+        window.history.pushState({}, '', newURL);
+    }
+    
+    // Function to extract and update content from response
+    function updateContentFromResponse(html) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // Update summary section if it exists in response
+        const newSummarySection = doc.querySelector('.summary-section');
+        if (newSummarySection && summarySection) {
+            summarySection.innerHTML = newSummarySection.innerHTML;
+        }
+        
+        // Update table container
+        const newTableContainer = doc.querySelector('#combinedTableContainer');
+        if (newTableContainer && combinedTableContainer) {
+            combinedTableContainer.innerHTML = newTableContainer.innerHTML;
+        } else {
+            // Fallback: look for the table directly
+            const tableElement = doc.querySelector('.validation-table');
+            const emptyStateElement = doc.querySelector('.empty-state');
+            
+            if (tableElement && combinedTableContainer) {
+                combinedTableContainer.innerHTML = tableElement.outerHTML;
+            } else if (emptyStateElement && combinedTableContainer) {
+                combinedTableContainer.innerHTML = emptyStateElement.outerHTML;
+            }
+        }
+    }
+    
+    // Function to perform AJAX filter
+    function performAjaxFilter() {
+        showLoading();
+        
+        // Get all filter values
+        const type = typeFilter ? typeFilter.value : '';
+        const publisher = publisherFilter ? publisherFilter.value : '';
+        const month = monthFilter ? monthFilter.value : '';
+        const status = statusFilter ? statusFilter.value : '';
+        
+        // Build query parameters
+        const params = new URLSearchParams();
+        if (type) params.append('type', type);
+        if (publisher) params.append('publisher', publisher);
+        if (month) params.append('month', month);
+        if (status) params.append('status', status);
+        
+        // Make AJAX request
+        fetch(`?${params.toString()}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Update content from response
+            updateContentFromResponse(html);
+            
+            // Update URL
+            updateURL(params);
+            
+            hideLoading();
+        })
+        .catch(error => {
+            console.error('Error filtering:', error);
+            hideLoading();
+            showAlert('Error applying filters. Please try again.', 'danger');
+        });
+    }
+    
+    // Debounce function to prevent too many rapid requests
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    
+    // Create debounced filter function
+    const debouncedFilter = debounce(performAjaxFilter, 300);
+    
+    // Add event listeners to all filter elements for automatic filtering
+    const filterElements = [typeFilter, publisherFilter, monthFilter, statusFilter];
+    
+    filterElements.forEach(filter => {
+        if (filter) {
+            // Remove any existing event listeners
+            const newFilter = filter.cloneNode(true);
+            filter.parentNode.replaceChild(newFilter, filter);
+            
+            // Add change event listener to the new element
+            newFilter.addEventListener('change', function() {
+                debouncedFilter();
+            });
+        }
+    });
+    
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', function() {
+        // Get current URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Update filter values from URL
+        if (typeFilter) typeFilter.value = urlParams.get('type') || '';
+        if (publisherFilter) publisherFilter.value = urlParams.get('publisher') || '';
+        if (monthFilter) monthFilter.value = urlParams.get('month') || '';
+        if (statusFilter) statusFilter.value = urlParams.get('status') || '';
+        
+        // Perform filter with current URL
+        performAjaxFilter();
+    });
+    
+    // Add row click handlers for DRS rows
+    document.addEventListener('click', function(e) {
+        // Handle DRS row clicks (excluding action buttons)
+        if (e.target.closest('.drs-validation-row') && 
+            !e.target.closest('.action-btn') && 
+            !e.target.closest('.create-validation-btn')) {
+            const link = e.target.closest('.drs-validation-row').querySelector('a[href*="detail"]');
+            if (link) {
+                e.preventDefault();
+                window.location.href = link.href;
+            }
+        }
+    });
+    
+    // Initialize: Set filter values from current URL on page load
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.toString()) {
+        // Set filter values from URL
+        if (typeFilter) typeFilter.value = urlParams.get('type') || '';
+        if (publisherFilter) publisherFilter.value = urlParams.get('publisher') || '';
+        if (monthFilter) monthFilter.value = urlParams.get('month') || '';
+        if (statusFilter) statusFilter.value = urlParams.get('status') || '';
+        
+        // Apply filters immediately on page load if URL has parameters
+        setTimeout(() => {
+            performAjaxFilter();
+        }, 100);
+    }
+});
+
+// Save Validation Report Function
+function saveValidationReport(drsId) {
+    const saveBtn = document.getElementById(`save-btn-${drsId}`);
+    const originalText = saveBtn.innerHTML;
+    
+    // Show loading state
+    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+    saveBtn.disabled = true;
+    
+    // Get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    const csrftoken = getCookie('csrftoken');
+    
+    // Send AJAX request to SaveReportView
+    fetch('{% url "validation:save_report" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+            drs_id: drsId
+        })
+    })
+    .then(response => {
+        if (response.status === 403) {
+            return response.json().then(data => {
+                throw new Error(data.error || 'Permission denied');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Remove Save Report button and show success message
+            saveBtn.outerHTML = `
+                <span class="badge bg-success" style="padding: 0.3em 1em;">
+                    <i class="bi bi-check-circle me-1"></i> Saved
+                </span>
+            `;
+            
+            // Remove the row highlight for DRS requiring validation
+            const row = document.querySelector(`tr[data-drs-id="${drsId}"]`);
+            if (row) {
+                row.classList.remove('drs-validation-row');
+            }
+            
+            // Show success message
+            showAlert(data.message || 'Report saved successfully! It will appear in your Validation tab.', 'success');
+            
+            // Update summary counts if needed
+            updateSummaryCount();
+            
+        } else {
+            // Show error
+            showAlert(data.error || 'Error saving report', 'danger');
+            saveBtn.innerHTML = originalText;
+            saveBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert(error.message || 'Network error. Please try again.', 'danger');
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+    });
+}
+
+// Alert function
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.top = '20px';
+    alertDiv.style.right = '20px';
+    alertDiv.style.zIndex = '9999';
+    alertDiv.style.minWidth = '300px';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Auto dismiss after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// Update summary count
+function updateSummaryCount() {
+    const totalDRSElement = document.querySelector('.summary-value.text-primary');
+    if (totalDRSElement) {
+        const currentCount = parseInt(totalDRSElement.textContent);
+        if (currentCount > 0) {
+            totalDRSElement.textContent = currentCount - 1;
+        }
+    }
+}
+</script>
 {% endblock %}

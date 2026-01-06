@@ -8,31 +8,30 @@ from django.http import JsonResponse, HttpResponse
 from apps.invoicing.models import CurrencyRate
 from django.db.models import Q
 from django.template.loader import render_to_string
-from django.views.generic import TemplateView  # Add this import
+from django.views.generic import TemplateView
+from django.contrib.auth import get_user_model
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-class DailyRevenueSheetListView(ListView):
+User = get_user_model()
+
+class DailyRevenueSheetListView(LoginRequiredMixin, ListView):
     model = DailyRevenueSheet
     template_name = 'drs/drs_list.html'
     context_object_name = 'drs_list'
 
-    # Add this to order by updated_at in descending order (newest first)
-    # def get_queryset(self):
-    #     return DailyRevenueSheet.objects.all().order_by('-updated_at')
+    def get_queryset(self):
+        return DailyRevenueSheet.objects.all().order_by('-updated_at')
 
-class DailyRevenueSheetCreateView(CreateView):
+class DailyRevenueSheetCreateView(LoginRequiredMixin, CreateView):
     model = DailyRevenueSheet
     form_class = DailyRevenueSheetForm
     template_name = 'drs/drs_form.html'
     success_url = reverse_lazy('drs:drs_list')
     
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # Get unique account managers from existing DRS entries
-        account_managers = DailyRevenueSheet.objects.exclude(
-            Q(account_manager__isnull=True) | Q(account_manager='')
-        ).values_list('account_manager', flat=True).distinct().order_by('account_manager')
-        context['account_managers'] = list(account_managers)  # FIXED: Changed 'menagers' to 'managers'
-        return context
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user  # Pass the current user to the form
+        return kwargs
     
     def form_valid(self, form):
         # Save the form
@@ -67,20 +66,16 @@ class DailyRevenueSheetCreateView(CreateView):
         
         return super().get(request, *args, **kwargs)
 
-class DailyRevenueSheetUpdateView(UpdateView):
+class DailyRevenueSheetUpdateView(LoginRequiredMixin, UpdateView):
     model = DailyRevenueSheet
     form_class = DailyRevenueSheetForm
     template_name = 'drs/drs_form.html'
     success_url = reverse_lazy('drs:drs_list')
     
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # Get unique account managers from existing DRS entries
-        account_managers = DailyRevenueSheet.objects.exclude(
-            Q(account_manager__isnull=True) | Q(account_manager='')
-        ).values_list('account_manager', flat=True).distinct().order_by('account_manager')
-        context['account_managers'] = list(account_managers)  # FIXED: Changed 'menagers' to 'managers'
-        return context
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user  # Pass the current user to the form
+        return kwargs
     
     def get(self, request, *args, **kwargs):
         # Check if it's an AJAX request (for modal loading)
@@ -115,17 +110,17 @@ class DailyRevenueSheetUpdateView(UpdateView):
         
         return super().form_invalid(form)
 
-class DailyRevenueSheetDeleteView(DeleteView):
+class DailyRevenueSheetDeleteView(LoginRequiredMixin, DeleteView):
     model = DailyRevenueSheet
     template_name = 'drs/drs_confirm_delete.html'
     success_url = reverse_lazy('drs:drs_list')
 
-class DailyRevenueSheetDetailView(DetailView):
+class DailyRevenueSheetDetailView(LoginRequiredMixin, DetailView):
     model = DailyRevenueSheet
     template_name = 'drs/drs_detail.html'
     context_object_name = 'drs'
 
-class DRSExportView(TemplateView):
+class DRSExportView(LoginRequiredMixin, TemplateView):
     template_name = 'drs/drs_export.html'
 
     def get(self, request, *args, **kwargs):
@@ -152,7 +147,7 @@ class DRSExportView(TemplateView):
         context = super().get_context_data(**kwargs)
         context['drs_list'] = DailyRevenueSheet.objects.order_by('-updated_at')
         return context
-    
+
 def drs_currency_amount_api(request):
     drs_id = request.GET.get('drs_id')
     currency = request.GET.get('currency', 'INR').upper()
@@ -173,3 +168,46 @@ def drs_currency_amount_api(request):
         except DailyRevenueSheet.DoesNotExist:
             pass
     return JsonResponse({'amount': f'{amount:.2f}'})
+
+# Update the DRSForValidationView class
+class DRSForValidationView(LoginRequiredMixin, ListView):
+    """View to show DRS entries that need validation (status: paused or completed)"""
+    model = DailyRevenueSheet
+    template_name = 'drs/drs_validation_list.html'
+    context_object_name = 'drs_for_validation'
+    
+    def get_queryset(self):
+        # Get DRS with status paused or completed
+        queryset = DailyRevenueSheet.objects.filter(
+            status__in=['paused', 'completed']
+        ).order_by('-start_date')
+        
+        # If user is a publisher, filter by their DRS
+        if hasattr(self.request.user, 'publisher'):
+            queryset = queryset.filter(publisher=self.request.user.publisher)
+        
+        return queryset
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        drs_for_validation = self.get_queryset()
+        
+        # Calculate summary
+        from django.db.models import Sum
+        context['summary'] = {
+            'total_drs': drs_for_validation.count(),
+            'total_conversions': drs_for_validation.aggregate(
+                total=Sum('publisher_conversions')
+            )['total'] or 0,
+            'total_revenue': drs_for_validation.aggregate(
+                total=Sum('revenue')
+            )['total'] or 0,
+            'total_payout': drs_for_validation.aggregate(
+                total=Sum('payout')
+            )['total'] or 0,
+            'total_margin': drs_for_validation.aggregate(
+                total=Sum('profit')
+            )['total'] or 0,
+        }
+        
+        return context

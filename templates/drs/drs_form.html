@@ -24,6 +24,7 @@ We're removing the base template extension because this will be loaded inside a 
   /* Remove body styling since it's in modal */
   .modal-body {
     padding: 0 !important;
+    background: #f8fafc;
   }
 
   .drs-card {
@@ -32,88 +33,75 @@ We're removing the base template extension because this will be loaded inside a 
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
     border: 1px solid var(--border-color);
     overflow: hidden;
-    margin-bottom: 0;
+    margin: 0;
   }
 
-  .card-section {
-    padding: 25px 30px;
-    border-bottom: 1px solid #f1f1f1;
+  /* Header section matching image */
+  .modal-header-section {
+    background: linear-gradient(100deg, #1dbfae 30%, #1963b3 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  .card-section:last-child {
-    border-bottom: none;
-  }
-
-  .card-section h3 {
-    color: var(--primary-blue);
+  .modal-title {
     font-weight: 600;
-    font-size: 1.2rem;
-    margin-bottom: 20px;
+    font-size: 1.4rem;
     display: flex;
     align-items: center;
     gap: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    margin: 0;
   }
 
-  .card-section h3 i {
-    color: var(--primary-blue);
-    font-size: 1.1rem;
-  }
-
-  .form-grid {
+  /* Form layout matching image - 2x2 grid */
+  .form-grid-2x2 {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px 30px;
+    padding: 25px 30px;
   }
 
-  /* NEW: Side-by-side layout for Advertiser and Publisher */
-  .side-by-side-sections {
+  .form-grid-row {
+    grid-column: 1 / -1;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 30px;
-    padding: 25px 30px;
-    border-bottom: 1px solid #f1f1f1;
   }
 
-  .side-by-side-sections:last-child {
-    border-bottom: none;
+  /* Field pairing as shown in image */
+  .field-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
   }
 
-  .section-column {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .section-column h3 {
+  /* Specific sections from image */
+  .section-header {
     color: var(--primary-blue);
     font-weight: 600;
-    font-size: 1.2rem;
-    margin-bottom: 20px;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
     display: flex;
     align-items: center;
     gap: 10px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    grid-column: 1 / -1;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
   }
 
-  .section-column h3 i {
+  .section-header i {
     color: var(--primary-blue);
-    font-size: 1.1rem;
+    font-size: 1rem;
   }
 
-  .column-form-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    flex: 1;
-  }
-
-  .column-form-group {
+  /* Form controls */
+  .form-group {
     margin-bottom: 0;
   }
 
-  .column-form-group label {
+  .form-group label {
     display: block;
     font-weight: 600;
     color: #2c3e50;
@@ -133,6 +121,14 @@ We're removing the base template extension because this will be loaded inside a 
     color: #333;
   }
 
+  .form-control:read-only,
+  .form-select:read-only {
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+    border-color: #e9ecef;
+    color: #6c757d;
+  }
+
   .form-control:hover,
   .form-select:hover {
     border-color: #aaa;
@@ -146,29 +142,130 @@ We're removing the base template extension because this will be loaded inside a 
     outline: none;
   }
 
-  /* Separator line between columns */
-  .column-separator {
+  /* Status dropdown styling */
+  .status-dropdown {
     position: relative;
   }
 
-  .column-separator::before {
-    content: "";
-    position: absolute;
-    left: -15px;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background: linear-gradient(to bottom, transparent, var(--primary-teal), transparent);
+  .status-display {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8f9fa;
+    border: 1.5px solid #e9ecef;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .status-display:hover {
+    border-color: var(--primary-blue);
+    background: white;
+  }
+
+  .status-active { color: #166534; }
+  .status-paused { color: #92400e; }
+  .status-completed { color: #3730a3; }
+  .status-validated { color: #1e40af; }
+  .status-invoiced { color: #6b21a8; }
+  .status-approved { color: #0c4a6e; }
+  .status-paid { color: #14532d; }
+
+  /* Rate and Conversion Section - matching image */
+  .rate-conversion-section {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 30px;
+    border: 1px solid #e2e8f0;
+  }
+
+  .rate-conversion-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+
+  .rate-conversion-grid .form-group label {
+    font-weight: 600;
+    color: #1963b3;
+    font-size: 0.9rem;
+  }
+
+  /* Total Section - matching image */
+  .total-section {
+    background: #1dbfae10;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 30px;
+    border: 1px solid #1dbfae30;
+  }
+
+  .total-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .total-item {
+    text-align: center;
+  }
+
+  .total-label {
+    display: block;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+
+  .total-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+  }
+
+  .total-value.margin {
+    color: #10b981;
+  }
+
+  /* Toast Styles */
+  .toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+  }
+
+  .toast {
+    min-width: 300px;
+    margin-bottom: 10px;
+    animation: slideInRight 0.3s ease-out;
+  }
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
   }
 
   /* Button styles - matching image */
-  .button-group {
+  .button-section {
     display: flex;
     justify-content: flex-end;
     gap: 15px;
     padding: 25px 30px;
-    background: #f8fafc;
+    background: white;
     border-top: 1px solid #e1e8ed;
+    border-radius: 0 0 16px 16px;
   }
 
   .btn {
@@ -214,7 +311,9 @@ We're removing the base template extension because this will be loaded inside a 
   .error-section {
     background: #fff5f5;
     border-left: 4px solid #e53e3e;
-    animation: shake 0.5s ease-in-out;
+    padding: 15px 30px;
+    margin: 15px 30px;
+    border-radius: 8px;
   }
 
   .error-list {
@@ -232,32 +331,88 @@ We're removing the base template extension because this will be loaded inside a 
     font-size: 0.9rem;
   }
 
-  /* Responsive adjustments for modal */
+  /* Status dropdown custom styling */
+  #id_status {
+    display: none; /* Hide the original dropdown */
+  }
+
+  .status-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    display: none;
+    margin-top: 5px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .status-options.show {
+    display: block;
+  }
+
+  .status-option {
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+  }
+
+  .status-option:hover {
+    background: #f8f9fa;
+  }
+
+  .status-option.active {
+    background: #f0f9ff;
+  }
+
+  /* Responsive adjustments */
   @media (max-width: 992px) {
-    .side-by-side-sections {
+    .form-grid-2x2,
+    .form-grid-row,
+    .field-pair {
       grid-template-columns: 1fr;
-      gap: 40px;
+      gap: 20px;
     }
     
-    .column-separator::before {
-      display: none;
+    .rate-conversion-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .total-grid {
+      grid-template-columns: 1fr;
+      gap: 15px;
     }
   }
 
   @media (max-width: 768px) {
-    .form-grid {
-      grid-template-columns: 1fr;
+    .modal-header-section {
+      padding: 1rem 1.5rem;
     }
-
-    .side-by-side-sections {
+    
+    .form-grid-2x2 {
       padding: 20px;
     }
-
-    .button-group {
+    
+    .rate-conversion-section,
+    .total-section {
+      margin: 15px 20px;
+      padding: 15px;
+    }
+    
+    .button-section {
       flex-direction: column;
       padding: 20px;
     }
-
+    
     .btn {
       width: 100%;
       justify-content: center;
@@ -276,38 +431,11 @@ We're removing the base template extension because this will be loaded inside a 
     }
   }
 
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
-  }
-
   .drs-card {
-    animation: fadeIn 0.5s ease-out;
+    animation: fadeIn 0.3s ease-out;
   }
 
-  /* Input focus styles */
-  input:focus, select:focus {
-    border-color: var(--primary-blue) !important;
-    box-shadow: 0 0 0 2px rgba(25, 99, 179, 0.1) !important;
-  }
-
-  /* Date input styling */
-  input[type="date"] {
-    color: #333;
-  }
-
-  input[type="date"]::-webkit-calendar-picker-indicator {
-    cursor: pointer;
-    opacity: 0.6;
-    transition: opacity 0.2s;
-  }
-
-  input[type="date"]::-webkit-calendar-picker-indicator:hover {
-    opacity: 1;
-  }
-
-  /* Scrollbar styling for modal */
+  /* Scrollbar styling */
   .modal-body::-webkit-scrollbar {
     width: 8px;
   }
@@ -324,145 +452,268 @@ We're removing the base template extension because this will be loaded inside a 
   .modal-body::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
   }
+
+  /* Status icon colors */
+  .status-icon-active { color: #16a34a; }
+  .status-icon-paused { color: #ea580c; }
+  .status-icon-completed { color: #4f46e5; }
+  .status-icon-validated { color: #1d4ed8; }
+  .status-icon-invoiced { color: #7c3aed; }
+  .status-icon-approved { color: #0ea5e9; }
+  .status-icon-paid { color: #10b981; }
+  
+  #{{ form.mmp.id_for_label }} {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    background-color: white !important;
+}
+
+.form-select:not(:disabled) {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.75rem center !important;
+    background-size: 16px 12px !important;
+}
 </style>
 
-<form method="post" autocomplete="off" id="drsForm">
+<!-- Toast Container -->
+<div id="toastContainer" class="toast-container"></div>
+
+<form method="post" autocomplete="off" id="drsForm" action="{% if form.instance.pk %}{% url 'drs:edit' form.instance.pk %}{% else %}{% url 'drs:add' %}{% endif %}">
   {% csrf_token %}
+  {% if form.instance.pk %}
+    <input type="hidden" name="pk" value="{{ form.instance.pk }}">
+  {% endif %}
 
   <div class="drs-card">
-    <!-- Account Manager & Campaign Info -->
-    <div class="card-section">
-      <h3><i class="bi bi-person-badge"></i> 
-        {% if form.instance.pk %}Edit DRS Entry{% else %}Add DRS Entry{% endif %}
-      </h3>
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="account_manager">Account Manager</label>
-          <select name="account_manager" id="id_account_manager" class="form-select">
-            <option value="">Select Manager</option>
-            {% for manager in account_managers %}
-              <option value="{{ manager }}" 
-                {% if form.account_manager.value == manager %}selected{% endif %}>
-                {{ manager }}
-              </option>
-            {% empty %}
-              <option value="" disabled>No managers found. Add some DRS entries first.</option>
-            {% endfor %}
-          </select>
-          {% if not account_managers %}
-          <small class="text-muted mt-2 d-block">
-            <i class="bi bi-info-circle"></i> No account managers found. Create a DRS entry first to populate this list.
-          </small>
-          {% endif %}
+    <!-- Dates Section -->
+    <div class="form-grid-2x2">
+      <div class="section-header">
+        <i class="bi bi-calendar"></i> Dates
+      </div>
+      
+      <div class="form-group">
+        <label for="{{ form.start_date.id_for_label }}">Start Date</label>
+        {{ form.start_date }}
+      </div>
+      
+      <div class="form-group">
+        <label for="{{ form.end_date.id_for_label }}">End Date (Optional)</label>
+        {{ form.end_date }}
+      </div>
+    </div>
+
+    <!-- Advertiser & AF_PRT Section -->
+    <div class="form-grid-2x2">
+      <div class="section-header">
+        <i class="bi bi-building"></i> Advertiser Details
+      </div>
+      
+      <div class="form-group">
+        <label for="{{ form.advertiser.id_for_label }}">Advertiser</label>
+        {{ form.advertiser }}
+      </div>
+      
+      <div class="form-group">
+        <label for="{{ form.af_prt.id_for_label }}" id="af_prt_label">AF_PRT</label>
+        {{ form.af_prt }}
+      </div>
+    </div>
+
+    <!-- MMP & Ad Group Section -->
+	<div class="form-grid-2x2">
+	  <div class="section-header">
+		<i class="bi bi-gear"></i> MMP Settings
+	  </div>
+	  
+	  <div class="form-group">
+		<label for="{{ form.mmp.id_for_label }}">MMP</label>
+		<select name="mmp" class="form-select" id="id_mmp" data-value="{{ form.mmp.value }}">
+		  {% for value, text in form.mmp.field.choices %}
+			<option value="{{ value }}" {% if form.mmp.value == value %}selected{% endif %}>
+			  {{ text }}
+			</option>
+		  {% endfor %}
+		</select>
+		
+		<!-- Debug information -->
+		<div style="font-size: 0.8rem; color: #666; margin-top: 5px;">
+		  <small>
+			Debug: 
+			Value: "{{ form.mmp.value }}"
+			| Has value: {{ form.mmp.value|yesno:"Yes,No" }}
+			| Choices: {{ form.mmp.field.choices|length }}
+		  </small>
+		</div>
+	  </div>
+	  
+	  <div class="form-group">
+		<label for="{{ form.pid.id_for_label }}" id="pid_label">PID</label>
+		{{ form.pid }}
+	  </div>
+	</div>
+
+    <!-- Campaign, GEO, Payable Event Section -->
+    <div class="form-grid-2x2">
+      <div class="section-header">
+        <i class="bi bi-bullseye"></i> Campaign Details
+      </div>
+      
+      <div class="form-group">
+        <label for="{{ form.campaign_name.id_for_label }}">Campaign Name</label>
+        {{ form.campaign_name }}
+      </div>
+      
+      <div class="form-group">
+        <label for="{{ form.geo.id_for_label }}">GEO</label>
+        {{ form.geo }}
+      </div>
+      
+      <div class="form-group">
+        <label for="{{ form.payable_event_name.id_for_label }}">Payable Event</label>
+        {{ form.payable_event_name }}
+      </div>
+    </div>
+
+    <!-- Publisher & Status Section -->
+    <div class="form-grid-2x2">
+      <div class="section-header">
+        <i class="bi bi-people"></i> Publisher & Status
+      </div>
+      
+      <div class="form-group">
+        <label for="{{ form.publisher.id_for_label }}">Publisher</label>
+        {{ form.publisher }}
+      </div>
+      
+      <div class="form-group">
+        <label for="id_status_display">Status</label>
+        <div class="status-dropdown">
+          <!-- Custom status display -->
+          <div class="status-display" id="id_status_display" onclick="toggleStatusOptions()">
+            <span id="status_display_text">
+              {% if form.status.value %}
+                {{ form.get_status_display }}
+              {% else %}
+                Active
+              {% endif %}
+            </span>
+            <i class="bi bi-chevron-down"></i>
+          </div>
+          
+          <!-- Custom status options -->
+          <div class="status-options" id="status_options">
+            <div class="status-option status-active" onclick="selectStatus('active')">
+              <i class="bi bi-play-circle status-icon-active"></i> Active
+            </div>
+            <div class="status-option status-paused" onclick="selectStatus('paused')">
+              <i class="bi bi-pause-circle status-icon-paused"></i> Paused
+            </div>
+            <div class="status-option status-completed" onclick="selectStatus('completed')">
+              <i class="bi bi-check-circle status-icon-completed"></i> Completed
+            </div>
+            <div class="status-option status-validated" onclick="selectStatus('validated')">
+              <i class="bi bi-check-circle-fill status-icon-validated"></i> Validated
+            </div>
+            <div class="status-option status-invoiced" onclick="selectStatus('invoiced')">
+              <i class="bi bi-file-earmark-text status-icon-invoiced"></i> Invoiced
+            </div>
+            <div class="status-option status-approved" onclick="selectStatus('approved')">
+              <i class="bi bi-check-square status-icon-approved"></i> Approved
+            </div>
+            <div class="status-option status-paid" onclick="selectStatus('paid')">
+              <i class="bi bi-cash-coin status-icon-paid"></i> Paid
+            </div>
+          </div>
+          
+          <!-- Hidden actual status field -->
+          {{ form.status }}
         </div>
-        <div class="form-group">
-          <label for="status">Status</label>
-          <select name="status" id="id_status" class="form-select">
-            <option value="active" {% if form.status.value == 'active' or not form.status.value %}selected{% endif %}>Active</option>
-            <option value="paused" {% if form.status.value == 'paused' %}selected{% endif %}>Paused</option>
-            <option value="completed" {% if form.status.value == 'completed' %}selected{% endif %}>Completed</option>
-          </select>
+        <small class="text-muted mt-1 d-block">
+          <i class="bi bi-info-circle"></i> Status updates automatically when end date is set.
+        </small>
+      </div>
+    </div>
+
+    <!-- Rate and Conversion Section -->
+	<div class="rate-conversion-section">
+	  <div class="section-header" style="border-bottom: none; padding-bottom: 0;">
+		<i class="bi bi-graph-up"></i> Revenue & Conversions
+	  </div>
+	  
+	  <div class="rate-conversion-grid">
+		<div class="form-group">
+		  <label for="id_campaign_revenue">Revenue Rate</label>
+		  <input type="number" name="campaign_revenue" class="form-control" id="id_campaign_revenue" 
+				 step="0.01" value="{{ form.campaign_revenue.value|default:'0.00' }}">
+		</div>
+		
+		<div class="form-group">
+		  <label for="id_publisher_payout">Payout Rate</label>
+		  <input type="number" name="publisher_payout" class="form-control" id="id_publisher_payout" 
+				 step="0.01" value="{{ form.publisher_payout.value|default:'0.00' }}">
+		</div>
+		
+		<div class="form-group">
+		  <label for="id_advertiser_conversions">Adv. Conversions</label>
+		  <input type="number" name="advertiser_conversions" class="form-control" id="id_advertiser_conversions" 
+				 value="{{ form.advertiser_conversions.value|default:'0' }}">
+		</div>
+		
+		<div class="form-group">
+		  <label for="id_publisher_conversions">Pub. Conversions</label>
+		  <input type="number" name="publisher_conversions" class="form-control" id="id_publisher_conversions" 
+				 value="{{ form.publisher_conversions.value|default:'0' }}">
+		</div>
+	  </div>
+	</div>
+
+    <!-- Totals Section -->
+    <div class="total-section">
+      <div class="section-header" style="border-bottom: none; padding-bottom: 0;">
+        <i class="bi bi-calculator"></i> Summary
+      </div>
+      
+      <div class="total-grid">
+        <div class="total-item">
+          <span class="total-label">Total Revenue</span>
+          <span class="total-value" id="total_revenue">$0.00</span>
         </div>
-        <div class="form-group">
-          <label for="{{ form.start_date.id_for_label }}">Start Date</label>
-          {{ form.start_date }}
-        </div> 
-        <div class="form-group">
-          <label for="{{ form.end_date.id_for_label }}">
-            End Date (optional)
-          </label>
-          {{ form.end_date }}
+        
+        <div class="total-item">
+          <span class="total-label">Total Payout</span>
+          <span class="total-value" id="total_payout">$0.00</span>
+        </div>
+        
+        <div class="total-item">
+          <span class="total-label">Margin</span>
+          <span class="total-value margin" id="total_margin">$0.00</span>
         </div>
       </div>
     </div>
 
-    <!-- Campaign Name -->
-    <div class="card-section">
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="{{ form.campaign_name.id_for_label }}">
-            Campaign Name
-          </label>
-          {{ form.campaign_name }}
-        </div>			
+    <!-- Account Manager Section -->
+    <div class="form-grid-2x2" style="padding-top: 10px;">
+      <div class="section-header">
+        <i class="bi bi-person-badge"></i> Account Management
       </div>
-    </div>
-
-    <!-- Advertiser & Publisher Side-by-Side Sections -->
-    <div class="side-by-side-sections">
-      <!-- Advertiser Column (Left) -->
-      <div class="section-column">
-        <h3><i class="bi bi-building"></i> Advertiser</h3>
-        <div class="column-form-grid">
-          <div class="column-form-group">
-            <label for="{{ form.advertiser.id_for_label }}">
-              Select Advertiser
-            </label>
-            {{ form.advertiser }}
-          </div>
-          <div class="column-form-group">
-            <label for="{{ form.geo.id_for_label }}">GEO</label>
-            {{ form.geo }}
-          </div>
-          <div class="column-form-group">
-            <label for="{{ form.mmp.id_for_label }}">MMP</label>
-            {{ form.mmp }}
-          </div>
-          <div class="column-form-group">
-            <label for="{{ form.campaign_revenue.id_for_label }}">
-              Campaign Revenue ($)
-            </label>
-            {{ form.campaign_revenue }}
-          </div>
-          <div class="column-form-group">
-            <label for="{{ form.advertiser_conversions.id_for_label }}">
-              Conversions
-            </label>
-            {{ form.advertiser_conversions }}
-          </div>
-        </div>
-      </div>
-
-      <!-- Publisher Column (Right) -->
-      <div class="section-column column-separator">
-        <h3><i class="bi bi-people"></i> Publisher</h3>
-        <div class="column-form-grid">
-          <div class="column-form-group">
-            <label for="{{ form.publisher.id_for_label }}">
-              Select Publisher
-            </label>
-            {{ form.publisher }}
-          </div>
-          <div class="column-form-group">
-            <label for="{{ form.pid.id_for_label }}">PID</label>
-            {{ form.pid }}
-          </div>
-          <div class="column-form-group">
-            <label for="{{ form.payable_event_name.id_for_label }}">
-              Payable Event Name
-            </label>
-            {{ form.payable_event_name }}
-          </div>
-          <div class="column-form-group">
-            <label for="{{ form.publisher_payout.id_for_label }}">
-              Campaign Payout ($)
-            </label>
-            {{ form.publisher_payout }}
-          </div>
-          <div class="column-form-group">
-            <label for="{{ form.publisher_conversions.id_for_label }}">
-              Conversions Postbacks
-            </label>
-            {{ form.publisher_conversions }}
-          </div>
-        </div>
+      
+      <div class="form-group" style="grid-column: 1 / -1;">
+        <label for="id_account_manager">Account Manager</label>
+        {{ form.account_manager }}
+        
+        <small class="text-muted mt-2 d-block">
+          <i class="bi bi-info-circle"></i> Select an account manager from the list.
+        </small>
       </div>
     </div>
 
     <!-- Form Errors Display -->
     {% if form.errors %}
-    <div class="card-section error-section">
-      <h3><i class="bi bi-exclamation-triangle"></i> Form Errors</h3>
+    <div class="error-section">
+      <h6><i class="bi bi-exclamation-triangle"></i> Form Errors</h6>
       <div class="error-list">
         {% for field in form %}
           {% for error in field.errors %}
@@ -484,108 +735,406 @@ We're removing the base template extension because this will be loaded inside a 
   </div>
 
   <!-- Action Buttons -->
-  <div class="button-group">
+  <div class="button-section">
     <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">
       Cancel
     </button>
     <button type="submit" class="btn btn-save">
-      <i class="bi bi-check-circle"></i> {% if form.instance.pk %}Update{% else %}Save{% endif %}
+      <i class="bi bi-check-circle"></i> {% if form.instance.pk %}Update{% else %}Save Entry{% endif %}
     </button>
   </div>
 </form>
 
 <script>
-  // This script will be initialized by the parent page when form loads
-  function initializeDrsForm() {
-    // Initialize date fields with current date if empty
-    const dateInputs = document.querySelectorAll('input[type="date"]');
-    dateInputs.forEach(input => {
-      if (!input.value) {
-        const today = new Date().toISOString().split('T')[0];
-        input.value = today;
-      }
-    });
-
-    // Currency formatting
-    const currencyInputs = document.querySelectorAll('input[type="number"][step="0.01"]');
-    currencyInputs.forEach(input => {
-      input.addEventListener('blur', function() {
-        const value = parseFloat(this.value);
-        if (!isNaN(value)) {
-          this.value = value.toFixed(2);
-        }
-      });
-    });
-
-    // Show/hide end date based on status
-    const statusSelect = document.getElementById('id_status');
-    const endDateField = document.querySelector('[id$="end_date"]');
+// Function to show toast message
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) return;
     
-    if (statusSelect && endDateField) {
-      const updateEndDateVisibility = () => {
-        const status = statusSelect.value;
-        if (status === 'completed') {
-          endDateField.parentElement.style.display = 'block';
-        } else {
-          endDateField.parentElement.style.display = 'block';
+    const toastId = 'toast-' + Date.now();
+    
+    const bgClass = {
+        'success': 'bg-success',
+        'error': 'bg-danger',
+        'warning': 'bg-warning',
+        'info': 'bg-info'
+    }[type] || 'bg-info';
+    
+    const toastHtml = `
+        <div id="${toastId}" class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header ${bgClass} text-white">
+                <strong class="me-auto">Notification</strong>
+                <button type="button" class="btn-close btn-close-white" onclick="document.getElementById('${toastId}').remove()" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                ${message}
+            </div>
+        </div>
+    `;
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        const toast = document.getElementById(toastId);
+        if (toast) {
+            toast.remove();
         }
-      };
-      
-      statusSelect.addEventListener('change', updateEndDateVisibility);
-      updateEndDateVisibility(); // Initial check
+    }, 5000);
+}
+
+// Function to calculate totals
+function calculateTotals() {
+    const revenueRate = parseFloat(document.getElementById('{{ form.campaign_revenue.id_for_label }}').value) || 0;
+    const payoutRate = parseFloat(document.getElementById('{{ form.publisher_payout.id_for_label }}').value) || 0;
+    const advConvs = parseInt(document.getElementById('{{ form.advertiser_conversions.id_for_label }}').value) || 0;
+    const pubConvs = parseInt(document.getElementById('{{ form.publisher_conversions.id_for_label }}').value) || 0;
+    
+    const totalRevenue = revenueRate * advConvs;
+    const totalPayout = payoutRate * pubConvs;
+    const margin = totalRevenue - totalPayout;
+    
+    document.getElementById('total_revenue').textContent = '$' + totalRevenue.toFixed(2);
+    document.getElementById('total_payout').textContent = '$' + totalPayout.toFixed(2);
+    document.getElementById('total_margin').textContent = '$' + margin.toFixed(2);
+    
+    // Update margin color
+    const marginElement = document.getElementById('total_margin');
+    marginElement.classList.remove('margin');
+    if (margin > 0) {
+        marginElement.style.color = '#10b981';
+        marginElement.classList.add('margin');
+    } else if (margin < 0) {
+        marginElement.style.color = '#ef4444';
+    } else {
+        marginElement.style.color = '#6b7280';
     }
+}
+
+// Function to update field labels and editability based on MMP selection
+function updateFieldsBasedOnMMP() {
+    const mmpSelect = document.querySelector('select[name="mmp"], #id_mmp');
+    const pidLabel = document.getElementById('pid_label');
+    const afPrtLabel = document.getElementById('af_prt_label');
+    const pidField = document.querySelector('input[name="pid"], #id_pid');
+    const afPrtField = document.querySelector('input[name="af_prt"], #id_af_prt');
+    
+    if (!mmpSelect) return;
+    
+    const selectedMMP = mmpSelect.value;
+    
+    // Reset all fields to editable first
+    if (pidField) {
+        pidField.readOnly = false;
+        pidField.style.backgroundColor = '';
+    }
+    if (afPrtField) {
+        afPrtField.readOnly = false;
+        afPrtField.style.backgroundColor = '';
+    }
+    
+    // Update labels and editability based on MMP
+    switch(selectedMMP) {
+        case 'Appsflyer':
+            if (pidLabel) pidLabel.innerHTML = 'PID';
+            if (afPrtLabel) afPrtLabel.innerHTML = 'AF_PRT';
+            break;
+            
+        case 'Adjust':
+            if (pidLabel) pidLabel.innerHTML = 'Ad Group';
+            if (afPrtLabel) afPrtLabel.innerHTML = 'AF_PRT';
+            // Make AF_PRT and PID non-editable for Adjust (but NOT MMP field)
+            if (pidField) {
+                pidField.readOnly = true;
+                pidField.style.backgroundColor = '#f8f9fa';
+            }
+            if (afPrtField) {
+                afPrtField.readOnly = true;
+                afPrtField.style.backgroundColor = '#f8f9fa';
+            }
+            break;
+            
+        case 'Singular':
+        case 'Branch':
+        case 'AppMetrica':
+            if (pidLabel) pidLabel.innerHTML = 'Network ID';
+            if (afPrtLabel) afPrtLabel.innerHTML = 'AF_PRT';
+            // Make AF_PRT and PID non-editable (but NOT MMP field)
+            if (pidField) {
+                pidField.readOnly = true;
+                pidField.style.backgroundColor = '#f8f9fa';
+            }
+            if (afPrtField) {
+                afPrtField.readOnly = true;
+                afPrtField.style.backgroundColor = '#f8f9fa';
+            }
+            break;
+            
+        default:
+            if (pidLabel) pidLabel.innerHTML = 'PID';
+            if (afPrtLabel) afPrtLabel.innerHTML = 'AF_PRT';
+    }
+}
+
+// Status Management Functions
+function toggleStatusOptions() {
+    const options = document.getElementById('status_options');
+    options.classList.toggle('show');
+}
+
+function selectStatus(status) {
+    const statusField = document.getElementById('{{ form.status.id_for_label }}');
+    const displayText = document.getElementById('status_display_text');
+    const statusDisplay = document.getElementById('id_status_display');
+    const endDateField = document.getElementById('{{ form.end_date.id_for_label }}');
+    
+    if (!statusField || !displayText) return;
+    
+    // Set the status value
+    statusField.value = status;
+    
+    // Update display text
+    const statusLabels = {
+        'active': 'Active',
+        'paused': 'Paused', 
+        'completed': 'Completed',
+        'validated': 'Validated',
+        'invoiced': 'Invoiced',
+        'approved': 'Approved',
+        'paid': 'Paid'
+    };
+    
+    displayText.textContent = statusLabels[status] || 'Active';
+    
+    // Update display styling
+    statusDisplay.className = 'status-display status-' + status;
+    
+    // Handle status-specific logic
+    if (status === 'paused' && endDateField && !endDateField.value) {
+        // If status is paused and no end date, set end date to today
+        const today = new Date().toISOString().split('T')[0];
+        endDateField.value = today;
+        showToast('End date has been set to today for paused status.', 'info');
+    } else if (status === 'active' && endDateField && endDateField.value) {
+        // If status is active but end date exists, ask user
+        if (confirm('Changing status to Active. Do you want to clear the end date?')) {
+            endDateField.value = '';
+        }
+    }
+    
+    // Close the dropdown
+    document.getElementById('status_options').classList.remove('show');
+    
+    console.log('Status changed to:', status);
+}
+
+// Function to handle end date logic
+function handleEndDateLogic() {
+    const endDateField = document.getElementById('{{ form.end_date.id_for_label }}');
+    const statusField = document.getElementById('{{ form.status.id_for_label }}');
+    
+    if (!endDateField || !statusField) return;
+    
+    endDateField.addEventListener('change', function() {
+        if (this.value) {
+            // When end date is set, update status to paused
+            selectStatus('paused');
+            showToast('End date selected. Status has been set to Paused.', 'info');
+        } else {
+            // When end date is cleared, check if we should revert to active
+            const currentStatus = statusField.value;
+            if (currentStatus === 'paused') {
+                // Ask user if they want to change status back to active
+                if (confirm('End date cleared. Do you want to change status back to Active?')) {
+                    selectStatus('active');
+                }
+            }
+        }
+    });
+}
+
+// Function to initialize status display
+function initializeStatusDisplay() {
+    const statusField = document.getElementById('{{ form.status.id_for_label }}');
+    const displayText = document.getElementById('status_display_text');
+    const statusDisplay = document.getElementById('id_status_display');
+    
+    if (!statusField || !displayText) return;
+    
+    // Set initial status from hidden field
+    const currentStatus = statusField.value || 'active';
+    const statusLabels = {
+        'active': 'Active',
+        'paused': 'Paused', 
+        'completed': 'Completed',
+        'validated': 'Validated',
+        'invoiced': 'Invoiced',
+        'approved': 'Approved',
+        'paid': 'Paid'
+    };
+    
+    displayText.textContent = statusLabels[currentStatus] || 'Active';
+    statusDisplay.className = 'status-display status-' + currentStatus;
+}
+
+// Close status dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const statusDropdown = document.querySelector('.status-dropdown');
+    const statusOptions = document.getElementById('status_options');
+    
+    if (statusDropdown && statusOptions && 
+        !statusDropdown.contains(event.target) && 
+        statusOptions.classList.contains('show')) {
+        statusOptions.classList.remove('show');
+    }
+});
+
+// Function to ensure MMP dropdown has options
+function ensureMMPOptions() {
+    const mmpField = document.querySelector('select[name="mmp"], #id_mmp');
+    if (!mmpField) return;
+    
+    console.log('Checking MMP options...');
+    console.log('Current MMP value:', mmpField.value);
+    console.log('Number of options:', mmpField.options.length);
+    
+    // If no options, add them manually
+    if (mmpField.options.length === 0) {
+        console.log('MMP dropdown is empty, adding options manually...');
+        
+        const mmpOptions = [
+            {value: '', text: '---------'},
+            {value: 'Appsflyer', text: 'Appsflyer'},
+            {value: 'Adjust', text: 'Adjust'},
+            {value: 'Singular', text: 'Singular'},
+            {value: 'Branch', text: 'Branch'},
+            {value: 'AppMetrica', text: 'AppMetrica'},
+            {value: 'Other', text: 'Other'}
+        ];
+        
+        // Clear any existing options
+        mmpField.innerHTML = '';
+        
+        // Add options
+        mmpOptions.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option.value;
+            optionElement.textContent = option.text;
+            mmpField.appendChild(optionElement);
+        });
+        
+        // Set the current value if it exists
+        // Get value from the form field's current value or from Django template
+        const currentMMPValue = mmpField.getAttribute('data-value') || '{{ form.mmp.value }}';
+        if (currentMMPValue && currentMMPValue !== 'None' && currentMMPValue !== '') {
+            mmpField.value = currentMMPValue;
+            console.log('Set MMP value to:', currentMMPValue);
+        }
+        
+        console.log('MMP options added. Total options:', mmpField.options.length);
+    }
+    
+    // Ensure the dropdown is visible and functional
+    mmpField.style.display = 'block';
+    mmpField.classList.add('form-select');
+    mmpField.removeAttribute('readonly');
+    mmpField.removeAttribute('disabled');
+}
+
+// This script will be initialized by the parent page when form loads
+function initializeDrsForm() {
+    console.log('Initializing DRS form...');
+    
+    // Initialize date fields with current date if empty
+    const startDateInput = document.querySelector('input[name="start_date"], #id_start_date');
+    if (startDateInput && !startDateInput.value) {
+        const today = new Date().toISOString().split('T')[0];
+        startDateInput.value = today;
+    }
+
+    // First, ensure MMP options exist
+    ensureMMPOptions();
+    
+    // Initialize MMP field functionality
+    const mmpField = document.querySelector('select[name="mmp"], #id_mmp');
+    if (mmpField) {
+        console.log('MMP field initialized, value:', mmpField.value);
+        console.log('MMP options after init:', mmpField.options.length);
+        
+        // Set initial state
+        updateFieldsBasedOnMMP();
+        
+        // Add change listener
+        mmpField.addEventListener('change', updateFieldsBasedOnMMP);
+    }
+
+    // Initialize status display
+    initializeStatusDisplay();
+    
+    // Initialize end date logic
+    handleEndDateLogic();
+    
+    // Setup calculation listeners for totals
+    setupCalculationListeners();
+    
+    // Calculate initial totals
+    calculateTotals();
 
     // Form validation
     const form = document.getElementById('drsForm');
-    const submitBtn = form.querySelector('.btn-save');
+    if (form) {
+        const submitBtn = form.querySelector('.btn-save');
 
-    form.addEventListener('submit', function(e) {
-      const requiredFields = form.querySelectorAll('[required]');
-      let isValid = true;
+        form.addEventListener('submit', function(e) {
+            const requiredFields = form.querySelectorAll('[required]');
+            let isValid = true;
 
-      requiredFields.forEach(field => {
-        if (!field.value.trim()) {
-          isValid = false;
-          field.style.borderColor = '#e53e3e';
-        } else {
-          field.style.borderColor = '';
-        }
-      });
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.style.borderColor = '#e53e3e';
+                } else {
+                    field.style.borderColor = '';
+                }
+            });
 
-      if (!isValid) {
-        e.preventDefault();
-        // Scroll to first error
-        const firstError = form.querySelector('[style*="border-color: #e53e3e"]');
-        if (firstError) {
-          firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          firstError.focus();
-        }
-      } else {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> {% if form.instance.pk %}Updating...{% else %}Saving...{% endif %}';
-      }
-    });
+            if (!isValid) {
+                e.preventDefault();
+                // Scroll to first error
+                const firstError = form.querySelector('[style*="border-color: #e53e3e"]');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstError.focus();
+                }
+            } else if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> ' + (form.querySelector('input[name="pk"]') ? 'Updating...' : 'Saving...');
+            }
+        });
 
-    // Reset form validation on input
-    form.querySelectorAll('input, select').forEach(field => {
-      field.addEventListener('input', function() {
-        this.style.borderColor = '';
-      });
-    });
+        // Reset form validation on input
+        form.querySelectorAll('input, select').forEach(field => {
+            field.addEventListener('input', function() {
+                this.style.borderColor = '';
+            });
+        });
+    }
 
     // Focus on first input field
-    const firstInput = form.querySelector('input, select, textarea');
+    const firstInput = document.querySelector('#drsForm input, #drsForm select, #drsForm textarea');
     if (firstInput) {
-      setTimeout(() => {
-        firstInput.focus();
-      }, 100);
+        setTimeout(() => {
+            firstInput.focus();
+        }, 100);
     }
-  }
+    
+    console.log('DRS form initialized successfully');
+}
 
-  // Initialize when DOM is loaded
-  if (document.readyState === 'loading') {
+// Initialize when DOM is loaded
+if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeDrsForm);
-  } else {
+} else {
     initializeDrsForm();
-  }
+}
 </script>

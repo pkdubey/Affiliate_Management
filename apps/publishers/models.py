@@ -13,6 +13,11 @@ class Publisher(models.Model):
 
     def __str__(self):
         return self.company_name
+    
+    @property
+    def name(self):
+        """Alias for contact_person for compatibility with templates"""
+        return self.contact_person or self.company_name
 
     def clean(self):
         """Validate email uniqueness across both Publisher and Advertiser"""

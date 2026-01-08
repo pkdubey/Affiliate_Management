@@ -9,9 +9,6 @@ class DailyRevenueSheet(models.Model):
         ('active', 'Active'),
         ('paused', 'Paused'),
         ('completed', 'Completed'),
-        ('validated', 'Validated'),
-        ('invoiced', 'Invoiced'),
-        ('approved', 'Approved'),
         ('paid', 'Paid'),
     ]
     
@@ -174,4 +171,4 @@ class DailyRevenueSheet(models.Model):
     @property
     def is_validated(self):
         """Check if DRS has been validated"""
-        return self.status == 'validated' and hasattr(self, 'validation')
+        return self.status == 'validated'

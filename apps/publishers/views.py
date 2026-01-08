@@ -55,11 +55,130 @@ def impersonated_dashboard(request, publisher_id):
         if imp_id is None or int(imp_id) != int(publisher_id):
             return HttpResponseForbidden("Impersonation not started for this publisher.")
         publisher = get_object_or_404(Publisher, pk=publisher_id)
+        
+        # Import necessary models
+        from apps.drs.models import DailyRevenueSheet
+        from apps.validation.models import Validation
+        from apps.invoicing.models import Invoice
+        from django.db.models import Sum
+        from django.utils.timezone import now, timedelta
+        import json
+        
+        today = now().date()
+        
+        # Calculate validation overview stats for this publisher
+        try:
+            # 1. Pending validation count (DRS with status paused or completed)
+            pending_validation_count = DailyRevenueSheet.objects.filter(
+                publisher=publisher,
+                status__in=['paused', 'completed']
+            ).count()
+            
+            # 2. Submitted validations count (validations created by this publisher)
+            submitted_reports_count = Validation.objects.filter(
+                publisher=publisher
+            ).count()
+            
+            # 3. Pending invoices count
+            pending_invoices_count = Invoice.objects.filter(
+                publisher=publisher,
+                status__in=['Pending', 'Overdue']
+            ).count()
+            
+        except Exception as e:
+            print(f"Error calculating validation overview for impersonation: {e}")
+            pending_validation_count = 0
+            submitted_reports_count = 0
+            pending_invoices_count = 0
+        
+        # Calculate revenue stats for this publisher
+        try:
+            # Total income calculation
+            total_income = Invoice.objects.filter(
+                publisher=publisher
+            ).aggregate(
+                total=Sum('drs__campaign_revenue')
+            )['total'] or 0
+            
+            total_invoices = Invoice.objects.filter(publisher=publisher).count()
+            
+            # Today's revenue
+            today_revenue = Invoice.objects.filter(
+                publisher=publisher,
+                created_at__date=today
+            ).aggregate(total=Sum('drs__campaign_revenue'))['total'] or 0
+            
+            # Weekly revenue
+            start_of_week = today - timedelta(days=today.weekday())
+            week_revenue = Invoice.objects.filter(
+                publisher=publisher,
+                created_at__date__gte=start_of_week
+            ).aggregate(total=Sum('drs__campaign_revenue'))['total'] or 0
+            
+            # Monthly revenue
+            start_of_month = today.replace(day=1)
+            month_revenue = Invoice.objects.filter(
+                publisher=publisher,
+                created_at__date__gte=start_of_month
+            ).aggregate(total=Sum('drs__campaign_revenue'))['total'] or 0
+            
+            # Generate chart data for last 7 days
+            daily_stats = []
+            for i in range(7):
+                day = today - timedelta(days=i)
+                day_revenue = Invoice.objects.filter(
+                    publisher=publisher,
+                    created_at__date=day
+                ).aggregate(total=Sum('drs__campaign_revenue'))['total'] or 0
+                
+                day_profit = Invoice.objects.filter(
+                    publisher=publisher,
+                    created_at__date=day
+                ).aggregate(total=Sum('drs__profit'))['total'] or 0
+                
+                daily_stats.append({
+                    'date': day.strftime('%Y-%m-%d'), 
+                    'revenue': float(day_revenue), 
+                    'profit': float(day_profit)
+                })
+            daily_stats.reverse()
+            
+            labels = [item['date'] for item in daily_stats]
+            revenues = [item['revenue'] for item in daily_stats]
+            profits = [item['profit'] for item in daily_stats]
+            
+        except Exception as e:
+            print(f"Error calculating revenue stats for impersonation: {e}")
+            total_income = 0
+            total_invoices = 0
+            today_revenue = 0
+            week_revenue = 0
+            month_revenue = 0
+            labels = []
+            revenues = []
+            profits = []
+        
         context = {
             'publisher': publisher,
             'impersonating': True,
+            # Validation overview stats
+            'pending_validation_count': pending_validation_count,
+            'submitted_reports_count': submitted_reports_count,
+            'pending_invoices_count': pending_invoices_count,
+            # Revenue stats
+            'total_income': float(total_income),
+            'total_invoices': total_invoices,
+            'today_revenue': float(today_revenue),
+            'week_revenue': float(week_revenue),
+            'month_revenue': float(month_revenue),
+            # Chart data
+            'chart_labels': json.dumps(labels),
+            'chart_revenues': json.dumps(revenues),
+            'chart_profits': json.dumps(profits),
         }
         return render(request, 'publishers/publisher_dashboard.html', context)
+    
+    # If not admin/subadmin (regular publisher access)
     publisher = get_object_or_404(Publisher, pk=publisher_id)
     context = {
         'publisher': publisher,

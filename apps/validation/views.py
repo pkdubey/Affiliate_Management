@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView, View
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import JsonResponse, HttpResponse
@@ -27,11 +27,9 @@ class ValidationListView(LoginRequiredMixin, ListView):
         
         # Check if user is in impersonation mode
         if 'impersonate_publisher_id' in self.request.session:
-            # Filter by the impersonated publisher
             publisher_id = self.request.session.get('impersonate_publisher_id')
             publisher = get_object_or_404(Publisher, id=publisher_id)
             queryset = queryset.filter(publisher=publisher)
-        # If user is a publisher, only show their validations
         elif hasattr(self.request.user, 'publisher'):
             queryset = queryset.filter(publisher=self.request.user.publisher)
         
@@ -49,9 +47,12 @@ class ValidationListView(LoginRequiredMixin, ListView):
         if status and status != '':
             if status in ['pending', 'approved', 'rejected', 'invoiced', 'paid']:
                 queryset = queryset.filter(status=status.capitalize())
-        else:
-            # Default: showing only Pending and Approved validations
-            queryset = queryset.filter(status__in=['Pending', 'Approved'])
+        
+        # Filter by type (validation/drs)
+        filter_type = self.request.GET.get('type', '')
+        if filter_type == 'drs':
+            # Show only DRS, hide validations
+            queryset = Validation.objects.none()
         
         return queryset
     
@@ -71,11 +72,9 @@ class ValidationListView(LoginRequiredMixin, ListView):
         
         # Check if user is in impersonation mode
         if 'impersonate_publisher_id' in self.request.session:
-            # Filter by the impersonated publisher
             publisher_id = self.request.session.get('impersonate_publisher_id')
             publisher = get_object_or_404(Publisher, id=publisher_id)
             drs_query = drs_query.filter(publisher=publisher)
-        # If user is a publisher, filter by their DRS
         elif hasattr(self.request.user, 'publisher'):
             drs_query = drs_query.filter(publisher=self.request.user.publisher)
         
@@ -84,7 +83,6 @@ class ValidationListView(LoginRequiredMixin, ListView):
             drs_query = drs_query.filter(publisher_id=filter_publisher)
         
         if filter_month:
-            # Filter DRS by start date month
             try:
                 year, month_num = filter_month.split('-')
                 drs_query = drs_query.filter(
@@ -92,7 +90,7 @@ class ValidationListView(LoginRequiredMixin, ListView):
                     start_date__month=month_num
                 )
             except:
-                pass  # If month format is invalid, don't filter
+                pass
         
         if filter_status and filter_status in ['paused', 'completed']:
             drs_query = drs_query.filter(status=filter_status)
@@ -101,15 +99,11 @@ class ValidationListView(LoginRequiredMixin, ListView):
         if filter_type == 'validation':
             # Show only validations, no DRS
             drs_query = DailyRevenueSheet.objects.none()
-        elif filter_type == 'drs':
-            # Show only DRS, hide validations
-            context[self.context_object_name] = Validation.objects.none()
         
         # Add DRS for validation to context
         context['drs_for_validation'] = drs_query
         
         # Calculate summary for filtered DRS (including paused/completed)
-        from django.db.models import Sum
         context['summary'] = {
             'total_drs': drs_query.count(),
             'total_conversions': drs_query.aggregate(
@@ -126,7 +120,7 @@ class ValidationListView(LoginRequiredMixin, ListView):
             )['total'] or 0,
         }
         
-        # Get paused campaigns data (for the summary section)
+        # Get paused campaigns data
         paused_campaigns = DailyRevenueSheet.objects.filter(
             status='paused'
         ).order_by('-start_date')
@@ -134,7 +128,7 @@ class ValidationListView(LoginRequiredMixin, ListView):
         if hasattr(self.request.user, 'publisher'):
             paused_campaigns = paused_campaigns.filter(publisher=self.request.user.publisher)
         
-        # Prepare paused campaigns data for the table
+        # Prepare paused campaigns data
         paused_campaigns_data = []
         total_conversions_paused = 0
         total_amount_paused = 0
@@ -152,23 +146,18 @@ class ValidationListView(LoginRequiredMixin, ListView):
             total_conversions_paused += campaign.publisher_conversions or 0
             total_amount_paused += campaign.payout or 0
         
-        # Notation data (you can make this dynamic or keep static)
-        notation_data = []
-        
-        # Add the context data
+        # Add context data
         context['paused_campaigns'] = paused_campaigns_data
         context['total_conversions_paused'] = total_conversions_paused
         context['total_amount_paused'] = total_amount_paused
-        context['notation_data'] = notation_data
         context['publishers'] = Publisher.objects.all()
         
-        # Get unique months from both Validation and DRS
+        # Get unique months
         validation_months = Validation.objects.values_list('month', flat=True).distinct()
         drs_months = DailyRevenueSheet.objects.filter(
             start_date__isnull=False
         ).dates('start_date', 'month', order='DESC')
         
-        # Combine and deduplicate months
         all_months = set()
         for month in validation_months:
             if month:
@@ -177,15 +166,31 @@ class ValidationListView(LoginRequiredMixin, ListView):
             all_months.add(date.strftime('%Y-%m'))
         
         context['months'] = sorted(all_months, reverse=True)
-        
         context['selected_publisher'] = filter_publisher
         context['selected_month'] = filter_month
-        
-        # Pass filter parameters to template
         context['filter_type'] = filter_type
         context['filter_status'] = filter_status
         
+        # Check if it's an AJAX request
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            # Return only the table content for AJAX requests
+            context['ajax_request'] = True
+        
         return context
+    
+    def render_to_response(self, context, **response_kwargs):
+        # Check if it's an AJAX request
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            # Return only the table container for AJAX
+            html = render_to_string(
+                'validation/partials/validation_table.html', 
+                context, 
+                self.request
+            )
+            return HttpResponse(html)
+        
+        # Return full page for normal requests
+        return super().render_to_response(context, **response_kwargs)
                    
 class ValidationCreateView(CreateView):
     model = Validation
@@ -564,6 +569,14 @@ class SaveReportView(LoginRequiredMixin, View):
             if not (is_admin or is_publisher_owner or is_impersonating_owner):
                 return JsonResponse({'error': 'Permission denied'}, status=403)
             
+            # Check if DRS is already validated
+            if drs.status == 'validated':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'This DRS has already been validated.',
+                    'already_validated': True
+                }, status=400)
+            
             # Prepare month string
             if drs.start_date:
                 month_str = drs.start_date.strftime('%Y-%m')
@@ -576,16 +589,18 @@ class SaveReportView(LoginRequiredMixin, View):
                 existing_validation = Validation.objects.filter(drs=drs).first()
                 
                 if existing_validation:
-                    # Update existing validation
+                    # Update existing validation - AUTO APPROVE
                     validation = existing_validation
-                    validation.status = 'Pending'
+                    validation.status = 'Approved'  # Changed from 'Pending'
                     validation.submitted_at = timezone.now()
                     validation.submitted_by = user
+                    validation.approved_at = timezone.now()  # Add approval timestamp
+                    validation.approved_by = user  # Set approver
                     validation.save()
                     created = False
-                    message = 'Validation updated successfully!'
+                    message = 'Validation updated and approved successfully! You can now upload invoice.'
                 else:
-                    # Create new validation
+                    # Create new validation - AUTO APPROVE
                     validation = Validation.objects.create(
                         drs=drs,
                         publisher=drs.publisher,
@@ -593,14 +608,16 @@ class SaveReportView(LoginRequiredMixin, View):
                         conversions=drs.publisher_conversions or 0,
                         payout=drs.payout or 0,
                         approve_payout=drs.payout or 0,
-                        status='Pending',
+                        status='Approved',  # Changed from 'Pending'
                         submitted_at=timezone.now(),
-                        submitted_by=user
+                        submitted_by=user,
+                        approved_at=timezone.now(),  # Add approval timestamp
+                        approved_by=user  # Set approver
                     )
                     created = True
-                    message = 'Validation created successfully!'
+                    message = 'Validation created and approved successfully! It will appear in your Validation tab and you can upload invoice.'
                 
-                # Update DRS
+                # Update DRS status
                 drs.status = 'validated'
                 drs.validated_at = timezone.now()
                 drs.validated_by = user
@@ -612,7 +629,9 @@ class SaveReportView(LoginRequiredMixin, View):
                 'validation_id': validation.id,
                 'drs_id': drs.id,
                 'created': created,
-                'status': validation.status
+                'status': validation.status,
+                'drs_status': drs.status,
+                'already_validated': False
             })
             
         except json.JSONDecodeError:
@@ -625,7 +644,7 @@ class SaveReportView(LoginRequiredMixin, View):
                 'error': f'Server error: {str(e)}',
                 'details': error_trace if settings.DEBUG else None
             }, status=500)
-
+               
 class MyValidationView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     """My Validation Section - Shows publisher's validations"""
     template_name = 'validation/my_validation.html'
@@ -724,17 +743,17 @@ class UploadInvoiceView(LoginRequiredMixin, UserPassesTestMixin, View):
                     invoice.invoice_number = f'PUB-{count:06d}'
                     invoice.save()
                 
+                # CRITICAL FIX: Update validation to link with invoice
+                # This ensures the template condition `not validation.invoice` works correctly
+                validation.invoice = invoice
+                validation.save()
+                
                 # Update DRS status to invoiced
                 if validation.drs:
                     validation.drs.status = 'invoiced'
                     validation.drs.invoice = invoice
                     validation.drs.invoiced_at = timezone.now()
                     validation.drs.save()
-                
-                # ADD THIS: Update validation to link with invoice
-                # This ensures the template condition `not validation.invoice` works correctly
-                validation.invoice = invoice
-                validation.save()
                 
                 messages.success(request, 'Invoice uploaded successfully!')
                 
@@ -743,15 +762,16 @@ class UploadInvoiceView(LoginRequiredMixin, UserPassesTestMixin, View):
                     return JsonResponse({
                         'success': True,
                         'message': 'Invoice uploaded successfully!',
-                        'invoice_id': invoice.id
+                        'invoice_id': invoice.id,
+                        'validation_id': validation.id
                     })
                 
         except Exception as e:
             messages.error(request, f'Error uploading invoice: {str(e)}')
         
         # Redirect back to validation tab WITH success parameter
-        return redirect('validation:validation_tab')
-
+        return redirect(f'{reverse("validation:validation_tab")}?invoice_uploaded=true')
+    
 class InvoiceApprovalView(LoginRequiredMixin, UserPassesTestMixin, View):
     """Admin approval of invoices - Updates status for Publisher"""
     

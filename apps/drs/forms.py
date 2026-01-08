@@ -176,9 +176,6 @@ class DailyRevenueSheetForm(forms.ModelForm):
             ('active', 'Active'),
             ('paused', 'Paused'),
             ('completed', 'Completed'),
-            ('validated', 'Validated'),
-            ('invoiced', 'Invoiced'),
-            ('approved', 'Approved'),
             ('paid', 'Paid'),
         ]
         
@@ -371,9 +368,6 @@ class DailyRevenueSheetForm(forms.ModelForm):
             ('active', 'Active'),
             ('paused', 'Paused'),
             ('completed', 'Completed'),
-            ('validated', 'Validated'),
-            ('invoiced', 'Invoiced'),
-            ('approved', 'Approved'),
             ('paid', 'Paid'),
         ]
         

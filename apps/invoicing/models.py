@@ -156,8 +156,26 @@ class Invoice(models.Model):
         else:
             self.publisher = None
 
-        # Single save - all calculations done before this
+        # Save the invoice first
         super().save(*args, **kwargs)
+        
+        # AFTER saving, check if we need to update related validation
+        # If this invoice was created from a validation (via DRS link)
+        if self.drs and hasattr(self.drs, 'validation'):
+            try:
+                # Get the validation for this DRS
+                validation = Validation.objects.filter(drs=self.drs).first()
+                if validation:
+                    # Link validation to this invoice
+                    validation.invoice = self
+                    validation.save()
+                    
+                    # Also update the reverse relationship on invoice
+                    if not self.validation:
+                        self.validation = validation
+                        self.save(update_fields=['validation'])
+            except Exception as e:
+                print(f"Error linking validation to invoice: {e}")
 
     def get_display_company_name(self):
         if self.party_type == 'publisher' and self.publisher:

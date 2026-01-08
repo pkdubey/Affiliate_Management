@@ -754,11 +754,11 @@
                             <option value="paused" {% if request.GET.status == 'paused' %}selected{% endif %}>Paused</option>
                             <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
                         </select>
-                        <button type="button" class="btn btn-outline-primary flex-shrink-0" id="ajaxFilterBtn">Filter</button>
-                        <a href="{% url 'validation:validation_export' %}?export=csv{% if selected_publisher %}&publisher={{ selected_publisher }}{% endif %}{% if selected_month %}&month={{ selected_month }}{% endif %}"
-                           class="btn btn-outline-success flex-shrink-0">
-                            <i class="bi bi-cloud-arrow-down"></i> Export
-                        </a>
+                        <!-- <button type="button" class="btn btn-outline-primary flex-shrink-0" id="ajaxFilterBtn">Filter</button> -->
+                        <!-- <a href="{% url 'validation:validation_export' %}?export=csv{% if selected_publisher %}&publisher={{ selected_publisher }}{% endif %}{% if selected_month %}&month={{ selected_month }}{% endif %}" -->
+                           <!-- class="btn btn-outline-success flex-shrink-0"> -->
+                            <!-- <i class="bi bi-cloud-arrow-down"></i> Export -->
+                        <!-- </a> -->
                     </form>
                 </div>
 
@@ -775,7 +775,7 @@
                                 <th>Conversions</th>
                                 <th>Payout</th>
                                 <th>Approve Payout</th>
-                                <th>Status</th>
+                                <!-- <th>Status</th> -->
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -795,31 +795,31 @@
                                 <td>{{ v.conversions }}</td>
                                 <td>${{ v.payout|floatformat:2 }}</td>
                                 <td>${{ v.approve_payout|floatformat:2 }}</td>
-                                <td>
-                                    <span class="status-badge 
-                                        {% if v.status == 'pending' %}pending
-                                        {% elif v.status == 'approved' %}approved
-                                        {% else %}rejected{% endif %}">
-                                        {{ v.get_status_display }}
-                                    </span>
-                                </td>
+                                <!-- <td> -->
+                                    <!-- <span class="status-badge  -->
+                                        <!-- {% if v.status == 'pending' %}pending -->
+                                        <!-- {% elif v.status == 'approved' %}approved -->
+                                        <!-- {% else %}rejected{% endif %}"> -->
+                                        <!-- {{ v.get_status_display }} -->
+                                    <!-- </span> -->
+                                <!-- </td> -->
                                 <td style="white-space:nowrap;">
                                     <div class="d-flex align-items-center gap-1 justify-content-center flex-nowrap">
                                         <a href="{% url 'validation:detail' v.id %}" 
                                            class="action-btn" title="View More">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <a href="{% url 'validation:edit' v.id %}" 
-                                           class="action-btn" title="Edit">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        {% if v.can_be_approved %}
-                                        <a href="{% url 'validation:edit' v.id %}?action=approve" 
-                                           class="action-btn text-success" title="Approve"
-                                           onclick="return confirm('Approve this validation?')">
-                                            <i class="bi bi-check-circle"></i>
-                                        </a>
-                                        {% endif %}
+                                        <!-- <a href="{% url 'validation:edit' v.id %}"  -->
+                                           <!-- class="action-btn" title="Edit"> -->
+                                            <!-- <i class="bi bi-pencil-square"></i> -->
+                                        <!-- </a> -->
+                                        <!-- {% if v.can_be_approved %} -->
+                                        <!-- <a href="{% url 'validation:edit' v.id %}?action=approve"  -->
+                                           <!-- class="action-btn text-success" title="Approve" -->
+                                           <!-- onclick="return confirm('Approve this validation?')"> -->
+                                            <!-- <i class="bi bi-check-circle"></i> -->
+                                        <!-- </a> -->
+                                        <!-- {% endif %} -->
                                     </div>
                                 </td>
                             </tr>
@@ -855,7 +855,7 @@
 										   class="action-btn" title="View DRS Details">
 											<i class="bi bi-eye"></i>
 										</a>
-										{% if not drs.is_validated %}
+										{% if drs.status != 'validated' %}
 										<button onclick="saveValidationReport({{ drs.id }})" 
 												class="create-validation-btn" 
 												title="Save Report"
@@ -901,7 +901,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const monthFilter = document.getElementById('monthFilter');
     const statusFilter = document.getElementById('statusFilter');
     const combinedTableContainer = document.getElementById('combinedTableContainer');
-    const summarySection = document.querySelector('.summary-section');
     
     // Create a loading overlay if it doesn't exist
     let loadingOverlay = document.getElementById('loadingOverlay');
@@ -929,34 +928,6 @@ document.addEventListener('DOMContentLoaded', function() {
         window.history.pushState({}, '', newURL);
     }
     
-    // Function to extract and update content from response
-    function updateContentFromResponse(html) {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        
-        // Update summary section if it exists in response
-        const newSummarySection = doc.querySelector('.summary-section');
-        if (newSummarySection && summarySection) {
-            summarySection.innerHTML = newSummarySection.innerHTML;
-        }
-        
-        // Update table container
-        const newTableContainer = doc.querySelector('#combinedTableContainer');
-        if (newTableContainer && combinedTableContainer) {
-            combinedTableContainer.innerHTML = newTableContainer.innerHTML;
-        } else {
-            // Fallback: look for the table directly
-            const tableElement = doc.querySelector('.validation-table');
-            const emptyStateElement = doc.querySelector('.empty-state');
-            
-            if (tableElement && combinedTableContainer) {
-                combinedTableContainer.innerHTML = tableElement.outerHTML;
-            } else if (emptyStateElement && combinedTableContainer) {
-                combinedTableContainer.innerHTML = emptyStateElement.outerHTML;
-            }
-        }
-    }
-    
     // Function to perform AJAX filter
     function performAjaxFilter() {
         showLoading();
@@ -982,19 +953,36 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.text())
         .then(html => {
-            // Update content from response
-            updateContentFromResponse(html);
+            // Update the table container with new content
+            combinedTableContainer.innerHTML = html;
             
             // Update URL
             updateURL(params);
             
             hideLoading();
+            
+            // Re-attach event listeners to any new buttons
+            attachSaveReportListeners();
         })
         .catch(error => {
             console.error('Error filtering:', error);
             hideLoading();
             showAlert('Error applying filters. Please try again.', 'danger');
         });
+    }
+    
+    // Function to reset all filters
+    window.resetFilters = function() {
+        if (typeFilter) typeFilter.value = '';
+        if (publisherFilter) publisherFilter.value = '';
+        if (monthFilter) monthFilter.value = '';
+        if (statusFilter) statusFilter.value = '';
+        
+        // Update URL
+        updateURL(new URLSearchParams());
+        
+        // Reload page to show all data
+        window.location.reload();
     }
     
     // Debounce function to prevent too many rapid requests
@@ -1013,17 +1001,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Create debounced filter function
     const debouncedFilter = debounce(performAjaxFilter, 300);
     
-    // Add event listeners to all filter elements for automatic filtering
+    // Add event listeners to all filter elements
     const filterElements = [typeFilter, publisherFilter, monthFilter, statusFilter];
     
     filterElements.forEach(filter => {
         if (filter) {
-            // Remove any existing event listeners
-            const newFilter = filter.cloneNode(true);
-            filter.parentNode.replaceChild(newFilter, filter);
-            
-            // Add change event listener to the new element
-            newFilter.addEventListener('change', function() {
+            filter.addEventListener('change', function() {
                 debouncedFilter();
             });
         }
@@ -1044,39 +1027,24 @@ document.addEventListener('DOMContentLoaded', function() {
         performAjaxFilter();
     });
     
-    // Add row click handlers for DRS rows
-    document.addEventListener('click', function(e) {
-        // Handle DRS row clicks (excluding action buttons)
-        if (e.target.closest('.drs-validation-row') && 
-            !e.target.closest('.action-btn') && 
-            !e.target.closest('.create-validation-btn')) {
-            const link = e.target.closest('.drs-validation-row').querySelector('a[href*="detail"]');
-            if (link) {
-                e.preventDefault();
-                window.location.href = link.href;
-            }
-        }
-    });
-    
-    // Initialize: Set filter values from current URL on page load
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.toString()) {
-        // Set filter values from URL
-        if (typeFilter) typeFilter.value = urlParams.get('type') || '';
-        if (publisherFilter) publisherFilter.value = urlParams.get('publisher') || '';
-        if (monthFilter) monthFilter.value = urlParams.get('month') || '';
-        if (statusFilter) statusFilter.value = urlParams.get('status') || '';
-        
-        // Apply filters immediately on page load if URL has parameters
-        setTimeout(() => {
-            performAjaxFilter();
-        }, 100);
+    // Function to attach event listeners to Save Report buttons
+    function attachSaveReportListeners() {
+        document.querySelectorAll('.create-validation-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const drsId = this.id.replace('save-btn-', '');
+                saveValidationReport(drsId);
+            });
+        });
     }
+    
+    // Initial attachment of event listeners
+    attachSaveReportListeners();
 });
 
 // Save Validation Report Function
 function saveValidationReport(drsId) {
     const saveBtn = document.getElementById(`save-btn-${drsId}`);
+    const row = document.querySelector(`tr[data-drs-id="${drsId}"]`);
     const originalText = saveBtn.innerHTML;
     
     // Show loading state
@@ -1113,35 +1081,20 @@ function saveValidationReport(drsId) {
             drs_id: drsId
         })
     })
-    .then(response => {
-        if (response.status === 403) {
-            return response.json().then(data => {
-                throw new Error(data.error || 'Permission denied');
-            });
-        }
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Remove Save Report button and show success message
-            saveBtn.outerHTML = `
-                <span class="badge bg-success" style="padding: 0.3em 1em;">
-                    <i class="bi bi-check-circle me-1"></i> Saved
-                </span>
-            `;
-            
-            // Remove the row highlight for DRS requiring validation
-            const row = document.querySelector(`tr[data-drs-id="${drsId}"]`);
-            if (row) {
-                row.classList.remove('drs-validation-row');
+            if (data.already_validated) {
+                // Already validated, just update the UI
+                updateUIAfterSave(drsId, row);
+            } else {
+                // New validation created
+                updateUIAfterSave(drsId, row);
+                showAlert(data.message || 'Report saved successfully! It will appear in your Validation tab.', 'success');
+                
+                // Update summary counts
+                updateSummaryCount();
             }
-            
-            // Show success message
-            showAlert(data.message || 'Report saved successfully! It will appear in your Validation tab.', 'success');
-            
-            // Update summary counts if needed
-            updateSummaryCount();
-            
         } else {
             // Show error
             showAlert(data.error || 'Error saving report', 'danger');
@@ -1151,12 +1104,45 @@ function saveValidationReport(drsId) {
     })
     .catch(error => {
         console.error('Error:', error);
-        showAlert(error.message || 'Network error. Please try again.', 'danger');
+        showAlert('Network error. Please try again.', 'danger');
         saveBtn.innerHTML = originalText;
         saveBtn.disabled = false;
     });
 }
 
+function updateUIAfterSave(drsId, row) {
+    // Replace Save Report button with Saved badge
+    const saveBtn = document.getElementById(`save-btn-${drsId}`);
+    if (saveBtn) {
+        saveBtn.outerHTML = `
+            <span class="badge bg-success" style="padding: 0.3em 1em;">
+                <i class="bi bi-check-circle me-1"></i> Saved
+            </span>
+        `;
+    }
+    
+    // Remove the row highlight for DRS requiring validation
+    if (row) {
+        row.classList.remove('drs-validation-row');
+        
+        // Update status badge in the same row
+        const statusCell = row.querySelector('.status-badge');
+        if (statusCell) {
+            statusCell.textContent = 'Validated';
+            statusCell.className = 'status-badge approved';
+        }
+    }
+}
+
+// Also update the attachSaveReportListeners function to handle button replacement
+function attachSaveReportListeners() {
+    document.querySelectorAll('.create-validation-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const drsId = this.id.replace('save-btn-', '');
+            saveValidationReport(drsId);
+        });
+    });
+}
 // Alert function
 function showAlert(message, type) {
     const alertDiv = document.createElement('div');

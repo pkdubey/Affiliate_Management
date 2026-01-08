@@ -9,7 +9,7 @@ from django.views.generic import TemplateView
 from django.http import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
 import weasyprint
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.contrib import messages
@@ -17,6 +17,8 @@ from django.db import transaction
 import logging
 from datetime import date, timedelta
 from decimal import Decimal, ROUND_HALF_UP
+from django.views.decorators.http import require_POST
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -416,3 +418,127 @@ class MyInvoiceListView(ListView):
         if hasattr(self.request.user, 'publisher'):
             return Invoice.objects.filter(publisher=self.request.user.publisher)
         return Invoice.objects.none()
+
+class UpdateInvoiceStatusView(View):
+    """AJAX view to update invoice status for both admin and publisher users"""
+    
+    @method_decorator(login_required)
+    def post(self, request, pk):
+        try:
+            import json
+            data = json.loads(request.body)
+            new_status = data.get('status')
+            
+            if not new_status or new_status not in dict(Invoice.STATUS_CHOICES):
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Invalid status'
+                }, status=400)
+            
+            invoice = get_object_or_404(Invoice, id=pk)
+            
+            # CHECK 1: If user is admin/superuser - allow all updates
+            if request.user.is_staff or request.user.is_superuser:
+                # Admin user - always allowed
+                pass
+            
+            # CHECK 2: If user is a publisher (publisher dashboard)
+            elif hasattr(request.user, 'publisher') and request.user.publisher:
+                # Publisher user - can only update their own invoices
+                if invoice.party_type != 'publisher':
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Publishers can only update publisher invoices'
+                    }, status=403)
+                
+                if not invoice.publisher or invoice.publisher.id != request.user.publisher.id:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'You can only update your own invoices'
+                    }, status=403)
+                
+                # Additional restriction for publishers: cannot cancel invoices
+                if new_status == 'Cancelled':
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Publishers cannot cancel invoices. Please contact administrator.'
+                    }, status=403)
+            
+            # CHECK 3: Impersonation mode (admin impersonating publisher)
+            elif 'impersonate_publisher_id' in request.session:
+                impersonated_publisher_id = request.session['impersonate_publisher_id']
+                
+                if invoice.party_type != 'publisher':
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Can only update publisher invoices in impersonation mode'
+                    }, status=403)
+                
+                if not invoice.publisher or invoice.publisher.id != int(impersonated_publisher_id):
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'You can only update invoices for the publisher you are impersonating'
+                    }, status=403)
+            
+            # CHECK 4: All other users - deny access
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Permission denied'
+                }, status=403)
+            
+            # Save old status for tracking
+            old_status = invoice.status
+            
+            # Additional business logic for status changes
+            if old_status == 'Paid' and new_status != 'Paid':
+                # Warn when changing from Paid to another status
+                # You can add confirmation logic here if needed
+                pass
+            
+            # Update the invoice status
+            invoice.status = new_status
+            
+            # Update DRS if status changed to Paid
+            drs_updated = False
+            if old_status != 'Paid' and new_status == 'Paid' and invoice.drs:
+                invoice.drs.status = 'paid'
+                invoice.drs.paid_at = timezone.now()
+                invoice.drs.save()
+                drs_updated = True
+            
+            # Update related validation if exists
+            validation_updated = False
+            if invoice.validation and new_status == 'Paid':
+                invoice.validation.status = 'Paid'
+                invoice.validation.paid_at = timezone.now()
+                invoice.validation.save()
+                validation_updated = True
+            
+            # Save the invoice
+            invoice.save()
+            
+            # Log the status change
+            logger.info(f"Invoice {invoice.id} status changed from {old_status} to {new_status} by user {request.user.username}")
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'Invoice status updated to {new_status}',
+                'invoice_id': invoice.id,
+                'new_status': new_status,
+                'old_status': old_status,
+                'drs_updated': drs_updated,
+                'validation_updated': validation_updated
+            })
+            
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid JSON data'
+            }, status=400)
+        except Exception as e:
+            logger.error(f"Error updating invoice status: {str(e)}", exc_info=True)
+            return JsonResponse({
+                'success': False,
+                'error': f'Server error: {str(e)}'
+            }, status=500)

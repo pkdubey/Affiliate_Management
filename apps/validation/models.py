@@ -122,3 +122,8 @@ class Validation(models.Model):
             if not self.approve_payout:
                 self.approve_payout = self.drs.payout or 0
             self.save()
+
+    @property
+    def has_invoice(self):
+        """Check if validation has an invoice"""
+        return self.invoice is not None

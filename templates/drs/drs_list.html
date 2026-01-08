@@ -239,8 +239,8 @@
                     <th>Affiliate</th>
                     <th>Start</th>
                     <th>End</th>
-                    <th>Adv Convs</th>
-                    <th>Pub Convs</th>
+                    <th>Adv/Convs</th>
+                    <th>Pub/Convs</th>
                     <th>Rev/Conv</th>
                     <th>Payout/Conv</th>
                     <th>Revenue</th>
@@ -268,8 +268,8 @@
                         </span>
                     </td>
                     <td>{{ drs.publisher }}</td>
-                    <td>{{ drs.start_date }}</td>
-                    <td>{{ drs.end_date|default:"-" }}</td>
+                    <td style="white-space: nowrap;">{{ drs.start_date }}</td>
+					<td style="white-space: nowrap;">{{ drs.end_date|default:"-" }}</td>
                     <td>{{ drs.advertiser_conversions }}</td>
                     <td>{{ drs.publisher_conversions }}</td>
                     <td>${{ drs.campaign_revenue|floatformat:2 }}</td>
@@ -286,7 +286,7 @@
                     <td>{{ drs.pid|default:"-" }}</td>
                     <td>{{ drs.af_prt|default:"-" }}</td>
                     <td>
-                        <span class="text-secondary" style="font-size:.98em;">
+                        <span class="text-secondary" style="font-size:.98em;white-space: nowrap;">
                             {{ drs.updated_at|date:"Y-m-d H:i" }}
                         </span>
                     </td>

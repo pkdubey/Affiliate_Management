@@ -496,6 +496,108 @@
 .medium-input {
     max-width: 200px;
 }
+/* Status dropdown styles */
+.status-select-container {
+    position: relative;
+    min-height: 38px;
+}
+
+.status-select {
+    transition: all 0.2s ease;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    background-color: white;
+    cursor: pointer;
+}
+
+.status-select:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+.status-select option {
+    padding: 8px;
+}
+
+/* Status-specific colors for dropdown */
+.status-select option[value="Pending"] {
+    color: #ffc107;
+    background-color: #fffbe6;
+}
+
+.status-select option[value="Paid"] {
+    color: #198754;
+    background-color: #e8fbe9;
+}
+
+.status-select option[value="Cancelled"] {
+    color: #dc3545;
+    background-color: #ffe5e6;
+}
+
+.status-select option[value="Overdue"] {
+    color: #fd7e14;
+    background-color: #fff3ed;
+}
+
+/* Status badge styles (keep existing but update for consistency) */
+.invoice-status.pending { 
+    background: linear-gradient(90deg, #fffbe6 0, #fff3cd 100%);
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.invoice-status.paid { 
+    background: linear-gradient(90deg, #e8fbe9 0, #d4edda 100%);
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.invoice-status.cancelled { 
+    background: linear-gradient(90deg, #ffe5e6 0, #f8d7da 100%);
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.invoice-status.overdue { 
+    background: linear-gradient(90deg, #fff3ed 0, #ffe5d9 100%);
+    color: #843534;
+    border: 1px solid #f5c6c6;
+}
+
+/* Loading animation */
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.2em;
+}
+
+.status-saving {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    background: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .status-select {
+        font-size: 0.85rem;
+        max-width: 100px;
+        min-width: 90px;
+    }
+    
+    .status-select-container {
+        min-height: 34px;
+    }
+}
 </style>
 
 <div class="card invoice-list-card mx-auto">
@@ -583,59 +685,80 @@
 
   <div class="invoice-table-responsive px-2 px-md-4 py-3">
     <table class="table table-hover animated-table align-middle mb-0">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Invoice#</th>
-          <th>Client</th>
-          <th>Amount</th>
-          <th>Due Date</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-      {% for invoice in invoices %}
-        <tr>
-          <td><span class="fw-bold text-primary">#{{ invoice.id }}</span></td>
-          <td>
-            <span class="fw-bold" style="color:#1963b3;">{{ invoice.invoice_number }}</span>
-            <div class="text-muted small">{{ invoice.created_at|date:'d-m-Y' }}</div>
-          </td>
-          <td>{% if active_tab == 'advertiser' %}{{ invoice.advertiser }}{% else %}{{ invoice.publisher }}{% endif %}</td>
-          <td>{{ invoice.total_amount }}</td>
-          <td>{{ invoice.due_date }}</td>
-          <td>
-            <span class="invoice-status {% if invoice.status == 'Paid' %}paid{% elif invoice.status == 'Pending' %}pending{% elif invoice.status == 'Cancelled' %}cancelled{% elif invoice.status == 'Overdue' %}overdue{% endif %}">
-              {{ invoice.status }}
-            </span>
-          </td>
-          <td>
-            <a href="{% url 'invoicing:detail' invoice.id %}" class="invoice-action-btn" title="View">
-              <i class="bi bi-eye"></i>
-            </a>
-            {% if not publisher_only_view %}
-              <button class="invoice-action-btn" title="Edit" onclick="location.href='{% url 'invoicing:edit' invoice.id %}'">
-                <i class="bi bi-pencil-square"></i>
-              </button>
-              <a href="{% url 'invoicing:delete' invoice.id %}" class="invoice-action-btn" title="Delete">
-                <i class="bi bi-trash"></i>
-              </a>
-            {% endif %}
-            <a href="{% url 'invoicing:pdf' invoice.id %}" class="invoice-action-btn" title="Download PDF">
-              <i class="bi bi-file-earmark-pdf"></i>
-            </a>
-          </td>
-        </tr>
-      {% empty %}
-        <tr>
-          <td colspan="7" class="text-secondary py-5">
-            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-            No invoices found.
-          </td>
-        </tr>
-      {% endfor %}
-      </tbody>
+      <!-- Replace the Status column in the table header -->
+		<thead>
+			<tr>
+				<th>ID</th>
+				<th>Invoice#</th>
+				<th>Client</th>
+				<th>Amount</th>
+				<th>Due Date</th>
+				<th>Status</th>
+				<th>Actions</th>
+			</tr>
+		</thead>
+
+		<!-- In the table body, replace the status cell for each invoice -->
+		<tbody>
+		{% for invoice in invoices %}
+			<tr data-invoice-id="{{ invoice.id }}">
+				<td><span class="fw-bold text-primary">#{{ invoice.id }}</span></td>
+				<td>
+					<span class="fw-bold" style="color:#1963b3;">{{ invoice.invoice_number }}</span>
+					<div class="text-muted small">{{ invoice.created_at|date:'d-m-Y' }}</div>
+				</td>
+				<td>{% if active_tab == 'advertiser' %}{{ invoice.advertiser }}{% else %}{{ invoice.publisher }}{% endif %}</td>
+				<td>{{ invoice.total_amount }}</td>
+				<td>{{ invoice.due_date }}</td>
+				<td>
+					{% if publisher_only_view %}
+						<!-- Publisher Dashboard: Show status as badge only -->
+						<span class="invoice-status {{ invoice.status|lower }}">
+							{{ invoice.status }}
+						</span>
+					{% else %}
+						<!-- Admin Dashboard: Show dropdown for status update -->
+						<div class="status-select-container">
+							<select class="form-select form-select-sm status-select" 
+									data-invoice-id="{{ invoice.id }}"
+									style="max-width: 120px; min-width: 100px;">
+								<option value="Pending" {% if invoice.status == 'Pending' %}selected{% endif %}>Pending</option>
+								<option value="Paid" {% if invoice.status == 'Paid' %}selected{% endif %}>Paid</option>
+								<option value="Cancelled" {% if invoice.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+								<option value="Overdue" {% if invoice.status == 'Overdue' %}selected{% endif %}>Overdue</option>
+							</select>
+							<div class="status-saving d-none" style="font-size: 0.8rem; color: #6c757d;">
+								<span class="spinner-border spinner-border-sm me-1"></span> Saving...
+							</div>
+						</div>
+					{% endif %}
+				</td>
+				<td>
+					<a href="{% url 'invoicing:detail' invoice.id %}" class="invoice-action-btn" title="View">
+						<i class="bi bi-eye"></i>
+					</a>
+					{% if not publisher_only_view %}
+						<button class="invoice-action-btn" title="Edit" onclick="location.href='{% url 'invoicing:edit' invoice.id %}'">
+							<i class="bi bi-pencil-square"></i>
+						</button>
+						<a href="{% url 'invoicing:delete' invoice.id %}" class="invoice-action-btn" title="Delete">
+							<i class="bi bi-trash"></i>
+						</a>
+					{% endif %}
+					<a href="{% url 'invoicing:pdf' invoice.id %}" class="invoice-action-btn" title="Download PDF">
+						<i class="bi bi-file-earmark-pdf"></i>
+					</a>
+				</td>
+			</tr>
+		{% empty %}
+			<tr>
+				<td colspan="7" class="text-secondary py-5">
+					<i class="bi bi-inbox fs-1 d-block mb-2"></i>
+					No invoices found.
+				</td>
+			</tr>
+		{% endfor %}
+		</tbody>
     </table>
   </div>
   
@@ -1560,6 +1683,320 @@ document.addEventListener('DOMContentLoaded', () => {
             xhr.send(formData);
         });
     }
+});
+
+/* ======================================================
+   Invoice Status AJAX Updates
+====================================================== */
+
+// Get CSRF token function
+function getCsrfToken() {
+    const name = 'csrftoken';
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Show notification
+function showNotification(message, type = 'success') {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.status-notification');
+    existingNotifications.forEach(n => n.remove());
+    
+    // Create new notification
+    const notification = document.createElement('div');
+    notification.className = `status-notification alert alert-${type} alert-dismissible fade show position-fixed`;
+    notification.style.top = '20px';
+    notification.style.right = '20px';
+    notification.style.zIndex = '9999';
+    notification.style.minWidth = '300px';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-dismiss after 3 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 3000);
+}
+
+
+// Add this debug helper at the top of your script
+function debugLog(...args) {
+    console.log('[Invoice Status Debug]', ...args);
+}
+
+// Enhanced updateInvoiceStatus function
+function updateInvoiceStatus(invoiceId, newStatus) {
+    debugLog('Updating status:', invoiceId, newStatus);
+    
+    const selectElement = document.querySelector(`.status-select[data-invoice-id="${invoiceId}"]`);
+    if (!selectElement) {
+        console.error('Select element not found for invoice:', invoiceId);
+        return;
+    }
+    
+    const container = selectElement.closest('.status-select-container');
+    const savingElement = container.querySelector('.status-saving');
+    const originalStatus = selectElement.value;
+    
+    // Show saving indicator
+    selectElement.classList.add('d-none');
+    savingElement.classList.remove('d-none');
+    
+    // Use the same URL for all users
+    const updateUrl = `/panel/invoicing/${invoiceId}/update-status/`;
+    debugLog('Update URL:', updateUrl);
+    
+    // Make AJAX request
+    fetch(updateUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken(),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+			status: newStatus,
+			// Add user context for debugging
+			user_type: typeof publisher_only_view !== 'undefined' ? 'publisher' : 'admin',
+			// Remove the Django template syntax from JavaScript
+			// We'll pass this as a data attribute instead
+		})
+    })
+    .then(response => {
+        debugLog('Response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        debugLog('Response data:', data);
+        
+        // Hide saving indicator
+        selectElement.classList.remove('d-none');
+        savingElement.classList.add('d-none');
+        
+        if (data.success) {
+            // Update select value
+            selectElement.value = newStatus;
+            
+            // Show success notification
+            showNotification(`Invoice status updated to ${newStatus}`, 'success');
+            
+            // Update status badge if it exists
+            const statusBadge = selectElement.closest('td').querySelector('.invoice-status');
+            if (statusBadge) {
+                statusBadge.textContent = newStatus;
+                statusBadge.className = `invoice-status ${newStatus.toLowerCase()}`;
+            }
+            
+            // If DRS was updated, show additional message
+            if (data.drs_updated) {
+                debugLog('DRS status also updated');
+            }
+        } else {
+            // Revert to original status
+            selectElement.value = originalStatus;
+            showNotification(data.error || 'Failed to update status', 'danger');
+            debugLog('Update failed:', data.error);
+        }
+    })
+    .catch(error => {
+        debugLog('Error:', error);
+        
+        // Hide saving indicator
+        selectElement.classList.remove('d-none');
+        savingElement.classList.add('d-none');
+        
+        // Revert to original status
+        selectElement.value = originalStatus;
+        
+        if (error.message.includes('403')) {
+            showNotification('Permission denied. You are not allowed to update this invoice.', 'danger');
+        } else if (error.message.includes('404')) {
+            showNotification('Update endpoint not found. Please refresh the page.', 'danger');
+        } else {
+            showNotification('Network error. Please try again.', 'danger');
+        }
+    });
+}
+
+// Add permission check before updating
+function canUpdateInvoice(invoiceId, newStatus) {
+    // For publishers (in publisher dashboard view)
+    if (typeof publisher_only_view !== 'undefined' && publisher_only_view) {
+        debugLog('Publisher view detected');
+        
+        // Publishers cannot cancel invoices
+        if (newStatus === 'Cancelled') {
+            showNotification('Publishers cannot cancel invoices. Please contact administrator.', 'warning');
+            return false;
+        }
+        
+        // Additional publisher restrictions can be added here
+        // For example, publishers might not be able to mark as Overdue
+        if (newStatus === 'Overdue') {
+            showNotification('Please contact administrator to mark invoice as overdue.', 'info');
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+// Update the event listener initialization
+document.addEventListener('DOMContentLoaded', function() {
+    const statusSelects = document.querySelectorAll('.status-select');
+    
+    statusSelects.forEach(select => {
+        // Store initial value
+        select.dataset.originalValue = select.value;
+        
+        select.addEventListener('change', function() {
+            const invoiceId = this.dataset.invoiceId;
+            const newStatus = this.value;
+            const oldStatus = this.dataset.originalValue || this.value;
+            
+            debugLog('Status change triggered:', invoiceId, oldStatus, '->', newStatus);
+            
+            // Skip if status hasn't changed
+            if (newStatus === oldStatus) {
+                this.value = oldStatus;
+                return;
+            }
+            
+            // Check permissions
+            if (!canUpdateInvoice(invoiceId, newStatus)) {
+                this.value = oldStatus;
+                return;
+            }
+            
+            // Confirm for important status changes
+            let shouldProceed = true;
+            
+            if (newStatus === 'Paid') {
+                shouldProceed = confirm('Mark this invoice as paid? This action cannot be easily undone.');
+            } else if (newStatus === 'Cancelled') {
+                shouldProceed = confirm('Are you sure you want to cancel this invoice?');
+            }
+            
+            if (!shouldProceed) {
+                this.value = oldStatus;
+                return;
+            }
+            
+            // Update status
+            updateInvoiceStatus(invoiceId, newStatus);
+            
+            // Update stored value only if successful (will be reverted on error)
+            this.dataset.originalValue = newStatus;
+        });
+    });
+});
+/* ======================================================
+   Initialize Status Select Listeners
+====================================================== */
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all status select elements
+    const statusSelects = document.querySelectorAll('.status-select');
+    
+    statusSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            const invoiceId = this.dataset.invoiceId;
+            const newStatus = this.value;
+            
+            // Show confirmation for certain status changes
+            if (newStatus === 'Cancelled') {
+                if (!confirm('Are you sure you want to cancel this invoice?')) {
+                    this.value = this.oldValue || 'Pending';
+                    return;
+                }
+            } else if (newStatus === 'Paid') {
+                if (!confirm('Mark this invoice as paid?')) {
+                    this.value = this.oldValue || 'Pending';
+                    return;
+                }
+            }
+            
+            // Store old value for revert
+            this.oldValue = this.value;
+            
+            // Update status
+            updateInvoiceStatus(invoiceId, newStatus);
+        });
+        
+        // Store initial value
+        select.oldValue = select.value;
+    });
+    
+    // Add debounced change handler for better UX
+    let debounceTimer;
+    statusSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const invoiceId = this.dataset.invoiceId;
+                const newStatus = this.value;
+                
+                // Skip if status hasn't actually changed
+                if (newStatus === this.oldValue) return;
+                
+                // Update status
+                updateInvoiceStatus(invoiceId, newStatus);
+                
+                // Update old value
+                this.oldValue = newStatus;
+            }, 300);
+        });
+    });
+    
+    // Add keyboard shortcuts for status changes
+    document.addEventListener('keydown', function(e) {
+        // Only trigger when a status select is focused
+        const activeSelect = document.activeElement;
+        if (!activeSelect || !activeSelect.classList.contains('status-select')) return;
+        
+        const invoiceId = activeSelect.dataset.invoiceId;
+        let newStatus = null;
+        
+        // Quick keyboard shortcuts
+        switch(e.key) {
+            case '1': // Pending
+                newStatus = 'Pending';
+                break;
+            case '2': // Paid
+                newStatus = 'Paid';
+                break;
+            case '3': // Cancelled
+                newStatus = 'Cancelled';
+                break;
+            case '4': // Overdue
+                newStatus = 'Overdue';
+                break;
+        }
+        
+        if (newStatus && !e.ctrlKey && !e.altKey && !e.metaKey) {
+            e.preventDefault();
+            activeSelect.value = newStatus;
+            activeSelect.dispatchEvent(new Event('change'));
+        }
+    });
 });
 </script>
 {% endblock %}

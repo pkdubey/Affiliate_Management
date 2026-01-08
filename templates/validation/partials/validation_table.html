@@ -1,0 +1,124 @@
+{% if validations or drs_for_validation %}
+<table class="validation-table align-middle mb-0">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Type</th>
+      <th>Campaign Name</th>
+      <th>Publisher</th>
+      <th>PID</th>
+      <th>Conversions</th>
+      <th>Payout</th>
+      <th>Approve Payout</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="combinedTableBody">
+    <!-- Existing Validations -->
+    {% for v in validations %}
+    <tr>
+      <td>{{ v.id }}</td>
+      <td>
+        <span class="drs-type-badge drs-type-validation"> Validation </span>
+      </td>
+      <td>{{ v.drs.campaign_name|truncatechars:30 }}</td>
+      <td>{{ v.publisher.company_name|truncatechars:20 }}</td>
+      <td>{{ v.drs.pid }}</td>
+      <td>{{ v.conversions }}</td>
+      <td>${{ v.payout|floatformat:2 }}</td>
+      <td>${{ v.approve_payout|floatformat:2 }}</td>
+      <td>
+        <span
+          class="status-badge {% if v.status == 'pending' %}pending {% elif v.status == 'approved' %}approved {% else %}rejected{% endif %}"
+        >
+          {{ v.get_status_display }}
+        </span>
+      </td>
+      <td style="white-space: nowrap">
+        <div
+          class="d-flex align-items-center gap-1 justify-content-center flex-nowrap"
+        >
+          <a
+            href="{% url 'validation:detail' v.id %}"
+            class="action-btn"
+            title="View More"
+          >
+            <i class="bi bi-eye"></i>
+          </a>
+          {% if v.can_be_approved %}
+          <a
+            href="{% url 'validation:edit' v.id %}?action=approve"
+            class="action-btn text-success"
+            title="Approve"
+            onclick="return confirm('Approve this validation?')"
+          >
+            <i class="bi bi-check-circle"></i>
+          </a>
+          {% endif %}
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+
+    <!-- DRS Requiring Validation -->
+    {% for drs in drs_for_validation %}
+    <tr class="drs-validation-row" data-drs-id="{{ drs.id }}">
+      <td>{{ drs.id }}</td>
+      <td>
+        <span class="drs-type-badge drs-type-drs"> DRS </span>
+      </td>
+      <td>
+        <a href="{% url 'drs:detail' drs.id %}" style="color: #1963b3">
+          {{ drs.campaign_name|truncatechars:30 }}
+        </a>
+      </td>
+      <td>{{ drs.publisher.company_name|truncatechars:20 }}</td>
+      <td>{{ drs.pid|default:"-" }}</td>
+      <td>{{ drs.publisher_conversions }}</td>
+      <td>${{ drs.payout|floatformat:2|default:"0.00" }}</td>
+      <td>${{ drs.payout|floatformat:2|default:"0.00" }}</td>
+      <td style="white-space: nowrap">
+        <div
+          class="d-flex align-items-center gap-1 justify-content-center flex-nowrap"
+        >
+          <a
+            href="{% url 'drs:detail' drs.id %}"
+            class="action-btn"
+            title="View DRS Details"
+          >
+            <i class="bi bi-eye"></i>
+          </a>
+          {% if not drs.is_validated %}
+          <button
+            onclick="saveValidationReport({{ drs.id }})"
+            class="create-validation-btn"
+            title="Save Report"
+            id="save-btn-{{ drs.id }}"
+          >
+            <i class="bi bi-check-circle me-1"></i> Save Report
+          </button>
+          {% else %}
+          <span class="badge bg-success" style="padding: 0.3em 1em">
+            <i class="bi bi-check-circle me-1"></i> Saved
+          </span>
+          {% endif %}
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+  <div class="empty-state-icon text-secondary">
+    <i class="bi bi-emoji-frown"></i>
+  </div>
+  <h4 class="empty-state-title">No Records Found</h4>
+  <p class="empty-state-text">
+    No validations or DRS requiring validation found with the selected filters.
+  </p>
+  <button onclick="resetFilters()" class="btn btn-primary mt-3">
+    <i class="bi bi-arrow-counterclockwise me-2"></i> Reset Filters
+  </button>
+</div>
+{% endif %}

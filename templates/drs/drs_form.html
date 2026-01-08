@@ -785,10 +785,11 @@ function showToast(message, type = 'info') {
 
 // Function to calculate totals
 function calculateTotals() {
-    const revenueRate = parseFloat(document.getElementById('{{ form.campaign_revenue.id_for_label }}').value) || 0;
-    const payoutRate = parseFloat(document.getElementById('{{ form.publisher_payout.id_for_label }}').value) || 0;
-    const advConvs = parseInt(document.getElementById('{{ form.advertiser_conversions.id_for_label }}').value) || 0;
-    const pubConvs = parseInt(document.getElementById('{{ form.publisher_conversions.id_for_label }}').value) || 0;
+    // Use the actual element IDs from your HTML
+    const revenueRate = parseFloat(document.getElementById('id_campaign_revenue').value) || 0;
+    const payoutRate = parseFloat(document.getElementById('id_publisher_payout').value) || 0;
+    const advConvs = parseInt(document.getElementById('id_advertiser_conversions').value) || 0;
+    const pubConvs = parseInt(document.getElementById('id_publisher_conversions').value) || 0;
     
     const totalRevenue = revenueRate * advConvs;
     const totalPayout = payoutRate * pubConvs;
@@ -809,6 +810,28 @@ function calculateTotals() {
     } else {
         marginElement.style.color = '#6b7280';
     }
+}
+
+// Function to setup calculation listeners
+function setupCalculationListeners() {
+    // Get all the rate and conversion fields
+    const rateConversionFields = [
+        'id_campaign_revenue',
+        'id_publisher_payout', 
+        'id_advertiser_conversions',
+        'id_publisher_conversions'
+    ];
+    
+    // Add event listeners to each field
+    rateConversionFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', calculateTotals);
+            field.addEventListener('change', calculateTotals);
+        }
+    });
+    
+    console.log('Calculation listeners setup for fields:', rateConversionFields);
 }
 
 // Function to update field labels and editability based on MMP selection

@@ -133,9 +133,6 @@ class DailyRevenueSheet(models.Model):
             'active': 'success',
             'paused': 'warning',
             'completed': 'info',
-            'validated': 'primary',
-            'invoiced': 'secondary',
-            'approved': 'info',
             'paid': 'success',
         }
         return status_classes.get(self.status, 'secondary')

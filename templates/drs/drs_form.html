@@ -614,15 +614,15 @@ We're removing the base template extension because this will be loaded inside a 
             <div class="status-option status-completed" onclick="selectStatus('completed')">
               <i class="bi bi-check-circle status-icon-completed"></i> Completed
             </div>
-            <div class="status-option status-validated" onclick="selectStatus('validated')">
-              <i class="bi bi-check-circle-fill status-icon-validated"></i> Validated
-            </div>
-            <div class="status-option status-invoiced" onclick="selectStatus('invoiced')">
-              <i class="bi bi-file-earmark-text status-icon-invoiced"></i> Invoiced
-            </div>
-            <div class="status-option status-approved" onclick="selectStatus('approved')">
-              <i class="bi bi-check-square status-icon-approved"></i> Approved
-            </div>
+            <!-- <div class="status-option status-validated" onclick="selectStatus('validated')"> -->
+              <!-- <i class="bi bi-check-circle-fill status-icon-validated"></i> Validated -->
+            <!-- </div> -->
+            <!-- <div class="status-option status-invoiced" onclick="selectStatus('invoiced')"> -->
+              <!-- <i class="bi bi-file-earmark-text status-icon-invoiced"></i> Invoiced -->
+            <!-- </div> -->
+            <!-- <div class="status-option status-approved" onclick="selectStatus('approved')"> -->
+              <!-- <i class="bi bi-check-square status-icon-approved"></i> Approved -->
+            <!-- </div> -->
             <div class="status-option status-paid" onclick="selectStatus('paid')">
               <i class="bi bi-cash-coin status-icon-paid"></i> Paid
             </div>
@@ -846,17 +846,19 @@ function updateFieldsBasedOnMMP() {
     
     const selectedMMP = mmpSelect.value;
     
-    // Reset all fields to editable first
+    // IMPORTANT: Always make ALL fields editable!
     if (pidField) {
         pidField.readOnly = false;
-        pidField.style.backgroundColor = '';
+        pidField.style.backgroundColor = 'white';
+        pidField.placeholder = "Enter PID...";
     }
     if (afPrtField) {
         afPrtField.readOnly = false;
-        afPrtField.style.backgroundColor = '';
+        afPrtField.style.backgroundColor = 'white';
+        afPrtField.placeholder = "Enter AF_PRT...";
     }
     
-    // Update labels and editability based on MMP
+    // Update labels based on MMP (but don't make fields read-only)
     switch(selectedMMP) {
         case 'Appsflyer':
             if (pidLabel) pidLabel.innerHTML = 'PID';
@@ -866,15 +868,7 @@ function updateFieldsBasedOnMMP() {
         case 'Adjust':
             if (pidLabel) pidLabel.innerHTML = 'Ad Group';
             if (afPrtLabel) afPrtLabel.innerHTML = 'AF_PRT';
-            // Make AF_PRT and PID non-editable for Adjust (but NOT MMP field)
-            if (pidField) {
-                pidField.readOnly = true;
-                pidField.style.backgroundColor = '#f8f9fa';
-            }
-            if (afPrtField) {
-                afPrtField.readOnly = true;
-                afPrtField.style.backgroundColor = '#f8f9fa';
-            }
+            // Fields remain editable - user can input custom values
             break;
             
         case 'Singular':
@@ -882,20 +876,41 @@ function updateFieldsBasedOnMMP() {
         case 'AppMetrica':
             if (pidLabel) pidLabel.innerHTML = 'Network ID';
             if (afPrtLabel) afPrtLabel.innerHTML = 'AF_PRT';
-            // Make AF_PRT and PID non-editable (but NOT MMP field)
-            if (pidField) {
-                pidField.readOnly = true;
-                pidField.style.backgroundColor = '#f8f9fa';
-            }
-            if (afPrtField) {
-                afPrtField.readOnly = true;
-                afPrtField.style.backgroundColor = '#f8f9fa';
-            }
+            // Fields remain editable - user can input custom values
+            break;
+            
+        case 'Other':
+            if (pidLabel) pidLabel.innerHTML = 'Custom Field';
+            if (afPrtLabel) afPrtLabel.innerHTML = 'Custom Reference';
+            // Fields remain editable - user can input custom values
             break;
             
         default:
             if (pidLabel) pidLabel.innerHTML = 'PID';
             if (afPrtLabel) afPrtLabel.innerHTML = 'AF_PRT';
+    }
+    
+    // Add placeholders based on MMP
+    if (pidField) {
+        switch(selectedMMP) {
+            case 'Adjust': pidField.placeholder = "Enter Ad Group"; break;
+            case 'Singular': 
+            case 'Branch': 
+            case 'AppMetrica': pidField.placeholder = "Enter Network ID"; break;
+            case 'Other': pidField.placeholder = "Enter custom field name"; break;
+            default: pidField.placeholder = "Enter PID";
+        }
+    }
+    
+    if (afPrtField) {
+        switch(selectedMMP) {
+            case 'Adjust': afPrtField.placeholder = "Enter AF_PRT"; break;
+            case 'Singular': 
+            case 'Branch': 
+            case 'AppMetrica': afPrtField.placeholder = "Enter AF_PRT"; break;
+            case 'Other': afPrtField.placeholder = "Enter custom reference"; break;
+            default: afPrtField.placeholder = "Enter AF_PRT";
+        }
     }
 }
 
@@ -921,9 +936,6 @@ function selectStatus(status) {
         'active': 'Active',
         'paused': 'Paused', 
         'completed': 'Completed',
-        'validated': 'Validated',
-        'invoiced': 'Invoiced',
-        'approved': 'Approved',
         'paid': 'Paid'
     };
     
@@ -990,9 +1002,6 @@ function initializeStatusDisplay() {
         'active': 'Active',
         'paused': 'Paused', 
         'completed': 'Completed',
-        'validated': 'Validated',
-        'invoiced': 'Invoiced',
-        'approved': 'Approved',
         'paid': 'Paid'
     };
     

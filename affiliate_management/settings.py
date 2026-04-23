@@ -35,7 +35,7 @@ SECRET_KEY = 'django-insecure-#zh1qw&_f@d=qjbg46#07p@bo^wrx4x9ns2d7=*pjlsc^tk-ep
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['34.131.210.241', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -155,6 +155,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Check if you have any custom error handling
 HANDLER403 = 'apps.dashboard.views.forbidden_view'
 HANDLER404 = 'apps.dashboard.views.page_not_found_view'
+
+CSRF_TRUSTED_ORIGINS = ['http://34.131.210.241']
+
+# Cookie settings for proxy/hosted environments
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = None
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000  # Default is 1000
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
